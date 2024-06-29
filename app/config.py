@@ -1,4 +1,5 @@
 import os
+import random
 from dotenv import load_dotenv
 from pprint import pprint,pformat
 load_dotenv()
@@ -81,7 +82,11 @@ DEFAULT_GEMINI_MODEL = next((model for model in DEFAULT_MODELS if model in MODEL
 DEFAULT_SUMMARY_MODEL = MODEL_DICT['GPT-4o']
 DEFAULT_TEMP = 0.0
 DEFAULT_SYSTEM_PROMPT = "With reference to any code or documentation provided, answer the following questions by the user. Show only those lines or functions that were changed, and explain the changes."
-DEFAULT_SUMMARY_SYSTEM_PROMPT = "You are a senior developer reviewing parallel solutions provided by junior developers. Synthesize their output into an elegant, modular, clean, documented solution. Then, display in markdown the full contents of any new versions of files which your solution alters from the existing repository."
-DEFAULT_SUMMARY_USER_PROMPT = "Synthesize and summarize these suggested changes, and return a markdown representation of a directory structure of files necessary to change, along with the full contents of any updated files."
+DEFAULT_SUMMARY_SYSTEM_PROMPT = "You are a senior developer reviewing parallel solutions provided by junior developers. Synthesize their output into an elegant, modular, clean, documented solution. Then, display in markdown relevant functions, classes and portions of files which your solution alters from the existing repository."
+DEFAULT_SUMMARY_USER_PROMPT = "Synthesize and summarize these suggested changes, and return a markdown representation of a directory structure of files necessary to change, along with the full functions or code snippets changed under a markdown heading for the filepath under which they appear."
 DEFAULT_INCL_REPO = True
 
+PATH_HOMEDIR = os.path.expanduser('~/.multiprompt')
+PATH_DATA = os.path.join(PATH_HOMEDIR,'data')
+PATH_LLM_CACHE=os.path.join(PATH_DATA,'cache.multiprompt_llm_cache.sqlitedict')
+os.makedirs(PATH_DATA,exist_ok=True)

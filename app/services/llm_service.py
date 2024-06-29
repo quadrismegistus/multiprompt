@@ -1,165 +1,21 @@
-# from ..config import *
-# from .repo2llm import *
-
-
-# @cache
-# def get_anthropic_client():
-#     import anthropic
-
-#     if not ANTHROPIC_API_KEY:
-#         raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
-#     return anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
-
-
-# @cache
-# def get_openai_client():
-#     import openai
-
-#     if not OPENAI_API_KEY:
-#         raise ValueError("OPENAI_API_KEY not found in environment variables")
-#     return openai.AsyncOpenAI(api_key=OPENAI_API_KEY)
-
-
-# @cache
-# def get_gemini_client(model="gemini-pro"):
-#     if not GEMINI_API_KEY:
-#         raise ValueError("GEMINI_API_KEY not found in environment variables")
-#     genai.configure(api_key=GEMINI_API_KEY)
-#     return genai
-
-
-# @cache
-# def get_ollama_client():
-#     from ollama import AsyncClient
-
-#     return AsyncClient()
-
-# def format_prompt(user_prompt, system_prompt="", example_prompts=[], incl_repo=DEFAULT_INCL_REPO, **kwargs):
-#     messages = []
-#     if system_prompt:
-#         messages.append({"role": "system", "content": system_prompt})
-
-#     # Adding example prompts
-#     for question, answer in example_prompts:
-#         messages.append({"role": "user", "content": question})
-#         messages.append({"role": "assistant", "content": answer})
-
-
-#     if incl_repo:
-#         repo_analysis = analyze_repository(extensions=[".py", ".html", ".css", ".js"])
-#         user_prompt+=f'\n\n\n## Prompt Appendix: Existing repository contents:\n\n{repo_analysis}\n\n'
-
-#     messages.append({"role": "user", "content": user_prompt})
-#     return messages
-
-
-# async def generate(model, messages, **kwargs):
-#     try:
-#         if model.startswith("claude"):
-#             client = get_anthropic_client()
-#             sys_prompt = '\n\n\n\n'.join(d.get('content','') for d in messages if d['role']=="system").strip()
-#             messages = [d for d in messages if d['role']!="system"]
-#             async with client.messages.stream(
-#                 model=model,
-#                 max_tokens=kwargs.get('max_tokens', 1000),
-#                 messages=messages,
-#                 system=sys_prompt,
-#                 temperature=kwargs.get('temperature', DEFAULT_TEMP),
-#             ) as stream:
-#                 async for text in stream.text_stream:
-#                     yield text
-#         elif model.startswith("gpt"):
-#             client = get_openai_client()
-#             stream = await client.chat.completions.create(
-#                 model=model,
-#                 messages=messages,
-#                 stream=True,
-#                 temperature=kwargs.get('temperature', DEFAULT_TEMP),
-#             )
-#             async for chunk in stream:
-#                 if chunk.choices[0].delta.content is not None:
-#                     yield chunk.choices[0].delta.content
-#         elif model.startswith("gemini"):
-#             gemini_client = get_gemini_client(model)
-#             gemini_model = gemini_client.GenerativeModel(model_name=model)
-#             response = gemini_model.generate_content(
-#                 convert_openai_to_gemini_str(messages),
-#                 generation_config=GenerationConfig(
-#                     max_output_tokens=kwargs.get('max_tokens'),
-#                     temperature=kwargs.get('temperature', DEFAULT_TEMP),
-#                 ),
-#                 safety_settings={
-#                     HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-#                     HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-#                     HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-#                     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-#                 },
-#                 stream=True,
-#             )
-#             for chunk in response:
-#                 if chunk.parts:
-#                     for part in chunk.parts:
-#                         if hasattr(part, "text"):
-#                             yield part.text
-#                 await asyncio.sleep(0.05)
-#         else:  # Ollama models
-#             client = get_ollama_client()
-#             formatted_prompt = "\n\n".join([f"{m['role']}: {m['content']}" for m in messages])
-#             async for part in client.generate(model=model, prompt=formatted_prompt, stream=True):
-#                 yield part["response"]
-#     except Exception as e:
-#         logger.error(f"Error in generate function for model {model}: {e}")
-#         yield f"Error: {str(e)}"
-
-
-# async def stream_llm_response(model=DEFAULT_MODEL, **kwargs):
-#     messages = format_prompt(model=model, **kwargs)
-#     # logger.info(f'streaming messages: {messages}')
-#     async for response in generate(model=model, messages=messages, **kwargs):
-#         yield response
-
-
-# def convert_openai_to_gemini(openai_messages):
-#     l=[]
-#     for msg in openai_messages:
-#         new_msg = {}
-#         new_msg['role'] = "model" if msg['role']=='assistant' else "user"
-#         new_msg['parts'] = [msg['content']]
-#         l.append(new_msg)
-#     return l
-
-
-# def convert_openai_to_gemini_str(openai_messages):
-#     l=[]
-#     for msg in openai_messages:
-#         role,content = msg['role'], msg['content']
-#         o=f'<{role}>{content}</{role}>'
-#         l.append(o)
-#     out='\n\n'.join(l)
-#     print(out)
-#     return out
-
 from ..config import *
 from .repo2llm import *
-
+import hashlib
+import sqlitedict
 
 @cache
 def get_anthropic_client():
     import anthropic
-
     if not ANTHROPIC_API_KEY:
         raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
     return anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
 
-
 @cache
 def get_openai_client():
     import openai
-
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY not found in environment variables")
     return openai.AsyncOpenAI(api_key=OPENAI_API_KEY)
-
 
 @cache
 def get_gemini_client(model="gemini-pro"):
@@ -168,13 +24,35 @@ def get_gemini_client(model="gemini-pro"):
     genai.configure(api_key=GEMINI_API_KEY)
     return genai
 
-
 @cache
 def get_ollama_client():
     from ollama import AsyncClient
-
     return AsyncClient()
 
+def get_cache_db():
+    return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
+
+def generate_cache_key(data):
+    hasher = hashlib.sha256()
+    
+    # Sort the dictionary items to ensure consistent ordering
+    sorted_items = sorted(data.items(), key=lambda x: x[0])
+    
+    for key, value in sorted_items:
+        # Convert the key and value to a consistent string representation
+        key_str = str(key).encode('utf-8')
+        
+        # Handle different types of values
+        if isinstance(value, (dict, list)):
+            value_str = json.dumps(value, sort_keys=True).encode('utf-8')
+        else:
+            value_str = str(value).encode('utf-8')
+        
+        # Update the hasher with both key and value
+        hasher.update(key_str)
+        hasher.update(value_str)
+    
+    return hasher.hexdigest()
 
 def format_prompt(
     user_prompt,
@@ -191,23 +69,11 @@ def format_prompt(
         messages.append({"role": "assistant", "content": answer})
     if incl_repo:
         repo_analysis = analyze_repository(extensions=[".py", ".html", ".css", ".js"])
-        user_prompt += f"\n\n\n## REFERENCE: CODE FOR EXISTING IMPLEMENTATION FOLLOWS ##\n\n{repo_analysis}"
+        user_prompt += f"\n\n\n{repo_analysis}"
     messages.append({"role": "user", "content": user_prompt})
     return messages
 
-
 async def generate_anthropic(model, messages, **kwargs):
-    """
-    Generate responses using Anthropic's Claude models.
-
-    Args:
-    model (str): The specific Claude model to use.
-    messages (list): List of message dictionaries.
-    **kwargs: Additional keyword arguments.
-
-    Yields:
-    str: Generated text chunks.
-    """
     client = get_anthropic_client()
     sys_prompt = "\n\n\n\n".join(
         d.get("content", "") for d in messages if d["role"] == "system"
@@ -223,19 +89,7 @@ async def generate_anthropic(model, messages, **kwargs):
         async for text in stream.text_stream:
             yield text
 
-
 async def generate_openai(model, messages, **kwargs):
-    """
-    Generate responses using OpenAI's GPT models.
-
-    Args:
-    model (str): The specific GPT model to use.
-    messages (list): List of message dictionaries.
-    **kwargs: Additional keyword arguments.
-
-    Yields:
-    str: Generated text chunks.
-    """
     client = get_openai_client()
     stream = await client.chat.completions.create(
         model=model,
@@ -247,19 +101,7 @@ async def generate_openai(model, messages, **kwargs):
         if chunk.choices[0].delta.content is not None:
             yield chunk.choices[0].delta.content
 
-
 async def generate_gemini(model, messages, **kwargs):
-    """
-    Generate responses using Google's Gemini models.
-
-    Args:
-    model (str): The specific Gemini model to use.
-    messages (list): List of message dictionaries.
-    **kwargs: Additional keyword arguments.
-
-    Yields:
-    str: Generated text chunks.
-    """
     gemini_client = get_gemini_client(model)
     gemini_model = gemini_client.GenerativeModel(model_name=model)
     response = gemini_model.generate_content(
@@ -283,19 +125,7 @@ async def generate_gemini(model, messages, **kwargs):
                     yield part.text
         await asyncio.sleep(0.05)
 
-
 async def generate_ollama(model, messages, **kwargs):
-    """
-    Generate responses using Ollama models.
-
-    Args:
-    model (str): The specific Ollama model to use.
-    messages (list): List of message dictionaries.
-    **kwargs: Additional keyword arguments.
-
-    Yields:
-    str: Generated text chunks.
-    """
     client = get_ollama_client()
     formatted_prompt = "\n\n".join([f"{m['role']}: {m['content']}" for m in messages])
     async for part in client.generate(
@@ -303,42 +133,49 @@ async def generate_ollama(model, messages, **kwargs):
     ):
         yield part["response"]
 
+def get_generator_func(model):
+    if model.startswith("claude"):
+        return generate_anthropic
+    elif model.startswith("gpt"):
+        return generate_openai
+    elif model.startswith("gemini"):
+        return generate_gemini
+    else:
+        return generate_ollama
+
 
 async def generate(model, messages, **kwargs):
-    """
-    Generate responses from a language model.
-
-    Args:
-        model (str): The name of the language model to use.
-        messages (list): The conversation history, in OpenAI format.
-        **kwargs: Additional keyword arguments.
-
-    Yields:
-        str: Generated text chunks.
-    """
-    try:
-        if model.startswith("claude"):
-            async for text in generate_anthropic(model, messages, **kwargs):
-                yield text
-        elif model.startswith("gpt"):
-            async for text in generate_openai(model, messages, **kwargs):
-                yield text
-        elif model.startswith("gemini"):
-            async for text in generate_gemini(model, messages, **kwargs):
-                yield text
+    cache_key = generate_cache_key(
+        dict(
+            model=model,
+            messages=messages,
+            **kwargs
+        )
+    )
+    logger.info(f'looking for {cache_key}')
+    with get_cache_db() as cache_db:
+        if cache_key in cache_db:
+            logger.info(f"Cache hit for key: {cache_key}")
+            cached_response = cache_db[cache_key]
+            for chunk in cached_response:
+                yield chunk
+                await asyncio.sleep(random.uniform(0,0.01))
         else:
-            async for text in generate_ollama(model, messages, **kwargs):
-                yield text
-    except Exception as e:
-        logger.error(f"Error in generate function for model {model}: {e}")
-        yield f"Error: {str(e)}"
-
+            try:
+                generator_func = get_generator_func(model)
+                alltext = []
+                async for text in generator_func(model, messages, **kwargs):
+                    yield text
+                    alltext.append(text)
+                cache_db[cache_key] = alltext
+            except Exception as e:
+                logger.error(f"Error in generate function for model {model}: {e}")
+                yield f"Error: {str(e)}"
 
 async def stream_llm_response(model=DEFAULT_MODEL, **kwargs):
     messages = format_prompt(model=model, **kwargs)
     async for response in generate(model=model, messages=messages, **kwargs):
         yield response
-
 
 def convert_openai_to_gemini(openai_messages):
     l = []
@@ -349,7 +186,6 @@ def convert_openai_to_gemini(openai_messages):
         l.append(new_msg)
     return l
 
-
 def convert_openai_to_gemini_str(openai_messages):
     l = []
     for msg in openai_messages:
@@ -359,3 +195,182 @@ def convert_openai_to_gemini_str(openai_messages):
     out = "\n\n".join(l)
     print(out)
     return out
+
+
+# from ..config import *
+# from .repo2llm import *
+# import hashlib
+# import sqlitedict
+
+# @cache
+# def get_anthropic_client():
+#     import anthropic
+#     if not ANTHROPIC_API_KEY:
+#         raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
+#     return anthropic.AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
+
+# @cache
+# def get_openai_client():
+#     import openai
+#     if not OPENAI_API_KEY:
+#         raise ValueError("OPENAI_API_KEY not found in environment variables")
+#     return openai.AsyncOpenAI(api_key=OPENAI_API_KEY)
+
+# @cache
+# def get_gemini_client(model="gemini-pro"):
+#     if not GEMINI_API_KEY:
+#         raise ValueError("GEMINI_API_KEY not found in environment variables")
+#     genai.configure(api_key=GEMINI_API_KEY)
+#     return genai
+
+# @cache
+# def get_ollama_client():
+#     from ollama import AsyncClient
+#     return AsyncClient()
+
+# # Initialize the sqlitedict database
+
+# def get_cache_db():
+#     return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
+
+# def generate_cache_key(messages, model, temperature):
+#     hasher = hashlib.sha256()
+#     hasher.update(json.dumps(messages, sort_keys=True).encode('utf-8'))
+#     hasher.update(model.encode('utf-8'))
+#     hasher.update(str(temperature).encode('utf-8'))
+#     return hasher.hexdigest()
+
+# def format_prompt(
+#     user_prompt,
+#     system_prompt="",
+#     example_prompts=[],
+#     incl_repo=DEFAULT_INCL_REPO,
+#     **kwargs,
+# ):
+#     messages = []
+#     if system_prompt:
+#         messages.append({"role": "system", "content": system_prompt})
+#     for question, answer in example_prompts:
+#         messages.append({"role": "user", "content": question})
+#         messages.append({"role": "assistant", "content": answer})
+#     if incl_repo:
+#         repo_analysis = analyze_repository(extensions=[".py", ".html", ".css", ".js"])
+#         user_prompt += f"\n\n\n{repo_analysis}"
+#     messages.append({"role": "user", "content": user_prompt})
+#     return messages
+
+# async def generate_anthropic(model, messages, **kwargs):
+#     client = get_anthropic_client()
+#     sys_prompt = "\n\n\n\n".join(
+#         d.get("content", "") for d in messages if d["role"] == "system"
+#     ).strip()
+#     messages = [d for d in messages if d["role"] != "system"]
+#     async with client.messages.stream(
+#         model=model,
+#         max_tokens=kwargs.get("max_tokens", 1000),
+#         messages=messages,
+#         system=sys_prompt,
+#         temperature=kwargs.get("temperature", DEFAULT_TEMP),
+#     ) as stream:
+#         async for text in stream.text_stream:
+#             yield text
+
+# async def generate_openai(model, messages, **kwargs):
+#     client = get_openai_client()
+#     stream = await client.chat.completions.create(
+#         model=model,
+#         messages=messages,
+#         stream=True,
+#         temperature=kwargs.get("temperature", DEFAULT_TEMP),
+#     )
+#     async for chunk in stream:
+#         if chunk.choices[0].delta.content is not None:
+#             yield chunk.choices[0].delta.content
+
+# async def generate_gemini(model, messages, **kwargs):
+#     gemini_client = get_gemini_client(model)
+#     gemini_model = gemini_client.GenerativeModel(model_name=model)
+#     response = gemini_model.generate_content(
+#         convert_openai_to_gemini_str(messages),
+#         generation_config=GenerationConfig(
+#             max_output_tokens=kwargs.get("max_tokens"),
+#             temperature=kwargs.get("temperature", DEFAULT_TEMP),
+#         ),
+#         safety_settings={
+#             HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+#             HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+#             HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+#             HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+#         },
+#         stream=True,
+#     )
+#     for chunk in response:
+#         if chunk.parts:
+#             for part in chunk.parts:
+#                 if hasattr(part, "text"):
+#                     yield part.text
+#         await asyncio.sleep(0.05)
+
+# async def generate_ollama(model, messages, **kwargs):
+#     client = get_ollama_client()
+#     formatted_prompt = "\n\n".join([f"{m['role']}: {m['content']}" for m in messages])
+#     async for part in client.generate(
+#         model=model, prompt=formatted_prompt, stream=True
+#     ):
+#         yield part["response"]
+
+# async def generate(model, messages, **kwargs):
+#     temperature = kwargs.get("temperature", DEFAULT_TEMP)
+#     cache_key = generate_cache_key(messages, model, temperature)
+    
+#     # Check if the result is already in the cache
+#     with get_cache_db() as cache_db:
+#         if cache_key in cache_db:
+#             logger.info(f"Cache hit for key: {cache_key}")
+#             yield cache_db[cache_key]
+#             return
+        
+#         try:
+#             if model.startswith("claude"):
+#                 async for text in generate_anthropic(model, messages, **kwargs):
+#                     cache_db[cache_key] = text
+#                     yield text
+#             elif model.startswith("gpt"):
+#                 async for text in generate_openai(model, messages, **kwargs):
+#                     cache_db[cache_key] = text
+#                     yield text
+#             elif model.startswith("gemini"):
+#                 async for text in generate_gemini(model, messages, **kwargs):
+#                     cache_db[cache_key] = text
+#                     yield text
+#             else:
+#                 async for text in generate_ollama(model, messages, **kwargs):
+#                     cache_db[cache_key] = text
+#                     yield text
+#         except Exception as e:
+#             logger.error(f"Error in generate function for model {model}: {e}")
+#             yield f"Error: {str(e)}"
+
+# async def stream_llm_response(model=DEFAULT_MODEL, **kwargs):
+#     messages = format_prompt(model=model, **kwargs)
+#     async for response in generate(model=model, messages=messages, **kwargs):
+#         yield response
+
+# def convert_openai_to_gemini(openai_messages):
+#     l = []
+#     for msg in openai_messages:
+#         new_msg = {}
+#         new_msg["role"] = "model" if msg["role"] == "assistant" else "user"
+#         new_msg["parts"] = [msg["content"]]
+#         l.append(new_msg)
+#     return l
+
+# def convert_openai_to_gemini_str(openai_messages):
+#     l = []
+#     for msg in openai_messages:
+#         role, content = msg["role"], msg["content"]
+#         o = f"<{role}>{content}</{role}>"
+#         l.append(o)
+#     out = "\n\n".join(l)
+#     print(out)
+#     return out

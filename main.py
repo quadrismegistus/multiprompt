@@ -60,7 +60,7 @@ async def handle_summary_model(model, websocket, data):
         system_prompt=system_prompt,
         example_prompts=example_prompts,
         user_prompt=user_prompt,
-        incl_repo=incl_repo
+        incl_repo=False #incl_repo
     )
     
     async for response in streamer:

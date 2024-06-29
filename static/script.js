@@ -83,7 +83,6 @@ function initializeApp() {
             setupSummaryModelCheckbox();
             loadConfigFromLocalStorage();
             setupOutputColumns();
-            setupEditableContent();
             setupEventListeners();
         })
         .catch(error => console.error('Error fetching models:', error));
@@ -124,7 +123,7 @@ function loadConfigFromLocalStorage() {
 
 async function sendPrompt() {
     // const prompt = document.getElementById("prompt")?.value;
-    const prompt = document.getElementById("prompt")?.innerText;
+        const prompt = document.getElementById("prompt")?.innerText;
     const includeRepoAnalysis = document.getElementById("includeRepoAnalysis")?.checked;
     const checkedModels = getCheckedModels();
     const summaryModelCheckbox = document.getElementById("summaryModel");
@@ -217,10 +216,15 @@ function updateOutput(model) {
         markdownContent.innerHTML = marked.parse(modelOutputs[model]);
         markdownContent.querySelectorAll('pre code').forEach((block) => {
             hljs.highlightBlock(block);
+            const copyButton = document.createElement('button');
+            copyButton.className = 'copy-btn';
+            copyButton.textContent = 'Copy';
+            copyButton.setAttribute('data-clipboard-text', block.innerText);
+            block.parentNode.style.position = 'relative'; // Ensure the parent is positioned
+            block.parentNode.appendChild(copyButton);
         });
     }
 }
-
 function getCheckedModels() {
     return Array.from(document.querySelectorAll('input[name="model"]:checked')).map(cb => cb.value);
 }
@@ -276,35 +280,35 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', set
 
 
 
-// function setupEditableContent() {
-//     const promptDiv = document.getElementById("prompt");
-//     if (!promptDiv) return;
+function setupEditableContent() {
+    const promptDiv = document.getElementById("prompt");
+    if (!promptDiv) return;
 
-//     let timer;
-//     promptDiv.addEventListener('input', function() {
-//         clearTimeout(timer);
-//         timer = setTimeout(() => {
-//             const content = this.innerText;
-//             this.innerHTML = marked.parse(content);
-//             this.querySelectorAll('pre code').forEach((block) => {
-//                 hljs.highlightBlock(block);
-//             });
-//         }, 300);
-//     });
+    let timer;
+    promptDiv.addEventListener('input', function() {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            const content = this.innerText;
+            this.innerHTML = marked.parse(content);
+            this.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightBlock(block);
+            });
+        }, 300);
+    });
 
-//     promptDiv.addEventListener('keydown', function(e) {
-//         if (e.key === 'Enter' && !e.shiftKey) {
-//             e.preventDefault();
-//             const selection = window.getSelection();
-//             const range = selection.getRangeAt(0);
-//             const br = document.createElement('br');
-//             range.deleteContents();
-//             range.insertNode(br);
-//             range.setStartAfter(br);
-//             range.setEndAfter(br);
-//             range.collapse(false);
-//             selection.removeAllRanges();
-//             selection.addRange(range);
-//         }
-//     });
-// }
+    promptDiv.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            const selection = window.getSelection();
+            const range = selection.getRangeAt(0);
+            const br = document.createElement('br');
+            range.deleteContents();
+            range.insertNode(br);
+            range.setStartAfter(br);
+            range.setEndAfter(br);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    });
+}

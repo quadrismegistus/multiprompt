@@ -6,19 +6,23 @@
     <title>Multiprompt</title>
     <script src="/static/lib/marked.min.js"></script>
     <script src="/static/lib/highlight.min.js"></script>
+    <script src="/static/lib/clipboard.min.js"></script>
     <link rel="stylesheet" href="/static/lib/github.min.css">
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="container">
         <div class="column prompt-column">
-            <h3>User</h3>
-            <div class="markdown-content">
+            <h3>User
+                <button id="sendPromptBtn" onclick="sendPrompt()">Send</button>
                 <div id="configIcon" onclick="toggleConfigModal()">⚙️</div>
-                <!-- <textarea id="prompt" placeholder="Enter your prompt"></textarea> -->
+
+
+            </h3>
+            <div class="markdown-content">
+                
                 <div id="prompt" class="editable-content" contenteditable="true" placeholder="Enter your prompt"></div>
             </div>
-            <button onclick="sendPrompt()">Send</button>
         </div>
         <div id="output" class="output-container"></div>
     </div>
@@ -42,5 +46,10 @@
     </div>
     <script src="/static/consts.js"></script>
     <script src="/static/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            new ClipboardJS('.copy-btn');
+        });
+    </script>
 </body>
 </html>

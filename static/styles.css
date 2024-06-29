@@ -151,15 +151,22 @@ button:hover {
     text-decoration: none;
     cursor: pointer;
 }
-#configIcon {
+#sendPromptBtn, #configIcon {
     position: absolute; /* Add this line */
-    top: 10px; /* Adjust as needed */
-    right: 10px; /* Adjust as needed */
-    color: #333;
     cursor: pointer;
-    font-size: 24px;
+    right:10px;
     z-index: 1000;
 }
+
+#configIcon {
+    font-size: 28px;
+}
+
+#sendPromptBtn {
+    right:44px;
+}
+
+
 #configIcon:hover {
     color: #007bff;
 }
@@ -348,4 +355,24 @@ button:hover {
 [data-bs-theme='dark'] .hljs-deletion,
 [data-bs-theme='dark'] .hljs-meta {
     color: #6a9955;
+}
+
+
+/* Add these styles to static/styles.css */
+.copy-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 12px;
+    display: none; /* Initially hidden */
+}
+
+.markdown-content:hover .copy-btn {
+    display: block; /* Show button on hover */
 }
