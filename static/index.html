@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiprompt</title>
+    <script src="/static/lib/marked.min.js"></script>
+    <script src="/static/lib/highlight.min.js"></script>
+    <link rel="stylesheet" href="/static/lib/github.min.css">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="column prompt-column">
+            <h3>User</h3>
+            <div class="markdown-content">
+                <div id="configIcon" onclick="toggleConfigModal()">⚙️</div>
+                <!-- <textarea id="prompt" placeholder="Enter your prompt"></textarea> -->
+                <div id="prompt" class="editable-content" contenteditable="true" placeholder="Enter your prompt"></div>
+            </div>
+            <button onclick="sendPrompt()">Send</button>
+        </div>
+        <div id="output" class="output-container"></div>
+    </div>
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="toggleConfigModal()">&times;</span>
+            <h2>Configuration</h2>
+            <p>Adjust the settings below to customize the behavior of the models:</p>
+            <div id="modelSelection">
+                <div class="model-checkbox">
+                    <input type="checkbox" id="includeRepoAnalysis" name="includeRepoAnalysis" checked>
+                    <label for="includeRepoAnalysis">Include Repository Analysis</label>
+                </div>
+                <div class="model-checkbox">
+                    <input type="checkbox" id="summaryModel" name="model" value="summaryModel">
+                    <label for="summaryModel">Summary Model</label>
+                    <select id="summaryModelDropdown"></select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/consts.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>

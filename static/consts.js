@@ -1,0 +1,1 @@
+const URI = `ws://${window.location.host}/ws/multiprompt`;

@@ -1,0 +1,351 @@
+
+
+
+body, html {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f5f5f5;
+    color: #333;
+    overflow: hidden; /* Prevent scrolling on the body */
+}
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    overflow-x: auto;
+}
+.column, .model-output {
+    flex: 1;
+    min-width: 250px; /* Minimum width for usability */
+    background-color: #ffffff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-right: 1px solid #ddd;
+}
+.column:last-child, .model-output:last-child {
+    border-right: none;
+}
+h3 {
+    margin: 0;
+    padding: 15px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    font-size: 1em;
+    font-weight: 500;
+    display: flex;
+    justify-content: space-between; /* Add this line */
+    align-items: center; /* Add this line */
+}
+.markdown-content {
+    position: relative; /* Add this line */
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+#prompt {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    resize: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.5;
+    outline: none;
+    overflow: hidden; /* Hide scrollbar */
+}
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: auto;
+}
+button:hover {
+    background-color: #0056b3;
+}
+#modelSelection {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    overflow-y: auto;
+    max-height: 200px; /* Limit height and make it scrollable if needed */
+}
+.model-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.model-checkbox input[type="checkbox"] {
+    margin-right: 8px;
+}
+#output {
+    display: flex;
+    flex-grow: 1;
+}
+.model-output pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 10px;
+}
+/* Media query for smaller screens */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    .column, .model-output {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+    .column:last-child, .model-output:last-child {
+        border-bottom: none;
+    }
+}
+#summaryModelDropdown {
+    margin-left: 10px;
+    padding: 2px 5px;
+}
+#configModal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+}
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+#configIcon {
+    position: absolute; /* Add this line */
+    top: 10px; /* Adjust as needed */
+    right: 10px; /* Adjust as needed */
+    color: #333;
+    cursor: pointer;
+    font-size: 24px;
+    z-index: 1000;
+}
+#configIcon:hover {
+    color: #007bff;
+}
+/* Add this to static/styles.css */
+.model-category {
+    margin-bottom: 20px;
+}
+.model-category h4 {
+    margin: 10px 0;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 66%; /* Set width to 66% of the screen size */
+    min-width: 400px; /* Set minimum width to 400px */
+    height: auto; /* Set auto height */
+}
+
+
+.model-category {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.model-category h4 {
+    margin: 10px 0;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#modelSelection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    overflow-y: auto;
+    max-height: 200px; /* Limit height and make it scrollable if needed */
+}
+
+
+
+
+/* Dark theme styles */
+[data-bs-theme='dark'] {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+[data-bs-theme='dark'] .container {
+    background-color: #121212;
+}
+
+[data-bs-theme='dark'] .column, 
+[data-bs-theme='dark'] .model-output {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border-right: 1px solid #333;
+}
+
+[data-bs-theme='dark'] h3 {
+    background-color: #1e1e1e;
+    border-bottom: 1px solid #333;
+}
+
+[data-bs-theme='dark'] button {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+[data-bs-theme='dark'] button:hover {
+    background-color: #555;
+}
+
+[data-bs-theme='dark'] .model-output pre {
+    background-color: #2e2e2e;
+    border: 1px solid #444;
+}
+
+[data-bs-theme='dark'] #configModal {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+[data-bs-theme='dark'] .modal-content {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    border: 1px solid #444;
+}
+
+[data-bs-theme='dark'] .close {
+    color: #e0e0e0;
+}
+
+[data-bs-theme='dark'] .close:hover,
+[data-bs-theme='dark'] .close:focus {
+    color: #fff;
+}
+
+[data-bs-theme='dark'] #prompt {
+    color: #e0e0e0; /* Light text color */
+}
+
+
+
+.editable-content {
+    width: 100%;
+    height: 100%;
+    padding: 15px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.5;
+    outline: none;
+    overflow-y: auto;
+}
+
+.editable-content:empty:before {
+    content: attr(placeholder);
+    color: #888;
+}
+
+.editable-content pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 10px;
+    margin: 10px 0;
+}
+
+[data-bs-theme='dark'] .editable-content pre {
+    background-color: #2e2e2e;
+    border: 1px solid #444;
+}
+
+
+
+/* Light mode styles (default) */
+.markdown-content pre {
+    background-color: #f8f8f8;
+    color: #333;
+}
+
+/* Dark mode styles */
+[data-bs-theme='dark'] .markdown-content pre {
+    background-color: #2e2e2e;
+    color: #e0e0e0;
+}
+
+/* Adjust syntax highlighting for dark mode */
+[data-bs-theme='dark'] .hljs {
+    background-color: #2e2e2e;
+    color: #e0e0e0;
+}
+
+[data-bs-theme='dark'] .hljs-keyword,
+[data-bs-theme='dark'] .hljs-selector-tag,
+[data-bs-theme='dark'] .hljs-built_in,
+[data-bs-theme='dark'] .hljs-name,
+[data-bs-theme='dark'] .hljs-tag {
+    color: #569cd6;
+}
+
+[data-bs-theme='dark'] .hljs-string,
+[data-bs-theme='dark'] .hljs-title,
+[data-bs-theme='dark'] .hljs-section,
+[data-bs-theme='dark'] .hljs-attribute,
+[data-bs-theme='dark'] .hljs-literal,
+[data-bs-theme='dark'] .hljs-template-tag,
+[data-bs-theme='dark'] .hljs-template-variable,
+[data-bs-theme='dark'] .hljs-type,
+[data-bs-theme='dark'] .hljs-addition {
+    color: #ce9178;
+}
+
+[data-bs-theme='dark'] .hljs-comment,
+[data-bs-theme='dark'] .hljs-quote,
+[data-bs-theme='dark'] .hljs-deletion,
+[data-bs-theme='dark'] .hljs-meta {
+    color: #6a9955;
+}
