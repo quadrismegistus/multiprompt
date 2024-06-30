@@ -1,19 +1,18 @@
-
-// src/components/Header.js
 import React from 'react';
+import { Navbar, Nav, Button } from 'react-bootstrap';
 
 function Header({ onConfigClick }) {
   return (
-    <nav className="navbar" role="navigation" aria-label="main navigation">
-      <div className="navbar-brand">
-        <h1 className="navbar-item title is-4">Multiprompt</h1>
-      </div>
-      <div className="navbar-end">
-        <div className="navbar-item">
-          <button className="button is-primary" onClick={onConfigClick}>Config</button>
-        </div>
-      </div>
-    </nav>
+    <Navbar bg="light" expand="lg">
+      <Navbar.Brand href="#home">Multiprompt</Navbar.Brand>
+      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
+        <Nav>
+          <Button variant="primary" onClick={onConfigClick}>Config</Button>
+        </Nav>
+      </Navbar.Collapse>
+    </Navbar>
   );
 }
+
 export default Header;

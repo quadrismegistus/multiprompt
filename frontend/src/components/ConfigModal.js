@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { ConfigContext } from '../contexts/ConfigContext';
+import React, { useState, useEffect } from 'react';
+import { useConfig } from '../contexts/ConfigContext';
 
 function ConfigModal({ isOpen, onClose }) {
-  const { config, setConfig } = useContext(ConfigContext);
+  const { config, updateConfig } = useConfig();
   const [localConfig, setLocalConfig] = useState({ ...config });
   const summaryModels = ['Model 1', 'Model 2']; // Add actual summary models
 
@@ -19,7 +19,7 @@ function ConfigModal({ isOpen, onClose }) {
   };
 
   const handleSaveConfig = () => {
-    setConfig(localConfig);
+    updateConfig(localConfig);
     onClose();
   };
 

@@ -1,10 +1,12 @@
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
 import Claude from 'claude-ai';
-import { ConfigContext } from '../contexts/ConfigContext';
+import { useConfig } from './ConfigContext';
 
-const useApiClients = () => {
-  const { config } = useContext(ConfigContext);
+const LLMContext = createContext(null);
+
+export const LLMProvider = ({ children }) => {
+  const { config } = useConfig();
   const openai = useRef(null);
   const claude = useRef(null);
 
@@ -84,7 +86,17 @@ const useApiClients = () => {
     }
   };
 
-  return { query };
+  return (
+    <LLMContext.Provider value={{ query }}>
+      {children}
+    </LLMContext.Provider>
+  );
 };
 
-export { useApiClients };
+export const useApiClients = () => {
+  const context = useContext(LLMContext);
+  if (context === undefined) {
+    throw new Error('useApiClients must be used within an LLMProvider');
+  }
+  return context;
+};

@@ -1,9 +1,9 @@
 import React, { useState, useContext } from 'react';
-import { ConfigContext } from '../contexts/ConfigContext';
+import { useConfig } from '../contexts/ConfigContext';
 
 function Prompt({ referenceCodePrompt }) {
   const [prompt, setPrompt] = useState('');
-  const { config } = useContext(ConfigContext);
+  const { config } = useConfig();
 
   const handleSubmit = (event) => {
     event.preventDefault();
