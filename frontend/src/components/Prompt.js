@@ -1,10 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { WebSocketContext } from '../contexts/WebSocketContext';
 import { ConfigContext } from '../contexts/ConfigContext';
 
 function Prompt({ referenceCodePrompt }) {
   const [prompt, setPrompt] = useState('');
-  const { sendMessage } = useContext(WebSocketContext);
   const { config } = useContext(ConfigContext);
 
   const handleSubmit = (event) => {
@@ -17,7 +15,7 @@ function Prompt({ referenceCodePrompt }) {
       summary_model: config.summaryModel,
       summary_model_value: config.summaryModelValue
     };
-    sendMessage(JSON.stringify(message));
+    console.log('Prompt.handleSubmit message =',message);
     setPrompt('');
   };
 

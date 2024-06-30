@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import 'bulma/css/bulma.min.css';
 import './styles/index.css';
 import { ConfigProvider } from './contexts/ConfigContext';
-import { WebSocketProvider } from './contexts/WebSocketContext';
 import Header from './components/Header';
 import Prompt from './components/Prompt';
 import AgentColumns from './components/AgentColumns';
 import ConfigModal from './components/ConfigModal';
 import DirectoryReader from './components/DirectoryReader';
+import QueryComponent from './components/QueryComponent'; // Import QueryComponent
 import { MODEL_CATEGORIES, MODEL_LIST, DEFAULT_MODELS, DEFAULT_MODEL } from './constants';
 
 function App() {
@@ -81,11 +81,6 @@ function App() {
       return updatedAgents;
     });
   };
-  
-
-
-
-
 
   const [referenceCodePrompt, setReferenceCodePrompt] = useState('');
 
@@ -95,9 +90,8 @@ function App() {
 
   return (
     <ConfigProvider>
-      <WebSocketProvider>
-        <div className="container">
-          <div id="content">
+      <div className="container">
+        <div id="content">
           <Header onConfigClick={() => setIsConfigModalOpen(true)} />
           <div className="columns is-multiline">
             <div className="column">
@@ -115,14 +109,14 @@ function App() {
               onUpdateAgent={handleUpdateAgent}
             />
           </div>
-          </div>
-          <ConfigModal
-            isOpen={isConfigModalOpen}
-            onClose={() => setIsConfigModalOpen(false)}
-            agents={agents}
-          />
+          <QueryComponent /> {/* Include the QueryComponent */}
         </div>
-      </WebSocketProvider>
+        <ConfigModal
+          isOpen={isConfigModalOpen}
+          onClose={() => setIsConfigModalOpen(false)}
+          agents={agents}
+        />
+      </div>
     </ConfigProvider>
   );
 }

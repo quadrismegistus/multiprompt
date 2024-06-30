@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { WebSocketContext } from '../contexts/WebSocketContext';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -7,15 +6,8 @@ import { MODEL_CATEGORIES, MODEL_LIST } from '../constants';
 
 function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, onUpdateAgent }) {
   const [output, setOutput] = useState('');
-  const { lastMessage } = useContext(WebSocketContext);
   const [isSystemPromptModalOpen, setIsSystemPromptModalOpen] = useState(false);
   const [tempSystemPrompt, setTempSystemPrompt] = useState(agent.systemPrompt || '');
-
-  useEffect(() => {
-    if (lastMessage && lastMessage.model === agent.model) {
-      setOutput(prevOutput => prevOutput + lastMessage.text);
-    }
-  }, [lastMessage, agent.model]);
 
   const handleNameChange = (e) => {
     const newName = e.target.value;
