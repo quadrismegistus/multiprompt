@@ -30,11 +30,6 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
-AVAILABLE_MODELS_OPENAI = ['gpt-3.5-turbo', 'gpt-4o', 'gpt-4-turbo-preview','gpt-4']
-AVAILABLE_MODELS_ANTHROPIC = ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307']
-AVAILABLE_MODELS_GEMINI = ['gemini-1.5-pro', 'gemini-1.5-flash', 'gemini-1.0-pro']
-AVAILABLE_MODELS = AVAILABLE_MODELS_OPENAI + AVAILABLE_MODELS_ANTHROPIC + AVAILABLE_MODELS_GEMINI
-
 
 MODEL_CATEGORIES = {
     "GPT": [
@@ -53,6 +48,11 @@ MODEL_CATEGORIES = {
         "gemini-1.5-pro",
         "gemini-1.5-flash",
         "gemini-1.0-pro"
+    ],
+    "Local": [
+        # "codegemma:2b",
+        "codellama",
+        "tinyllama"
     ]
 }
 
@@ -67,7 +67,11 @@ MODEL_DICT = {
     "Claude-3-Haiku": "claude-3-haiku-20240307",
     "Gemini-1.5-Pro": "gemini-1.5-pro",
     "Gemini-1.5-Flash": "gemini-1.5-flash",
-    "Gemini-1.0-Pro": "gemini-1.0-pro"
+    "Gemini-1.0-Pro": "gemini-1.0-pro",
+    # "Codegemma:2B":"codegemma:2b",
+    "CodeLlama":"codellama",
+    "TinyLlama":"tinyllama",
+
 }
 
 DEFAULT_MODELS = [

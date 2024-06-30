@@ -164,3 +164,7 @@ cython_debug/
 .repo.llm.md
 .robots.md
 .sqlite
+node_modules
+package-lock.json
+
+.DS_Store

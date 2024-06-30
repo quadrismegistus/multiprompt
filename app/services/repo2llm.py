@@ -14,19 +14,13 @@ def parse_gitignore(gitignore_path):
     return PathSpec([])
 
 def should_ignore(path, gitignore_spec):
-    name = path.name
-    return (
-        gitignore_spec.match_file(str(path)) or
-        name.startswith('.') or  # Hidden files and folders
-        name == 'LICENSE' or
-        name == '.gitignore'
-    )
+    return gitignore_spec.match_file(str(path))
 
 def get_files(directory, extensions, gitignore_spec):
     files = []
     for root, dirs, filenames in os.walk(directory):
-        # Remove hidden directories from dirs to prevent os.walk from traversing them
-        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        # Remove directories ignored by .gitignore
+        dirs[:] = [d for d in dirs if not should_ignore(Path(root) / d, gitignore_spec)]
         
         for filename in filenames:
             file_path = Path(root) / filename
@@ -35,22 +29,6 @@ def get_files(directory, extensions, gitignore_spec):
                 if not extensions or any(filename.endswith(ext) for ext in extensions):
                     files.append(file_path)
     return files
-
-def remove_comments(content, file_extension):
-    if file_extension in [".py", ".sh", ".bash"]:
-        # Remove Python/shell-style comments
-        content = re.sub(r"#.*$", "", content, flags=re.MULTILINE)
-    elif file_extension in [".js", ".java", ".c", ".cpp"]:
-        # Remove C-style comments
-        content = re.sub(r"//.*$", "", content, flags=re.MULTILINE)
-        content = re.sub(r"/\*[\s\S]*?\*/", "", content)
-    elif file_extension in [".html", ".xml"]:
-        # Remove HTML/XML comments
-        content = re.sub(r"<!--[\s\S]*?-->", "", content)
-
-    # Remove empty lines
-    content = "\n".join(line for line in content.splitlines() if line.strip())
-    return content
 
 def generate_directory_structure(base_path, files):
     tree = {}
@@ -101,7 +79,6 @@ def create_llm_file(base_path, output_file, files):
                 with open(file, "r") as f:
                     content = f.read()
                     file_extension = file.suffix
-                    content = remove_comments(content, file_extension)
                     out.write(f"```{file_extension.lstrip('.')}\n{content}\n```\n\n")
             except UnicodeDecodeError:
                 out.write("Binary file, contents not included\n\n")
@@ -121,8 +98,8 @@ def main():
         "--extensions",
         "-e",
         nargs="+",
-        default=[],
-        help='File extensions to include (default: all extensions)',
+        default=[".py", ".js", ".html", ".css"],
+        help='File extensions to include (default: .py, .js, .html, .css)',
     )
     parser.add_argument(
         "--output",
@@ -141,12 +118,14 @@ def main():
     if os.path.isabs(args.output):
         output_file = Path(args.output)
     else:
-        output_file = Path.cwd() / args.output
+        output_file = base_path / args.output
 
     create_llm_file(base_path, output_file, files)
 
-
 def analyze_repository(directory=".", extensions=None):
+    if extensions is None:
+        extensions = [".py", ".js", ".html", ".css"]
+    
     base_path = Path(directory).resolve()
     gitignore_path = base_path / '.gitignore'
     gitignore_spec = parse_gitignore(gitignore_path)
@@ -179,4 +158,4 @@ def analyze_repository(directory=".", extensions=None):
     return "\n".join(output)
 
 if __name__ == "__main__":
-    print(analyze_repository())
+    main()
