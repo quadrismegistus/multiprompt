@@ -1,0 +1,39 @@
+body { overflow: hidden;}
+
+.BigRow {
+    height:95dvh;
+}
+
+.Layout { 
+    width:100dvw; 
+    height:100dvh; 
+    margin:0; 
+    padding:0;
+    max-width:none;
+}
+
+.card { height:100%;}
+
+.agentconfig .accordion-header .accordion-button { font-size: 1.2rem;}
+
+.agentconfig { width:100%;margin-right:10px;}
+.agentconfig-buttons { text-align: right;}
+
+
+.btn-col { width:50px;}
+.logotitle { text-align: center;}
+.navbar-brand {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  @media (max-width: 991px) {
+    .navbar-brand {
+      position: static;
+      transform: none;
+    }
+  }
+
+.btn-group { height:100%; padding-right: 20px;}
+.card-header { padding:0;}

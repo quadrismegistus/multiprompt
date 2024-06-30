@@ -1,16 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Container } from 'react-bootstrap';
 import Header from './Header';
+import ConfigModal from './ConfigModal';
 
 function Layout({ children }) {
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+
+  const handleConfigClick = () => {
+    setIsConfigModalOpen(true);
+  };
+
+  const handleCloseConfigModal = () => {
+    setIsConfigModalOpen(false);
+  };
+
   return (
-    <>
-      <Header />
-      <Container fluid className="mt-3">
-        {children}
-      </Container>
-    </>
+    <Container className='Layout'>
+      <Header onConfigClick={handleConfigClick} />
+      {children}
+      <ConfigModal show={isConfigModalOpen} onHide={handleCloseConfigModal} />
+    </Container>
   );
 }
-
 export default Layout;

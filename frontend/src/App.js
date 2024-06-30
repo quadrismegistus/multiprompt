@@ -16,13 +16,9 @@ function App() {
         <AgentProvider>
           <Layout>
             <Container fluid>
-              <Row>
-                <Col md={3}>
+              <Row className='BigRow'>
                   <UserColumn />
-                </Col>
-                <Col md={9}>
                   <AgentColumns />
-                </Col>
               </Row>
             </Container>
           </Layout>
