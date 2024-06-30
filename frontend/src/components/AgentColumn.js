@@ -1,16 +1,13 @@
-import { PlusCircle, MinusCircle } from 'lucide-react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Accordion, Form, Button, Dropdown, ButtonGroup } from 'react-bootstrap';
 import { Row, Container, Col, Card } from 'react-bootstrap';
 import { useAgents } from '../contexts/AgentContext';
-import { useAgentInteraction } from '../hooks/useAgentInteraction';
 import MarkdownRenderer from './MarkdownRenderer';
 import AgentConfigAccordion from './AgentConfigAccordion';
+import { PlusCircle, MinusCircle } from 'lucide-react';
 
 function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
   const { updateAgent } = useAgents();
-  const { output, interact } = useAgentInteraction(agent);
-  const [tempSystemPrompt, setTempSystemPrompt] = useState(agent.systemPrompt || '');
 
   const handleNameChange = (e) => {
     const newName = e.target.value;
@@ -22,11 +19,7 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
   };
 
   const handleSystemPromptChange = (e) => {
-    setTempSystemPrompt(e.target.value);
-  };
-
-  const saveSystemPrompt = () => {
-    updateAgent(agent.id, { systemPrompt: tempSystemPrompt });
+    updateAgent(agent.id, { systemPrompt: e.target.value });
   };
 
   return (
@@ -37,21 +30,9 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
             agent={agent}
             onNameChange={handleNameChange}
             onModelChange={handleModelChange}
-            systemPrompt={tempSystemPrompt}
+            systemPrompt={agent.systemPrompt}
             onSystemPromptChange={handleSystemPromptChange}
-            onSaveSystemPrompt={saveSystemPrompt}
-            onAddAgent={onAdd}
-            onRemoveAgent={onRemove}
-            isOnlyAgent={isOnlyColumn}
           />
-          {/* <div className='agentconfig-buttons'>
-            <Button variant="link" onClick={onAdd} className="me-2 p-0" title="Add Agent">
-              <PlusCircle size={24} color="royalblue" />
-            </Button>
-            <Button variant="link" onClick={onRemove} className="p-0" disabled={isOnlyColumn} title="Remove Agent">
-              <MinusCircle size={24} color={isOnlyColumn ? "gray" : "red"} />
-            </Button>
-          </div> */}
           <ButtonGroup vertical>
             <Button variant="link" onClick={onAdd} className="p-0 me-2" title="Add Agent">
               <PlusCircle size={24} color="royalblue" />
@@ -62,11 +43,12 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
           </ButtonGroup>
         </Card.Header>
         <Card.Body>
-          <MarkdownRenderer content={output} />
+          <MarkdownRenderer content={agent.output} />
         </Card.Body>
       </Card>
     </Col>
   );
 }
+
 
 export default AgentColumn;

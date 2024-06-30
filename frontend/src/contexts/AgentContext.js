@@ -1,31 +1,30 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useContext } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
+import { DEFAULT_MODEL } from '../constants';
 
 const AgentContext = createContext();
 
 export const AgentProvider = ({ children }) => {
-  const [agents, setAgents] = useState([
-    { id: 'user', name: 'User', type: 'user' },
-    { id: uuidv4(), name: 'Agent 1', type: 'ai', model: 'gpt-3.5-turbo' }
-  ]);
+  const agents = useSelector(state => state.agents.agents);
+  const dispatch = useDispatch();
 
   const addAgent = () => {
-    setAgents(prev => [...prev, {
+    const newAgent = {
       id: uuidv4(),
-      name: `Agent ${prev.length}`,
+      name: `Agent ${agents.length}`,
       type: 'ai',
-      model: 'gpt-3.5-turbo'
-    }]);
+      model: DEFAULT_MODEL,
+    };
+    dispatch({ type: 'ADD_AGENT', payload: newAgent });
   };
 
   const removeAgent = (id) => {
-    setAgents(prev => prev.filter(agent => agent.id !== id));
+    dispatch({ type: 'REMOVE_AGENT', payload: id });
   };
 
   const updateAgent = (id, updates) => {
-    setAgents(prev => prev.map(agent => 
-      agent.id === id ? { ...agent, ...updates } : agent
-    ));
+    dispatch({ type: 'UPDATE_AGENT', payload: { id, updates } });
   };
 
   return (

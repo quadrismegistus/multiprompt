@@ -1,35 +1,24 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+// src/contexts/ConfigContext.js
+
+import React, { createContext, useContext } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 
 const ConfigContext = createContext();
 
 export function ConfigProvider({ children }) {
-  const [config, setConfig] = useState({
-    includeRepoAnalysis: true,
-    summaryModel: false,
-    summaryModelValue: '',
-    openaiApiKey: '',
-    claudeApiKey: ''
-  });
-
-  useEffect(() => {
-    // Load config from localStorage on mount
-    const savedConfig = localStorage.getItem('appConfig');
-    if (savedConfig) {
-      setConfig(JSON.parse(savedConfig));
-    }
-  }, []);
+  const config = useSelector(state => state.config);
+  const dispatch = useDispatch();
 
   const updateConfig = (newConfig) => {
-    setConfig(prevConfig => {
-      const updatedConfig = { ...prevConfig, ...newConfig };
-      // Save to localStorage whenever config is updated
-      localStorage.setItem('appConfig', JSON.stringify(updatedConfig));
-      return updatedConfig;
-    });
+    dispatch({ type: 'UPDATE_CONFIG', payload: newConfig });
+  };
+
+  const clearAgentCache = () => {
+    dispatch({ type: 'CLEAR_AGENT_CACHE' });
   };
 
   return (
-    <ConfigContext.Provider value={{ config, updateConfig }}>
+    <ConfigContext.Provider value={{ config, updateConfig, clearAgentCache }}>
       {children}
     </ConfigContext.Provider>
   );

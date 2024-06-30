@@ -1,4 +1,6 @@
-body { overflow: hidden;}
+
+
+body { overflow-x: hidden;}
 
 .BigRow {
     height:95dvh;
@@ -13,6 +15,11 @@ body { overflow: hidden;}
 }
 
 .card { height:100%;}
+
+.promptarea { 
+    /* border:1px solid red;  */
+    height:100%;
+}
 
 .agentconfig .accordion-header .accordion-button { font-size: 1.2rem;}
 
@@ -37,3 +44,11 @@ body { overflow: hidden;}
 
 .btn-group { height:100%; padding-right: 20px;}
 .card-header { padding:0;}
+[contenteditable=true]:focus, [href]:focus, [tabindex]:not([tabindex="-1"]):focus, button:focus, details:focus, input:focus, select:focus, textarea:focus {
+    outline: none !important;
+}
+
+
+.card-body {
+  overflow-y: scroll;
+}

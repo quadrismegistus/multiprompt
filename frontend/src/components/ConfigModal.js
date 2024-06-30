@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Col } from 'react-bootstrap';
+import { Modal, Button, Form } from 'react-bootstrap';
 import { useConfig } from '../contexts/ConfigContext';
 
+
+
 function ConfigModal({ show, onHide }) {
-  const { config, updateConfig } = useConfig();
+  const { config, updateConfig, clearAgentCache } = useConfig();
   const [localConfig, setLocalConfig] = useState({ ...config });
-  const summaryModels = ['Model 1', 'Model 2']; // Add actual summary models
 
   useEffect(() => {
     setLocalConfig({ ...config });
@@ -13,15 +14,16 @@ function ConfigModal({ show, onHide }) {
 
   const handleConfigChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setLocalConfig({
+    const updatedConfig = {
       ...localConfig,
       [name]: type === 'checkbox' ? checked : value
-    });
+    };
+    setLocalConfig(updatedConfig);
+    updateConfig(updatedConfig); // Update config immediately
   };
 
-  const handleSaveConfig = () => {
-    updateConfig(localConfig);
-    onHide();
+  const handleClearAgentCache = () => {
+    clearAgentCache();
   };
 
   return (
@@ -31,37 +33,6 @@ function ConfigModal({ show, onHide }) {
       </Modal.Header>
       <Modal.Body>
         <Form>
-          {/* <Form.Group className="mb-3">
-            <Form.Check
-              type="checkbox"
-              label="Include Repository Analysis"
-              name="includeRepoAnalysis"
-              checked={localConfig.includeRepoAnalysis}
-              onChange={handleConfigChange}
-            />
-          </Form.Group>
-          <Form.Group className="mb-3">
-            <Form.Check
-              type="checkbox"
-              label="Use Summary Model"
-              name="summaryModel"
-              checked={localConfig.summaryModel}
-              onChange={handleConfigChange}
-            />
-          </Form.Group> */}
-          {localConfig.summaryModel && (
-            <Form.Group className="mb-3">
-              <Form.Select
-                name="summaryModelValue"
-                value={localConfig.summaryModelValue}
-                onChange={handleConfigChange}
-              >
-                {summaryModels.map(model => (
-                  <option key={model} value={model}>{model}</option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          )}
           <Form.Group className="mb-3">
             <Form.Label>OpenAI API Key</Form.Label>
             <Form.Control
@@ -88,8 +59,8 @@ function ConfigModal({ show, onHide }) {
         <Button variant="secondary" onClick={onHide}>
           Close
         </Button>
-        <Button variant="primary" onClick={handleSaveConfig}>
-          Save Config
+        <Button variant="danger" onClick={handleClearAgentCache}>
+          Clear Agent Cache
         </Button>
       </Modal.Footer>
     </Modal>
