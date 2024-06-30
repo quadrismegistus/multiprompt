@@ -1,34 +1,26 @@
-
-// src/components/ConfigModal.js
 import React, { useState, useEffect, useContext } from 'react';
 import { ConfigContext } from '../contexts/ConfigContext';
 
-function ConfigModal({ isOpen, onClose, agents }) {
+function ConfigModal({ isOpen, onClose }) {
   const { config, setConfig } = useContext(ConfigContext);
-  const [workflowName, setWorkflowName] = useState('');
-  const [workflows, setWorkflows] = useState([]);
+  const [localConfig, setLocalConfig] = useState({ ...config });
+  const summaryModels = ['Model 1', 'Model 2']; // Add actual summary models
 
   useEffect(() => {
-    const savedWorkflows = JSON.parse(localStorage.getItem('workflows') || '[]');
-    setWorkflows(savedWorkflows);
-  }, []);
+    setLocalConfig({ ...config });
+  }, [config]);
 
   const handleConfigChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setConfig({
-      ...config,
+    setLocalConfig({
+      ...localConfig,
       [name]: type === 'checkbox' ? checked : value
     });
   };
 
-  const handleSaveWorkflow = () => {
-    if (workflowName) {
-      const newWorkflow = { name: workflowName, agents };
-      const updatedWorkflows = [...workflows, newWorkflow];
-      setWorkflows(updatedWorkflows);
-      localStorage.setItem('workflows', JSON.stringify(updatedWorkflows));
-      setWorkflowName('');
-    }
+  const handleSaveConfig = () => {
+    setConfig(localConfig);
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -47,7 +39,7 @@ function ConfigModal({ isOpen, onClose, agents }) {
               <input
                 type="checkbox"
                 name="includeRepoAnalysis"
-                checked={config.includeRepoAnalysis}
+                checked={localConfig.includeRepoAnalysis}
                 onChange={handleConfigChange}
               />
               {' '}Include Repository Analysis
@@ -58,58 +50,58 @@ function ConfigModal({ isOpen, onClose, agents }) {
               <input
                 type="checkbox"
                 name="summaryModel"
-                checked={config.summaryModel}
+                checked={localConfig.summaryModel}
                 onChange={handleConfigChange}
               />
               {' '}Use Summary Model
             </label>
           </div>
-          {config.summaryModel && (
+          {localConfig.summaryModel && (
             <div className="field">
               <div className="control">
                 <div className="select is-fullwidth">
                   <select
                     name="summaryModelValue"
-                    value={config.summaryModelValue}
+                    value={localConfig.summaryModelValue}
                     onChange={handleConfigChange}
                   >
-                    {/* Add options for summary models here */}
+                    {summaryModels.map(model => (
+                      <option key={model} value={model}>{model}</option>
+                    ))}
                   </select>
                 </div>
               </div>
             </div>
           )}
-          <h3 className="title is-5">Current Agent Flow</h3>
-          <ul>
-            {agents.map(agent => (
-              <li key={agent.id}>{agent.name} - {agent.model}</li>
-            ))}
-          </ul>
-          <h3 className="title is-5">Save Workflow</h3>
           <div className="field">
+            <label className="label">OpenAI API Key</label>
             <div className="control">
               <input
                 className="input"
-                type="text"
-                value={workflowName}
-                onChange={(e) => setWorkflowName(e.target.value)}
-                placeholder="Enter workflow name"
+                type="password"
+                name="openaiApiKey"
+                value={localConfig.openaiApiKey || ''}
+                onChange={handleConfigChange}
+                placeholder="Enter OpenAI API Key"
               />
             </div>
           </div>
           <div className="field">
+            <label className="label">Claude API Key</label>
             <div className="control">
-              <button className="button is-primary" onClick={handleSaveWorkflow}>Save Workflow</button>
+              <input
+                className="input"
+                type="password"
+                name="claudeApiKey"
+                value={localConfig.claudeApiKey || ''}
+                onChange={handleConfigChange}
+                placeholder="Enter Claude API Key"
+              />
             </div>
           </div>
-          <h3 className="title is-5">Saved Workflows</h3>
-          <ul>
-            {workflows.map((workflow, index) => (
-              <li key={index}>{workflow.name}</li>
-            ))}
-          </ul>
         </section>
         <footer className="modal-card-foot">
+          <button className="button is-primary" onClick={handleSaveConfig}>Save Config</button>
           <button className="button" onClick={onClose}>Close</button>
         </footer>
       </div>
