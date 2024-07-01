@@ -9,13 +9,15 @@ function Layout() {
   const isDarkMode = useSelector(state => state.config.isDarkMode);
   const { agents, addAgent, removeAgent, updateAgent } = useAgents();
 
+  const sortedAgents = [...agents].sort((a, b) => a.position - b.position);
+
   return (
     <div className={`Layout ${isDarkMode ? 'dark' : ''}`}>
       <GridLayout>
         <GridCard columnPosition={0}>
           <UserColumn />
         </GridCard>
-        {agents.filter(agent => agent.type === 'ai').map((agent) => (
+        {sortedAgents.filter(agent => agent.type === 'ai').map((agent) => (
           <GridCard key={agent.id} columnPosition={agent.position}>
             <AgentColumn 
               agent={agent} 
@@ -23,8 +25,6 @@ function Layout() {
               onRemove={() => removeAgent(agent.id)}
               onUpdateAgent={(updates) => updateAgent(agent.id, updates)}
               isOnlyColumn={agents.filter(a => a.type === 'ai').length === 1}
-              isLeftmostAgent={agent.position === Math.min(...agents.filter(a => a.type === 'ai').map(a => a.position))}
-              isRightmostAgent={agent.position === Math.max(...agents.filter(a => a.type === 'ai').map(a => a.position))}
             />
           </GridCard>
         ))}

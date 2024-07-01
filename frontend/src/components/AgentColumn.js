@@ -1,12 +1,12 @@
 import React from 'react';
 import { Card, ButtonGroup, Button } from 'react-bootstrap';
 import { PlusCircle, MinusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useDispatch } from 'react-redux';
 import MarkdownRenderer from './MarkdownRenderer';
 import AgentConfigAccordion from './AgentConfigAccordion';
-import { useDispatch } from 'react-redux';
 import { moveAgentLeft, moveAgentRight } from '../redux/actions';
 
-function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, isRightmostAgent, onUpdateAgent }) {
+function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, onUpdateAgent }) {
   const dispatch = useDispatch();
 
   const handleNameChange = (e) => {
@@ -44,11 +44,11 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, is
           onTemperatureChange={handleTemperatureChange}
         />
         <ButtonGroup>
-          <Button variant="link" onClick={handleMoveLeft} className="p-0 mx-1" disabled={isLeftmostAgent} title="Move Left">
-            <ChevronLeft size={24} className={isLeftmostAgent ? "text-gray-400" : ""} />
+          <Button variant="link" onClick={handleMoveLeft} className="p-0 mx-1" title="Move Left">
+            <ChevronLeft size={24} />
           </Button>
-          <Button variant="link" onClick={handleMoveRight} className="p-0 mx-1" disabled={isRightmostAgent} title="Move Right">
-            <ChevronRight size={24} className={isRightmostAgent ? "text-gray-400" : ""} />
+          <Button variant="link" onClick={handleMoveRight} className="p-0 mx-1" title="Move Right">
+            <ChevronRight size={24} />
           </Button>
           <Button variant="link" onClick={() => onAdd(agent.position + 1)} className="p-0 mx-1" title="Add Agent">
             <PlusCircle size={24} />

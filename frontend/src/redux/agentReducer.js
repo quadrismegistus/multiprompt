@@ -108,11 +108,25 @@ const agentReducer = (state = initialState, action) => {
     case 'SET_AGENTS':
       return { ...state, agents: normalizePositions(action.payload) };
 
-    case "MOVE_AGENT_LEFT":
-      return moveAgent(state, action.payload, 'left');
+    // case "MOVE_AGENT_LEFT":
+    //   return moveAgent(state, action.payload, 'left');
 
-    case "MOVE_AGENT_RIGHT":
-      return moveAgent(state, action.payload, 'right');
+    // case "MOVE_AGENT_RIGHT":
+    //   return moveAgent(state, action.payload, 'right');
+
+    case 'MOVE_AGENT':
+      return {
+        ...state,
+        agents: state.agents.map(agent => {
+          if (agent.id === action.payload.id) {
+            const newPosition = action.payload.direction === 'left' 
+              ? Math.max(1, agent.position - 1) 
+              : agent.position + 1;
+            return { ...agent, position: newPosition };
+          }
+          return agent;
+        })
+      };
 
     case 'ADD_AGENT':
       const newAgent = { ...action.payload, id: uuidv4() };

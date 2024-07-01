@@ -53,11 +53,11 @@ export const loadAgentConfiguration = (agentId, name) => ({
 
 
 export const moveAgentLeft = (agentId) => ({
-  type: 'MOVE_AGENT_LEFT',
-  payload: agentId
+  type: 'MOVE_AGENT',
+  payload: { id: agentId, direction: 'left' }
 });
 
 export const moveAgentRight = (agentId) => ({
-  type: 'MOVE_AGENT_RIGHT',
-  payload: agentId
+  type: 'MOVE_AGENT',
+  payload: { id: agentId, direction: 'right' }
 });
