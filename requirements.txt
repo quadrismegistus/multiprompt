@@ -5,3 +5,10 @@ anthropic
 openai
 google-generativeai
 ollama
+slimit
+jsbeautifier
+# python-minifier
+bs4
+cssutils
+pathspec
+esprima
