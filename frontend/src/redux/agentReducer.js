@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { DEFAULT_MODEL } from "../constants";
 
+
 const initialState = {
   agents: [
     {
@@ -9,28 +10,23 @@ const initialState = {
       type: "ai",
       model: DEFAULT_MODEL,
       systemPrompt: "With reference to any provided code, analyze the user's query and outline the problem described.",
-      output: ""
+      output: "",
+      sourceType: "user" // Add default sourceType
     },
-    
     {
       id: uuidv4(),
       name: "Engineer",
       type: "ai",
       model: DEFAULT_MODEL,
       systemPrompt: "With reference to any provided code, implement the user's query.",
-      output: ""
+      output: "",
+      sourceType: "left" // Add default sourceType
     }
   ],
 };
 
 const agentReducer = (state = initialState, action) => {
   switch(action.type) {
-    case 'SET_AGENTS':
-      return { ...state, agents: action.payload };
-    case 'ADD_AGENT':
-      return { ...state, agents: [...state.agents, action.payload] };
-    case 'REMOVE_AGENT':
-      return { ...state, agents: state.agents.filter(agent => agent.id !== action.payload) };
     case 'UPDATE_AGENT':
       return {
         ...state,
@@ -38,6 +34,12 @@ const agentReducer = (state = initialState, action) => {
           agent.id === action.payload.id ? { ...agent, ...action.payload.updates } : agent
         )
       };
+    case 'SET_AGENTS':
+      return { ...state, agents: action.payload };
+    case 'ADD_AGENT':
+      return { ...state, agents: [...state.agents, action.payload] };
+    case 'REMOVE_AGENT':
+      return { ...state, agents: state.agents.filter(agent => agent.id !== action.payload) };
     case 'CLEAR_AGENT_CACHE':
       return initialState;
     default:

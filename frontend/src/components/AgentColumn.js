@@ -5,21 +5,26 @@ import { useAgents } from '../contexts/AgentContext';
 import MarkdownRenderer from './MarkdownRenderer';
 import AgentConfigAccordion from './AgentConfigAccordion';
 import { PlusCircle, MinusCircle } from 'lucide-react';
+import { updateAgent } from '../redux/actions';
+import { useDispatch, useSelector } from 'react-redux';
 
 function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
-  const { updateAgent } = useAgents();
+  const dispatch = useDispatch();
 
   const handleNameChange = (e) => {
-    const newName = e.target.value;
-    updateAgent(agent.id, { name: newName });
+    dispatch(updateAgent(agent.id, { name: e.target.value }));
   };
 
   const handleModelChange = (model) => {
-    updateAgent(agent.id, { model: model });
+    dispatch(updateAgent(agent.id, { model }));
   };
 
   const handleSystemPromptChange = (e) => {
-    updateAgent(agent.id, { systemPrompt: e.target.value });
+    dispatch(updateAgent(agent.id, { systemPrompt: e.target.value }));
+  };
+
+  const handleSourceTypeChange = (e) => {
+    dispatch(updateAgent(agent.id, { sourceType: e.target.value }));
   };
 
   return (
@@ -30,7 +35,7 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
             agent={agent}
             onNameChange={handleNameChange}
             onModelChange={handleModelChange}
-            systemPrompt={agent.systemPrompt}
+            onSourceTypeChange={handleSourceTypeChange}
             onSystemPromptChange={handleSystemPromptChange}
           />
           <ButtonGroup vertical>
@@ -49,6 +54,5 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
     </Col>
   );
 }
-
 
 export default AgentColumn;

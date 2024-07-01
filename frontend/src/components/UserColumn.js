@@ -1,26 +1,29 @@
+// src/components/UserColumn.js
+
 import React, { useState, useRef, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useApiClients } from '../contexts/LLMProvider';
 import { Card, Form, Button, Col, Accordion, ButtonGroup } from 'react-bootstrap';
 import { Send } from 'lucide-react';
 import { useAgents } from '../contexts/AgentContext';
 import DirectoryReader from './DirectoryReader';
 import MarkdownRenderer from './MarkdownRenderer';
-import { useApiClients } from '../contexts/LLMProvider';
-import { useDispatch, useSelector } from 'react-redux';
-import { updateReferenceCodePrompt } from '../redux/actions'; // Import the action
+import { updateReferenceCodePrompt } from '../redux/actions';
+import { formatPromptMessages } from '../utils/promptUtils';
 
 function UserColumn() {
   const { agents, updateAgent } = useAgents();
   const { query } = useApiClients();
   const userAgent = agents.find(agent => agent.type === 'user');
-  const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt); // Get referenceCodePrompt from the Redux state
+  const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
   const [promptText, setPromptText] = useState('');
   const [output, setOutput] = useState('');
   const [isEditing, setIsEditing] = useState(true);
   const editableDivRef = useRef(null);
-  const dispatch = useDispatch(); // Get dispatch function
+  const dispatch = useDispatch();
 
   const handleReferenceCodePromptChange = (e) => {
-    dispatch(updateReferenceCodePrompt(e.target.value)); // Dispatch the action
+    dispatch(updateReferenceCodePrompt(e.target.value));
   };
 
   const handlePromptChange = () => {
@@ -30,23 +33,27 @@ function UserColumn() {
   };
 
   const handleDirectoryRead = (markdown) => {
-    dispatch(updateReferenceCodePrompt(markdown)); // Dispatch the action
+    dispatch(updateReferenceCodePrompt(markdown));
   };
 
   const handleSendPrompt = async () => {
-    const userMessage = {
-      role: 'user',
-      content: promptText + (referenceCodePrompt ? '\n\nReference Code:\n' + referenceCodePrompt : '')
-    };
-
     const aiAgents = agents.filter(agent => agent.type === 'ai');
+    let prevOutput = "";
 
-    for (const agent of aiAgents) {
+    for (const [index, agent] of aiAgents.entries()) {
+      const formattedPrompt = formatPromptMessages(promptText, referenceCodePrompt, prevOutput, agent.sourceType);
+
+      const userMessage = {
+        role: 'user',
+        content: formattedPrompt
+      };
+
       const systemMessage = agent.systemPrompt 
         ? { role: 'system', content: agent.systemPrompt }
         : { role: 'system', content: 'You are a helpful assistant.' };
 
       const messages = [systemMessage, userMessage];
+      console.log('MESSAGES',messages);
 
       try {
         let responseContent = '';
@@ -54,6 +61,7 @@ function UserColumn() {
           responseContent += chunk;
           updateAgent(agent.id, { output: responseContent });
         }
+        prevOutput = responseContent;
       } catch (error) {
         updateAgent(agent.id, { output: `Error: ${error.message}` });
       }

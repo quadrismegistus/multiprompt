@@ -1,3 +1,5 @@
+// src/contexts/AgentContext.js
+
 import React, { createContext, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
@@ -15,6 +17,7 @@ export const AgentProvider = ({ children }) => {
       name: `Agent ${agents.length}`,
       type: 'ai',
       model: DEFAULT_MODEL,
+      sourceType: 'user',
     };
     dispatch({ type: 'ADD_AGENT', payload: newAgent });
   };

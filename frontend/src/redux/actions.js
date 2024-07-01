@@ -10,3 +10,8 @@ export const updateUserPrompt = (prompt) => ({ // New Action for userPrompt
   type: 'UPDATE_USER_PROMPT',
   payload: prompt
 });
+
+export const updateAgent = (id, updates) => ({
+  type: 'UPDATE_AGENT',
+  payload: { id, updates }
+});
