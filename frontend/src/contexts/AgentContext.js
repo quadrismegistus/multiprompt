@@ -11,13 +11,14 @@ export const AgentProvider = ({ children }) => {
   const agents = useSelector(state => state.agents.agents);
   const dispatch = useDispatch();
 
-  const addAgent = () => {
+  const addAgent = (clickedAgentPosition) => {
     const newAgent = {
       id: uuidv4(),
-      name: `Agent ${agents.length}`,
+      name: `Agent ${agents.length + 1}`,
       type: 'ai',
       model: DEFAULT_MODEL,
       sourceType: 'user',
+      position: clickedAgentPosition, // This will be used in the reducer
     };
     dispatch({ type: 'ADD_AGENT', payload: newAgent });
   };
