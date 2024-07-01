@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Card, ButtonGroup, Button } from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
-import { PlusCircle, MinusCircle, Split, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PlusCircle, MinusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import MarkdownRenderer from './MarkdownRenderer';
 import AgentConfigAccordion from './AgentConfigAccordion';
 import { updateAgent, moveAgentLeft, moveAgentRight } from '../redux/actions';
@@ -10,7 +11,6 @@ import { useAgents } from '../contexts/AgentContext';
 
 function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, isRightmostAgent }) {
   const dispatch = useDispatch();
-  const { splitAgentColumn } = useAgents();
 
   const handleNameChange = (e) => {
     dispatch(updateAgent(agent.id, { name: e.target.value }));
@@ -28,10 +28,6 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, is
     dispatch(updateAgent(agent.id, { temperature }));
   };
 
-  const handleSplit = () => {
-    dispatch(splitAgentColumn(agent.id));
-  };
-
   const handleMoveLeft = () => {
     dispatch(moveAgentLeft(agent.id));
   };
@@ -41,7 +37,7 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, is
   };
 
   return (
-    <div className={`agent-col useragent-col flex-grow ${agent.isSplit ? 'split' : ''}`}>
+    <div className={`agent-col useragent-col flex-grow`}>
       <Card>
         <Card.Header className="d-flex justify-content-between align-items-center">
           <AgentConfigAccordion
@@ -60,9 +56,6 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, is
             </Button>
             <Button variant="link" onClick={() => onAdd(agent.position)} className="p-0 mx-1" title="Add Agent">
               <PlusCircle size={24} />
-            </Button>
-            <Button variant="link" onClick={handleSplit} className="p-0 mx-1" title="Split Agent">
-              <Split size={24} />
             </Button>
             <Button variant="link" onClick={onRemove} className="p-0 mx-1" disabled={isOnlyColumn} title="Remove Agent">
               <MinusCircle size={24} className={isOnlyColumn ? "text-gray-400" : "text-red-500"} />

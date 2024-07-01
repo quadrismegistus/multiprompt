@@ -1,4 +1,3 @@
-// src/contexts/AgentContext.js
 
 import React, { createContext, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -18,7 +17,7 @@ export const AgentProvider = ({ children }) => {
       type: 'ai',
       model: DEFAULT_MODEL,
       sourceType: 'user',
-      position: clickedAgentPosition, // This will be used in the reducer
+      position: clickedAgentPosition,
     };
     dispatch({ type: 'ADD_AGENT', payload: newAgent });
   };
