@@ -64,14 +64,56 @@ const initialState = {
 console.log('Initial state created:', initialState);
 
 // Updated helper function to normalize positions
-const normalizePositions = (agents) => {
+// const normalizePositions = (agents) => {
+//   console.log('Normalizing positions for agents:', agents);
+//   const normalizedAgents = agents
+//     .sort((a, b) => a.position - b.position)
+//     .map((agent, index) => ({ ...agent, position: index + 1 }));
+//   console.log('Normalized agents:', normalizedAgents);
+//   return normalizedAgents;
+// };
+
+
+function normalizePositions(agents) {
+  // Extract the positions from the agents and sort them
+  let positions = agents.map(agent => agent.position);
+  positions.sort((a, b) => a - b);
+
+  // Create a mapping from position to dense rank
+  let rankMap = new Map();
+  let rank = 1;
+  
+  for (let i = 0; i < positions.length; i++) {
+      if (!rankMap.has(positions[i])) {
+          rankMap.set(positions[i], rank);
+          rank++;
+      }
+  }
+
+  // Update the agents with their dense ranks
+  agents.forEach(agent => {
+      agent.position = rankMap.get(agent.position);
+  });
+
   return agents;
-  console.log('Normalizing positions for agents:', agents);
-  const normalizedAgents = agents
-    .sort((a, b) => a.position - b.position)
-    .map((agent, index) => ({ ...agent, position: index + 1 }));
-  console.log('Normalized agents:', normalizedAgents);
-  return normalizedAgents;
+}
+
+
+const moveAgentTo = (state, agentId, newPosition) => {
+  if(newPosition>0) {
+    const agents = [...state.agents];
+    const agentIndex = agents.findIndex(agent => agent.id === agentId);
+    if (agentIndex === -1) return state;
+    const agent = agents[agentIndex];
+    agent.position = newPosition;
+
+    return {
+      ...state,
+      agents: normalizePositions(agents)
+    };
+  } else {
+    return state;
+  }
 };
 
 const moveAgent = (state, agentId, direction) => {
@@ -216,6 +258,9 @@ const agentReducer = (state = initialState, action) => {
       }
       console.log('Configuration not found, returning current state');
       return state;
+
+    case 'MOVE_AGENT_TO':
+      return moveAgentTo(state, action.payload.id, action.payload.position);  
 
     default:
       console.log('Unknown action type:', action.type);

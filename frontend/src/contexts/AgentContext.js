@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
@@ -30,8 +29,12 @@ export const AgentProvider = ({ children }) => {
     dispatch({ type: 'UPDATE_AGENT', payload: { id, updates } });
   };
 
+  const moveAgentTo = (agentId, newPosition) => {
+    dispatch({'type': 'MOVE_AGENT_TO', 'payload': {id:agentId, position:newPosition}});
+  }
+
   return (
-    <AgentContext.Provider value={{ agents, addAgent, removeAgent, updateAgent }}>
+    <AgentContext.Provider value={{ agents, addAgent, removeAgent, updateAgent, moveAgentTo }}>
       {children}
     </AgentContext.Provider>
   );

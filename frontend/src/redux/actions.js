@@ -61,3 +61,8 @@ export const moveAgentRight = (agentId) => ({
   type: 'MOVE_AGENT',
   payload: { id: agentId, direction: 'right' }
 });
+
+export const moveAgentTo = (agentId, newPosition) => ({
+  type: 'MOVE_AGENT_TO',
+  payload: { id: agentId, newPosition }
+});

@@ -1,36 +1,45 @@
 import React from 'react';
 import { Card, ButtonGroup, Button } from 'react-bootstrap';
 import { PlusCircle, MinusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useDispatch } from 'react-redux';
 import MarkdownRenderer from './MarkdownRenderer';
 import AgentConfigAccordion from './AgentConfigAccordion';
-import { moveAgentLeft, moveAgentRight } from '../redux/actions';
+import { useAgents } from '../contexts/AgentContext';
 
-function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, onUpdateAgent }) {
-  const dispatch = useDispatch();
+function AgentCard({ agent }) {
+  const { agents, addAgent, removeAgent, updateAgent, moveAgentTo } = useAgents();
+
+  const isOnlyColumn = agents.filter(a => a.type === 'ai').length === 1;
 
   const handleNameChange = (e) => {
-    onUpdateAgent({ name: e.target.value });
+    updateAgent(agent.id, { name: e.target.value });
   };
 
   const handleModelChange = (model) => {
-    onUpdateAgent({ model });
+    updateAgent(agent.id, { model });
   };
 
   const handleSystemPromptChange = (e) => {
-    onUpdateAgent({ systemPrompt: e.target.value });
+    updateAgent(agent.id, { systemPrompt: e.target.value });
   };
 
   const handleTemperatureChange = (temperature) => {
-    onUpdateAgent({ temperature });
+    updateAgent(agent.id, { temperature });
   };
 
-  const handleMoveLeft = () => {
-    dispatch(moveAgentLeft(agent.id));
+  const handleMoveAgentLeft = () => {
+    moveAgentTo(agent.id, agent.position - 1);
   };
 
-  const handleMoveRight = () => {
-    dispatch(moveAgentRight(agent.id));
+  const handleMoveAgentRight = () => {
+    moveAgentTo(agent.id, agent.position + 1);
+  };
+
+  const handleAddAgent = () => {
+    addAgent(agent.position);
+  };
+
+  const handleRemoveAgent = () => {
+    removeAgent(agent.id);
   };
 
   return (
@@ -44,16 +53,16 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, onUpdateAgent }) {
           onTemperatureChange={handleTemperatureChange}
         />
         <ButtonGroup>
-          <Button variant="link" onClick={handleMoveLeft} className="p-0 mx-1" title="Move Left">
+          <Button variant="link" onClick={handleMoveAgentLeft} className="p-0 mx-1" title="Move Left">
             <ChevronLeft size={24} />
           </Button>
-          <Button variant="link" onClick={handleMoveRight} className="p-0 mx-1" title="Move Right">
+          <Button variant="link" onClick={handleMoveAgentRight} className="p-0 mx-1" title="Move Right">
             <ChevronRight size={24} />
           </Button>
-          <Button variant="link" onClick={() => onAdd(agent.position + 1)} className="p-0 mx-1" title="Add Agent">
+          <Button variant="link" onClick={handleAddAgent} className="p-0 mx-1" title="Add Agent">
             <PlusCircle size={24} />
           </Button>
-          <Button variant="link" onClick={onRemove} className="p-0 mx-1" disabled={isOnlyColumn} title="Remove Agent">
+          <Button variant="link" onClick={handleRemoveAgent} className="p-0 mx-1" disabled={isOnlyColumn} title="Remove Agent">
             <MinusCircle size={24} className={isOnlyColumn ? "text-gray-400" : "text-red-500"} />
           </Button>
         </ButtonGroup>
@@ -65,4 +74,4 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, onUpdateAgent }) {
   );
 }
 
-export default AgentColumn;
+export default AgentCard;

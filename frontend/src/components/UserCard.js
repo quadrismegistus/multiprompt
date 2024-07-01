@@ -12,7 +12,7 @@ import SaveConfigurationComponent from './SaveConfigurationComponent';
 import AgentDropdown from './AgentDropdown';
 import { Send } from 'lucide-react';
 
-function UserColumn() {
+function UserCard() {
   const { agents, updateAgent } = useAgents();
   const { query } = useApiClients();
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
@@ -77,7 +77,6 @@ function UserColumn() {
   }, [isEditing]);
 
   return (
-    <div className="column">
       <Card className="mb-3">
         <Card.Header className="d-flex justify-content-between align-items-center">
           <Accordion className='agentconfig'>
@@ -133,8 +132,7 @@ function UserColumn() {
           <DirectoryReader onMarkdownGenerated={handleDirectoryRead} />
         </Card.Footer>
       </Card>
-    </div>
   );
 }
 
-export default UserColumn;
+export default UserCard;

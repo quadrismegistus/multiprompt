@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 const GridLayoutContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(${props => props.columnCount}, 1fr);
+  grid-template-columns: repeat(${props => props.columncount  }, 1fr);
   gap: 0;
   height: 100vh;
   width: 100%;
@@ -35,7 +35,7 @@ const GridLayout = ({ children }) => {
   const sortedPositions = Object.keys(groupedChildren).sort((a, b) => Number(a) - Number(b));
 
   return (
-    <GridLayoutContainer columnCount={sortedPositions.length}>
+    <GridLayoutContainer columncount={sortedPositions.length}>
       {sortedPositions.map((position) => (
         <GridColumn key={position}>
           {groupedChildren[position].map((child, index) => (
