@@ -13,6 +13,7 @@
   --color-fg-default: #24292f;
   --color-fg-muted: #57606a;
   --color-fg-subtle: #6e7781;
+  --height-navbar: 0;
 }
 
 .dark {
@@ -44,8 +45,16 @@ body {
 }
 
 .useragent-col {
-  @apply flex-1 min-w-[400px] h-full overflow-y-auto overflow-hidden max-h-[100dvh];
+  /* @apply flex-1 min-w-[400px] h-full overflow-y-auto overflow-hidden max-h-[100dvh]; */
+  margin-top:var(--height-navbar);;
+  height:100dvh;
+  flex: 1;
+  min-width:400px;
+  overflow:hidden;
 }
+.useragent-col .card-title { margin: 0; padding:0;}
+.useragent-col .card-header { }
+.useragent-col .card-body { overflow-y:auto; }
 
 .card {
   @apply h-full bg-[color:var(--color-canvas-subtle)] border border-[color:var(--color-border-default)] rounded-md shadow-sm;
@@ -60,12 +69,26 @@ body {
 }
 
 .agentconfig {
-  @apply w-full mr-2.5;
+  width:100%;
 }
 
-.agentconfig .accordion-header .accordion-button {
-  @apply text-lg bg-[color:var(--color-canvas-subtle)] text-[color:var(--color-fg-default)] border border-[color:var(--color-border-muted)] rounded-md;
+.useragent-col .card-title {line-height: 2rem;}
+
+.agentconfig .accordion-header, .agentconfig .accordion-button, .agentconfig .accordion-item {
+  background-color:rgba(0,0,0,0);
+  border:none;
+  padding:0;
+  padding-right:3px;
+  margin:0;
+  line-height: 2rem;
+  outline:none;
+  box-shadow: none;
+  
+  /* @apply text-lg bg-[color:var(--color-canvas-subtle)] text-[color:var(--color-fg-default)] border border-[color:var(--color-border-muted)] rounded-md; */
 }
+.accordion-header .accordion-button, .user-col .card-title { font-size:1.2rem;
+}
+/* .useragent-col .card-header { height: 66px;} */
 
 .agentconfig-buttons {
   @apply text-right;
@@ -76,11 +99,14 @@ body {
 }
 
 .btn-group {
-  @apply h-full;
+  /* @apply h-full; */
+  border:none;
+
 }
 
 .btn-group-vertical {
-  float:right;
+  /* float:right; */
+  margin-left:10px;
 }
 
 .btn-primary {
@@ -114,6 +140,12 @@ body {
 
 .navbar {
   @apply bg-[color:var(--color-canvas-default)] border-b border-[color:var(--color-border-default)];
+  position:absolute;
+  top:0;
+  left:0;
+  width:100dvw;
+  height:var(--height-navbar);
+  z-index: 10;
 }
 
 .promptarea-card-body {
@@ -156,3 +188,23 @@ body {
 .dark .navbar {
   @apply bg-[color:var(--color-canvas-default)] border-b border-[color:var(--color-border-default)];
 }
+
+.agentconfig .accordion-header { background:rgba(0,0,0,0);}
+
+.agentconfig .card-body { z-index: 100; background-color: white;}
+
+.userconfig textarea {height:5rem;}
+
+.useragent-col .card-footer { height:150px; }
+/* .useragent-col .card-footer .row { height:100px;} */
+.useragent-col .card-footer textarea, .accordion textarea {
+  font-family: 'Courier New', Courier, monospace;
+  /* font-size: 14px; */
+  font-size:0.8rem;
+  line-height: 1;
+  /* height:5em; */
+}
+
+
+
+

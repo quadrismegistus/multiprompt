@@ -7,6 +7,7 @@ import { thunk } from 'redux-thunk';
 const persistConfig = {
   key: 'root',
   storage,
+  whitelist: ['agents', 'config'], // Ensure both agents and config are persisted
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

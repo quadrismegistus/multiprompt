@@ -5,6 +5,7 @@ import { PlusCircle, MinusCircle } from 'lucide-react';
 import MarkdownRenderer from './MarkdownRenderer';
 import AgentConfigAccordion from './AgentConfigAccordion';
 import { updateAgent } from '../redux/actions';
+import AgentConfigForm from './AgentConfigForm';
 
 function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
   const dispatch = useDispatch();
@@ -28,22 +29,30 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
   return (
     <div className="agent-col useragent-col flex-grow">
       <Card>
-        <Card.Header>
-          <ButtonGroup vertical className='pl-3 m-0'>
-            <Button variant="link" onClick={onAdd} className="p-0 mb-2" title="Add Agent">
-              <PlusCircle size={24} />
-            </Button>
-            <Button variant="link" onClick={onRemove} className="p-0" disabled={isOnlyColumn} title="Remove Agent">
-              <MinusCircle size={24} className={isOnlyColumn ? "text-gray-400" : "text-red-500"} />
-            </Button>
-          </ButtonGroup>
+        <Card.Header className="d-flex justify-content-between align-items-center">
           <AgentConfigAccordion
             agent={agent}
             onNameChange={handleNameChange}
             onModelChange={handleModelChange}
             onSourceTypeChange={handleSourceTypeChange}
             onSystemPromptChange={handleSystemPromptChange}
-          />
+          >
+            <AgentConfigForm
+              agent={agent}
+              onNameChange={handleNameChange}
+              onModelChange={handleModelChange}
+              onSourceTypeChange={handleSourceTypeChange}
+              onSystemPromptChange={handleSystemPromptChange}
+            />
+          </AgentConfigAccordion>
+          <ButtonGroup>
+            <Button variant="link" onClick={onAdd} className="p-0 mx-1" title="Add Agent">
+              <PlusCircle size={24} />
+            </Button>
+            <Button variant="link" onClick={onRemove} className="p-0 mx-1" disabled={isOnlyColumn} title="Remove Agent">
+              <MinusCircle size={24} className={isOnlyColumn ? "text-gray-400" : "text-red-500"} />
+            </Button>
+          </ButtonGroup>
         </Card.Header>
         <Card.Body className="overflow-y-auto">
           <MarkdownRenderer content={agent.output} />

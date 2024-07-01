@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { useConfig } from '../contexts/ConfigContext';
-
-
+import { Sun, Moon } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
 
 function ConfigModal({ show, onHide }) {
   const { config, updateConfig, clearAgentCache } = useConfig();
   const [localConfig, setLocalConfig] = useState({ ...config });
+  const dispatch = useDispatch();
+  const isDarkMode = useSelector(state => state.config.isDarkMode);
 
   useEffect(() => {
     setLocalConfig({ ...config });
@@ -19,11 +21,16 @@ function ConfigModal({ show, onHide }) {
       [name]: type === 'checkbox' ? checked : value
     };
     setLocalConfig(updatedConfig);
-    updateConfig(updatedConfig); // Update config immediately
+    updateConfig(updatedConfig);
   };
 
   const handleClearAgentCache = () => {
     clearAgentCache();
+  };
+
+  const toggleTheme = () => {
+    dispatch({ type: 'TOGGLE_THEME' });
+    document.documentElement.classList.toggle('dark');
   };
 
   return (
@@ -52,6 +59,18 @@ function ConfigModal({ show, onHide }) {
               onChange={handleConfigChange}
               placeholder="Enter Claude API Key"
             />
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Theme</Form.Label>
+            <Button 
+              variant="link" 
+              onClick={toggleTheme} 
+              className="d-block"
+              title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {isDarkMode ? <Sun size={24} /> : <Moon size={24} />}
+              {isDarkMode ? " Switch to Light Mode" : " Switch to Dark Mode"}
+            </Button>
           </Form.Group>
         </Form>
       </Modal.Body>

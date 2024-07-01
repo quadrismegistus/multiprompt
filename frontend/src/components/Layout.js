@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Container } from 'react-bootstrap';
-import Header from './Header';
 import ConfigModal from './ConfigModal';
 
 function Layout({ children }) {
@@ -16,7 +15,6 @@ function Layout({ children }) {
 
   return (
     <Container className='Layout'>
-      <Header onConfigClick={handleConfigClick} />
       <div className='Content'>
         {children}
       </div>

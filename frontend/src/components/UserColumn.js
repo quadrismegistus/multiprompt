@@ -1,23 +1,23 @@
-// src/components/UserColumn.js
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useApiClients } from '../contexts/LLMProvider';
-import { Card, Form, Button, Col, Accordion, ButtonGroup } from 'react-bootstrap';
-import { Send } from 'lucide-react';
+import { Card, Col, Accordion, Button, Form, Row } from 'react-bootstrap';
 import { useAgents } from '../contexts/AgentContext';
 import DirectoryReader from './DirectoryReader';
 import MarkdownRenderer from './MarkdownRenderer';
 import { updateReferenceCodePrompt, updateUserPrompt } from '../redux/actions';
 import { formatPromptMessages } from '../utils/promptUtils';
+import UserConfigForm from './UserConfigForm';
+import SaveConfigurationComponent from './SaveConfigurationComponent';
+import AgentDropdown from './AgentDropdown';
+import { Send } from 'lucide-react';
 
 function UserColumn() {
   const { agents, updateAgent } = useAgents();
   const { query } = useApiClients();
-  const userAgent = agents.find(agent => agent.type === 'user');
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
-  const userPrompt = useSelector(state => state.config.userPrompt); // Get from Redux state
-  const [promptText, setPromptText] = useState(userPrompt); // Initialize with Redux state
+  const userPrompt = useSelector(state => state.config.userPrompt);
+  const [promptText, setPromptText] = useState(userPrompt);
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef(null);
   const dispatch = useDispatch();
@@ -28,7 +28,7 @@ function UserColumn() {
 
   const handlePromptChange = (e) => {
     setPromptText(e.target.value);
-    dispatch(updateUserPrompt(e.target.value)); // Update Redux state
+    dispatch(updateUserPrompt(e.target.value));
   };
 
   const handleDirectoryRead = (markdown) => {
@@ -79,31 +79,26 @@ function UserColumn() {
   return (
     <Col className='user-col useragent-col'>
       <Card className="mb-3">
-        <Card.Header className="d-flex justify-content-between align-items-start">
-          <Accordion className='agentconfig flex-grow-1'>
+        <Card.Header className="d-flex justify-content-between align-items-center">
+          <Accordion className='agentconfig'>
             <Accordion.Item eventKey="0">
-              <Accordion.Header>User</Accordion.Header>
+              <Accordion.Header>multiprompt</Accordion.Header>
               <Accordion.Body>
-                <Form>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Reference Code Prompt</Form.Label>
-                    <Form.Control
-                      as="textarea"
-                      rows={5}
-                      value={referenceCodePrompt}
-                      onChange={handleReferenceCodePromptChange}
-                      placeholder="Enter reference code prompt here..."
-                    />
-                  </Form.Group>
-                </Form>
+                <UserConfigForm />
+                <Row className="mt-3">
+                  <Col>
+                    <SaveConfigurationComponent />
+                  </Col>
+                  <Col>
+                    <AgentDropdown />
+                  </Col>
+                </Row>
               </Accordion.Body>
             </Accordion.Item>
           </Accordion>
-          <ButtonGroup>
-            <Button variant="link" onClick={handleSendPrompt} className="p-0 ms-2" title="Send Prompt">
-              <Send size={28} color="royalblue" />
-            </Button>
-          </ButtonGroup>
+          <Button variant="link" onClick={handleSendPrompt} className="p-0" title="Send Prompt">
+            <Send size={24} color="royalblue" />
+          </Button>
         </Card.Header>
         <Card.Body className='promptarea-card-body'>
           {isEditing ? (
@@ -125,6 +120,18 @@ function UserColumn() {
             </div>
           )}
         </Card.Body>
+        <Card.Footer>
+          <Form.Group className="mb-3">
+            <Form.Control
+              as="textarea"
+              rows={5}
+              value={referenceCodePrompt}
+              onChange={handleReferenceCodePromptChange}
+              placeholder="Enter reference code prompt here..."
+            />
+          </Form.Group>
+          <DirectoryReader onMarkdownGenerated={handleDirectoryRead} />
+        </Card.Footer>
       </Card>
     </Col>
   );
