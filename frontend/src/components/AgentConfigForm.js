@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Row, Col, Form, Dropdown, ButtonGroup, ToggleButton, Button } from "react-bootstrap";
+import React, { useState, useEffect } from "react";
+import { Row, Col, Form, Dropdown, Button } from "react-bootstrap";
 import { useDispatch, useSelector } from 'react-redux';
 import { MODEL_CATEGORIES, MODEL_LIST } from "../constants";
 import { saveAgentConfiguration, loadAgentConfiguration } from "../redux/actions";
@@ -8,54 +8,46 @@ function AgentConfigForm({
   agent,
   onNameChange,
   onModelChange,
-  onSourceTypeChange,
   onSystemPromptChange,
+  onTemperatureChange,
 }) {
   const dispatch = useDispatch();
-  const [configName, setConfigName] = useState('');
+  const [roleName, setRoleName] = useState(agent.name);
   const savedAgentConfigurations = useSelector(state => state.agents.savedAgentConfigurations);
 
-  const handleSaveConfiguration = () => {
-    if (configName.trim() === '') {
-      alert('Please enter a name for the configuration');
+  useEffect(() => {
+    setRoleName(agent.name);
+  }, [agent.name]);
+
+  const handleSaveRole = () => {
+    if (roleName.trim() === '') {
       return;
     }
-    const configToSave = {
-      name: agent.name,
+    const roleToSave = {
+      name: roleName,
       model: agent.model,
       systemPrompt: agent.systemPrompt,
-      sourceType: agent.sourceType
+      temperature: agent.temperature,
     };
-    dispatch(saveAgentConfiguration(configName, configToSave));
-    setConfigName('');
-    alert('Configuration saved successfully!');
+    dispatch(saveAgentConfiguration(roleName, roleToSave));
+    onNameChange({ target: { value: roleName } });
   };
 
-  const handleLoadConfiguration = (name) => {
+  const handleLoadRole = (name) => {
     dispatch(loadAgentConfiguration(agent.id, name));
   };
 
   return (
     <Form>
-      <Row className="align-items-start">
-        <Col>
-          <Form.Group className="mb-3">
-            <Form.Control
-              as="textarea"
-              rows={5}
-              value={agent.systemPrompt}
-              onChange={onSystemPromptChange}
-              placeholder="Enter system prompt here..."
-            />
-          </Form.Group>
-        </Col>
-        <Col md={2}>
-          <Form.Group className="mb-2">
+      <Row className="mb-3">
+        <Col md={8}>
+          <Form.Group>
+            <Form.Label>Model</Form.Label>
             <Dropdown>
-              <Dropdown.Toggle variant="primary" id="dropdown-model">
+              <Dropdown.Toggle variant="primary" id="dropdown-model" className="w-100">
                 {agent.model ? `(${agent.model})` : "Select Model"}
               </Dropdown.Toggle>
-              <Dropdown.Menu>
+              <Dropdown.Menu className="w-100">
                 {Object.entries(MODEL_CATEGORIES).map(
                   ([category, models]) => (
                     <React.Fragment key={category}>
@@ -74,72 +66,71 @@ function AgentConfigForm({
               </Dropdown.Menu>
             </Dropdown>
           </Form.Group>
-          <Form.Group className="mb-3">
-            <ButtonGroup>
-              <ToggleButton
-                key="user"
-                id={`radio-user-${agent.id}`}
-                type="radio"
-                variant="outline-primary"
-                name={`radio-${agent.id}`}
-                value="user"
-                checked={agent.sourceType === "user"}
-                onChange={onSourceTypeChange}
-              >
-                User
-              </ToggleButton>
-              <ToggleButton
-                key="left"
-                id={`radio-left-${agent.id}`}
-                type="radio"
-                variant="outline-primary"
-                name={`radio-${agent.id}`}
-                value="left"
-                checked={agent.sourceType === "left"}
-                onChange={onSourceTypeChange}
-              >
-                Left
-              </ToggleButton>
-            </ButtonGroup>
-          </Form.Group>
         </Col>
-      </Row>
-      <Row>
-        <Col>
-          <Form.Group className="mb-3">
+        <Col md={4}>
+          <Form.Group>
+            <Form.Label>Temperature</Form.Label>
             <Form.Control
-              type="text"
-              placeholder="Configuration name"
-              value={configName}
-              onChange={(e) => setConfigName(e.target.value)}
+              type="number"
+              min="0"
+              max="1.5"
+              step="0.1"
+              value={agent.temperature}
+              onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
             />
           </Form.Group>
         </Col>
+      </Row>
+      <Row className="mb-3">
         <Col>
-          <Button onClick={handleSaveConfiguration}>Save Configuration</Button>
+          <Form.Group>
+            <Form.Label>System Prompt</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={5}
+              value={agent.systemPrompt}
+              onChange={onSystemPromptChange}
+              placeholder="Enter system prompt here..."
+            />
+          </Form.Group>
         </Col>
-        <Col>
+      </Row>
+      <Row className="align-items-center">
+        <Col md={4}>
           <Dropdown>
-            <Dropdown.Toggle variant="success">
-              Load Configuration
+            <Dropdown.Toggle variant="success" className="w-100">
+              Load Role
             </Dropdown.Toggle>
-            <Dropdown.Menu>
+            <Dropdown.Menu className="w-100">
               {savedAgentConfigurations && Object.keys(savedAgentConfigurations).length > 0 ? (
                 Object.keys(savedAgentConfigurations)
                   .filter(name => name && savedAgentConfigurations[name] && savedAgentConfigurations[name].name)
                   .map((name) => (
                     <Dropdown.Item
                       key={name}
-                      onClick={() => handleLoadConfiguration(name)}
+                      onClick={() => handleLoadRole(name)}
                     >
                       {name}
                     </Dropdown.Item>
                   ))
               ) : (
-                <Dropdown.Item disabled>No saved configurations</Dropdown.Item>
+                <Dropdown.Item disabled>No saved roles</Dropdown.Item>
               )}
             </Dropdown.Menu>
           </Dropdown>
+        </Col>
+        <Col md={4}>
+          <Form.Group>
+            <Form.Control
+              type="text"
+              placeholder="Role name"
+              value={roleName}
+              onChange={(e) => setRoleName(e.target.value)}
+            />
+          </Form.Group>
+        </Col>
+        <Col md={4}>
+          <Button onClick={handleSaveRole} className="w-100">Save Role</Button>
         </Col>
       </Row>
     </Form>

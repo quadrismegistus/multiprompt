@@ -22,8 +22,8 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
     dispatch(updateAgent(agent.id, { systemPrompt: e.target.value }));
   };
 
-  const handleSourceTypeChange = (e) => {
-    dispatch(updateAgent(agent.id, { sourceType: e.target.value }));
+  const handleTemperatureChange = (temperature) => {
+    dispatch(updateAgent(agent.id, { temperature }));
   };
 
   return (
@@ -34,17 +34,9 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
             agent={agent}
             onNameChange={handleNameChange}
             onModelChange={handleModelChange}
-            onSourceTypeChange={handleSourceTypeChange}
             onSystemPromptChange={handleSystemPromptChange}
-          >
-            <AgentConfigForm
-              agent={agent}
-              onNameChange={handleNameChange}
-              onModelChange={handleModelChange}
-              onSourceTypeChange={handleSourceTypeChange}
-              onSystemPromptChange={handleSystemPromptChange}
-            />
-          </AgentConfigAccordion>
+            onTemperatureChange={handleTemperatureChange}
+          />
           <ButtonGroup>
             <Button variant="link" onClick={onAdd} className="p-0 mx-1" title="Add Agent">
               <PlusCircle size={24} />

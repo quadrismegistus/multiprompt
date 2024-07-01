@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Row, Container, Col, Accordion } from 'react-bootstrap';
-import AgentConfigForm from './AgentConfigForm'; // Import the new component
+import AgentConfigForm from './AgentConfigForm';
 
-function AgentConfigAccordion({ agent, onNameChange, onModelChange, onSourceTypeChange, onSystemPromptChange }) {
+function AgentConfigAccordion({ agent, onNameChange, onModelChange, onSystemPromptChange, onTemperatureChange }) {
   return (
     <Container fluid className="px-0">
       <Row className="align-items-center">
@@ -18,8 +17,8 @@ function AgentConfigAccordion({ agent, onNameChange, onModelChange, onSourceType
                   agent={agent}
                   onNameChange={onNameChange}
                   onModelChange={onModelChange}
-                  onSourceTypeChange={onSourceTypeChange}
                   onSystemPromptChange={onSystemPromptChange}
+                  onTemperatureChange={onTemperatureChange}
                 />
               </Accordion.Body>
             </Accordion.Item>

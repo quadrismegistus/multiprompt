@@ -22,21 +22,21 @@ export const LLMProvider = ({ children }) => {
     }
   }, [config]);
 
-  const query = async function* (model, messages) {
+  const query = async function* (model, messages, temperature = 0.7) {
     if (!openai.current && !claude.current) {
       throw new Error('API clients are not initialized. Please set API keys in the configuration.');
     }
 
     if (model.startsWith('gpt')) {
-      yield* queryOpenAI(model, messages);
+      yield* queryOpenAI(model, messages, temperature);
     } else if (model.startsWith('claude')) {
-      yield* queryClaude(model, messages);
+      yield* queryClaude(model, messages, temperature);
     } else {
       throw new Error(`Unsupported model: ${model}`);
     }
   };
 
-  const queryOpenAI = async function* (model, messages) {
+  const queryOpenAI = async function* (model, messages, temperature) {
     if (!openai.current) {
       throw new Error('OpenAI client is not initialized. Please set OpenAI API key in the configuration.');
     }
@@ -45,6 +45,7 @@ export const LLMProvider = ({ children }) => {
       const stream = await openai.current.chat.completions.create({
         model: model,
         messages: messages,
+        temperature: temperature,
         stream: true,
       });
 
@@ -59,7 +60,7 @@ export const LLMProvider = ({ children }) => {
     }
   };
 
-  const queryClaude = async function* (model, messages) {
+  const queryClaude = async function* (model, messages, temperature) {
     if (!claude.current) {
       throw new Error('Claude client is not initialized. Please set Claude API key in the configuration.');
     }
@@ -72,6 +73,7 @@ export const LLMProvider = ({ children }) => {
       const fullPrompt = messages.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n\n');
 
       const response = await conversation.sendMessage(fullPrompt, {
+        temperature: temperature,
         stream: true,
       });
 

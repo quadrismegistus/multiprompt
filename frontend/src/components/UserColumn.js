@@ -55,7 +55,7 @@ function UserColumn() {
 
       try {
         let responseContent = '';
-        for await (const chunk of query(agent.model, messages)) {
+        for await (const chunk of query(agent.model, messages, agent.temperature)) {
           responseContent += chunk;
           updateAgent(agent.id, { output: responseContent + '█' });
         }
