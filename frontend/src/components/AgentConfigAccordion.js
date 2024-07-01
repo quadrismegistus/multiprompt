@@ -10,7 +10,7 @@ function AgentConfigAccordion({ agent, onNameChange, onModelChange, onSystemProm
           <Accordion className='agentconfig'>
             <Accordion.Item eventKey="0">
               <Accordion.Header>
-                {agent.name} ({agent.model})
+                {agent.name} ({agent.model}) [pos={agent.position}]
               </Accordion.Header>
               <Accordion.Body>
                 <AgentConfigForm

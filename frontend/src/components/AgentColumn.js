@@ -9,7 +9,7 @@ import { updateAgent, moveAgentLeft, moveAgentRight } from '../redux/actions';
 import AgentConfigForm from './AgentConfigForm';
 import { useAgents } from '../contexts/AgentContext';
 
-function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, isRightmostAgent }) {
+function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, isRightmostAgent, onUpdateAgent }) {
   const dispatch = useDispatch();
 
   const handleNameChange = (e) => {
@@ -37,8 +37,10 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, is
   };
 
   return (
-    <div className={`agent-col useragent-col flex-grow`}>
-      <Card>
+    // <div className={`agent-col useragent-col flex-grow`} style={{ flex: 1 }}>
+    // <div className={`agent-col useragent-col flex-grow`} style={{ flex: 1 }}>
+    // <div >
+      <Card className={`agent-card useragent-card flex-grow`}>
         <Card.Header className="d-flex justify-content-between align-items-center">
           <AgentConfigAccordion
             agent={agent}
@@ -66,7 +68,7 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn, isLeftmostAgent, is
           <MarkdownRenderer content={agent.output} />
         </Card.Body>
       </Card>
-    </div>
+    // </div>
   );
 }
 

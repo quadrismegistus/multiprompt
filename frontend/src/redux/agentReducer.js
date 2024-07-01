@@ -70,29 +70,24 @@ const agentReducer = (state = initialState, action) => {
       return {
         ...state,
         agents: state.agents.map(agent => {
-          if (agent.id === action.payload && agent.position > 1) {
+          if (agent.id === action.payload) {
             return { ...agent, position: agent.position - 1 };
           }
-          if (agent.position === agent.position - 1) {
-            return { ...agent, position: agent.position + 1 };
-          }
           return agent;
-        }).sort((a, b) => a.position - b.position)
+        })
       };
+
     case 'MOVE_AGENT_RIGHT':
-      const maxPosition = Math.max(...state.agents.map(a => a.position));
       return {
         ...state,
         agents: state.agents.map(agent => {
-          if (agent.id === action.payload && agent.position < maxPosition) {
+          if (agent.id === action.payload) {
             return { ...agent, position: agent.position + 1 };
           }
-          if (agent.position === agent.position + 1) {
-            return { ...agent, position: agent.position - 1 };
-          }
           return agent;
-        }).sort((a, b) => a.position - b.position)
+        })
       };
+  
     
     case 'ADD_AGENT':
       const currentAgents = state.agents;

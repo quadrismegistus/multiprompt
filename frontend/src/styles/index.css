@@ -208,3 +208,49 @@ body {
 
 
 
+
+/* 
+
+
+.agent-card {
+  border:1px solid blue;
+  flex-grow: 1;
+  flex: 1;
+  height:100%;
+}
+
+.agent-col { border:1px solid red;}
+ */
+
+ .agent-col {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.agent-row {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.agent-row > div {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.agent-row .card {
+  height: 100%;
+  border-radius: 0;
+}
+
+.h-1 { height: 8.33%; }
+.h-2 { height: 16.66%; }
+.h-3 { height: 25%; }
+.h-4 { height: 33.33%; }
+.h-5 { height: 41.66%; }
+.h-6 { height: 50%; }
+.h-7 { height: 58.33%; }
+.h-8 { height: 66.66%; }
+.h-9 { height: 75%; }
+.h-10 { height: 83.33%; }
+.h-11 { height: 91.66%; }
+.h-12 { height: 100%; }
