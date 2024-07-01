@@ -8,7 +8,7 @@ import { Send } from 'lucide-react';
 import { useAgents } from '../contexts/AgentContext';
 import DirectoryReader from './DirectoryReader';
 import MarkdownRenderer from './MarkdownRenderer';
-import { updateReferenceCodePrompt } from '../redux/actions';
+import { updateReferenceCodePrompt, updateUserPrompt } from '../redux/actions';
 import { formatPromptMessages } from '../utils/promptUtils';
 
 function UserColumn() {
@@ -16,20 +16,19 @@ function UserColumn() {
   const { query } = useApiClients();
   const userAgent = agents.find(agent => agent.type === 'user');
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
-  const [promptText, setPromptText] = useState('');
-  const [output, setOutput] = useState('');
-  const [isEditing, setIsEditing] = useState(true);
-  const editableDivRef = useRef(null);
+  const userPrompt = useSelector(state => state.config.userPrompt); // Get from Redux state
+  const [promptText, setPromptText] = useState(userPrompt); // Initialize with Redux state
+  const [isEditing, setIsEditing] = useState(false);
+  const textareaRef = useRef(null);
   const dispatch = useDispatch();
 
   const handleReferenceCodePromptChange = (e) => {
     dispatch(updateReferenceCodePrompt(e.target.value));
   };
 
-  const handlePromptChange = () => {
-    if (editableDivRef.current) {
-      setPromptText(editableDivRef.current.innerText);
-    }
+  const handlePromptChange = (e) => {
+    setPromptText(e.target.value);
+    dispatch(updateUserPrompt(e.target.value)); // Update Redux state
   };
 
   const handleDirectoryRead = (markdown) => {
@@ -40,30 +39,26 @@ function UserColumn() {
     const aiAgents = agents.filter(agent => agent.type === 'ai');
     let prevOutput = "";
 
-    for (const [index, agent] of aiAgents.entries()) {
+    for (const agent of aiAgents) {
       const formattedPrompt = formatPromptMessages(promptText, referenceCodePrompt, prevOutput, agent.sourceType);
 
       const userMessage = {
         role: 'user',
-        content: formattedPrompt
+        content: formattedPrompt,
       };
 
-      const systemMessage = agent.systemPrompt 
+      const systemMessage = agent.systemPrompt
         ? { role: 'system', content: agent.systemPrompt }
         : { role: 'system', content: 'You are a helpful assistant.' };
 
       const messages = [systemMessage, userMessage];
-      console.log('MESSAGES',messages);
 
       try {
         let responseContent = '';
         for await (const chunk of query(agent.model, messages)) {
           responseContent += chunk;
-          // if(chunk.includes('\n')) {
-            updateAgent(agent.id, { output: responseContent + '█' });
-          // }
+          updateAgent(agent.id, { output: responseContent + '█' });
         }
-        console.log('TOTAL RESPONSE:',responseContent);
         updateAgent(agent.id, { output: responseContent });
 
         prevOutput = responseContent;
@@ -71,24 +66,15 @@ function UserColumn() {
         updateAgent(agent.id, { output: `Error: ${error.message}` });
       }
     }
-    
+
     setIsEditing(false);
   };
 
   useEffect(() => {
-    if (editableDivRef.current) {
-      editableDivRef.current.focus();
-      const handleFocusOut = () => setIsEditing(false);
-      const handleFocusIn = () => setIsEditing(true);
-      editableDivRef.current.addEventListener('blur', handleFocusOut);
-      editableDivRef.current.addEventListener('focus', handleFocusIn);
-
-      return () => {
-        editableDivRef.current.removeEventListener('blur', handleFocusOut);
-        editableDivRef.current.removeEventListener('focus', handleFocusIn);
-      };
+    if (textareaRef.current && isEditing) {
+      textareaRef.current.focus();
     }
-  }, []);
+  }, [isEditing]);
 
   return (
     <Col className='user-col useragent-col'>
@@ -120,24 +106,24 @@ function UserColumn() {
           </ButtonGroup>
         </Card.Header>
         <Card.Body className='promptarea-card-body'>
-          <div style={{ display: isEditing ? 'block' : 'none', height:'100%' }}>
-            <div
-              ref={editableDivRef}
-              contentEditable
-              onInput={handlePromptChange}
-              className='promptarea'
+          {isEditing ? (
+            <textarea
+              ref={textareaRef}
+              className='promptarea w-100 h-100'
+              value={promptText}
+              onChange={handlePromptChange}
               placeholder="Enter your prompt here..."
+              onBlur={() => setIsEditing(false)}
             />
-          </div>
-          <div style={{ display: isEditing ? 'none' : 'block', height:'100%' }}>
-            <div 
+          ) : (
+            <div
               onClick={() => setIsEditing(true)}
-              className='promptarea'
+              className='promptarea w-100 h-100'
               style={{ cursor: 'text' }}
             >
-              <MarkdownRenderer content={promptText || "Enter your prompt here..."} />
+              <MarkdownRenderer content={promptText || "Click to edit prompt..."} />
             </div>
-          </div>
+          )}
         </Card.Body>
       </Card>
     </Col>

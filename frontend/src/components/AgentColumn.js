@@ -27,11 +27,11 @@ function AgentColumn({ agent, onRemove, onAdd, isOnlyColumn }) {
 
   return (
     <div className="agent-col useragent-col flex-grow">
-      <Card className="h-full bg-white dark:bg-gray-800 shadow-lg">
-        <Card.Header className="flex justify-between items-start">
+      <Card>
+        <Card.Header>
           <ButtonGroup vertical className='pl-3 m-0'>
             <Button variant="link" onClick={onAdd} className="p-0 mb-2" title="Add Agent">
-              <PlusCircle size={24} className="text-blue-500" />
+              <PlusCircle size={24} />
             </Button>
             <Button variant="link" onClick={onRemove} className="p-0" disabled={isOnlyColumn} title="Remove Agent">
               <MinusCircle size={24} className={isOnlyColumn ? "text-gray-400" : "text-red-500"} />

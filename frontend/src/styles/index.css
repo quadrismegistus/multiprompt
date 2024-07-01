@@ -1,41 +1,38 @@
-/* @tailwind base; */
-@tailwind components;
-@tailwind utilities;
 
-  :root {
-    --color-canvas-default: #ffffff;
-    --color-canvas-subtle: #f6f8fa;
-    --color-border-default: #d0d7de;
-    --color-border-muted: #d8dee4;
-    --color-neutral-muted: rgba(175,184,193,0.2);
-    --color-accent-fg: #0969da;
-    --color-accent-emphasis: #0969da;
-    --color-danger-fg: #cf222e;
-    --color-primer-shadow-inset: inset 0 1px 0 rgba(208,215,222,0.2);
-    --color-primer-shadow-focus: 0 0 0 3px rgba(9,105,218,0.3);
-    --color-fg-default: #24292f;
-    --color-fg-muted: #57606a;
-    --color-fg-subtle: #6e7781;
-  }
+:root {
+  --color-canvas-default: #ffffff;
+  --color-canvas-subtle: #f6f8fa;
+  --color-border-default: #d0d7de;
+  --color-border-muted: #d8dee4;
+  --color-neutral-muted: rgba(175,184,193,0.2);
+  --color-accent-fg: #0969da;
+  --color-accent-emphasis: #0969da;
+  --color-danger-fg: #cf222e;
+  --color-primer-shadow-inset: inset 0 1px 0 rgba(208,215,222,0.2);
+  --color-primer-shadow-focus: 0 0 0 3px rgba(9,105,218,0.3);
+  --color-fg-default: #24292f;
+  --color-fg-muted: #57606a;
+  --color-fg-subtle: #6e7781;
+}
 
-  .dark {
-    --color-canvas-default: #0d1117;
-    --color-canvas-subtle: #161b22;
-    --color-border-default: #30363d;
-    --color-border-muted: #21262d;
-    --color-neutral-muted: rgba(110,118,129,0.4);
-    --color-accent-fg: #58a6ff;
-    --color-accent-emphasis: #1f6feb;
-    --color-danger-fg: #f85149;
-    --color-primer-shadow-inset: inset 0 1px 0 rgba(99,110,123,0.4);
-    --color-primer-shadow-focus: 0 0 0 3px rgba(31,111,235,0.3);
-    --color-fg-default: #c9d1d9;
-    --color-fg-muted: #8b949e;
-    --color-fg-subtle: #6e7681;
-  }
+.dark {
+  --color-canvas-default: #0d1117;
+  --color-canvas-subtle: #161b22;
+  --color-border-default: #30363d;
+  --color-border-muted: #21262d;
+  --color-neutral-muted: rgba(110,118,129,0.4);
+  --color-accent-fg: #58a6ff;
+  --color-accent-emphasis: #1f6feb;
+  --color-danger-fg: #f85149;
+  --color-primer-shadow-inset: inset 0 1px 0 rgba(99,110,123,0.4);
+  --color-primer-shadow-focus: 0 0 0 3px rgba(31,111,235,0.3);
+  --color-fg-default: #c9d1d9;
+  --color-fg-muted: #8b949e;
+  --color-fg-subtle: #6e7681;
+}
 
 body {
-  @apply bg-[color:var(--color-canvas-default)] text-[color:var(--color-fg-default)] transition-colors duration-300;
+  @apply bg-[color:var(--color-canvas-default)] text-[color:var(--color-fg-default)] transition-colors duration-300 overflow-hidden;
 }
 
 .flex-container {
@@ -47,7 +44,7 @@ body {
 }
 
 .useragent-col {
-  @apply flex-1 min-w-[400px] h-full overflow-y-auto overflow-hidden max-h-[97dvh];
+  @apply flex-1 min-w-[400px] h-full overflow-y-auto overflow-hidden max-h-[100dvh];
 }
 
 .card {
@@ -132,4 +129,30 @@ body {
   select:focus,
   textarea:focus {
     @apply outline-none ring-2 ring-[color:var(--color-accent-fg)] ring-offset-2;
+}
+
+
+.card-body {
+  @apply bg-[color:var(--color-canvas-subtle)] border border-[color:var(--color-border-default)] rounded-md;
+}
+
+.dark .card-body {
+  @apply bg-[color:var(--color-canvas-subtle)] border border-[color:var(--color-border-default)] rounded-md;
+}
+
+.navbar {
+  @apply bg-[color:var(--color-canvas-default)] border-b border-[color:var(--color-border-default)];
+  text-align:left;
+}
+.navbar-brand {
+  color:silver;
+  margin:0 0 0 auto;
+  padding-left:1em;
+}
+.navbar-nav {
+  padding-right:1em;
+}
+
+.dark .navbar {
+  @apply bg-[color:var(--color-canvas-default)] border-b border-[color:var(--color-border-default)];
 }
