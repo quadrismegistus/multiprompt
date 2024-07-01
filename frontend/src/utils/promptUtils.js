@@ -1,13 +1,13 @@
 // src/utils/promptUtils.js
 
-export const formatPromptMessages = (promptText, referenceCodePrompt, prevOutput, sourceType) => {
+export const formatPromptMessages = (promptText, referenceCodePrompt, prevOutput) => {
   let formattedPrompt = promptText;
 
   if (referenceCodePrompt) {
     formattedPrompt += `\n\nReference Code:\n${referenceCodePrompt}`;
   }
 
-  if (sourceType === 'left' && prevOutput) {
+  if (prevOutput) {
     formattedPrompt += `\n\nPrevious AI Response:\n${prevOutput}`;
   }
 

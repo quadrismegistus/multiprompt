@@ -18,7 +18,6 @@ const initialAgents = [
     model: DEFAULT_MODEL,
     systemPrompt: SYSTEM_PROMPT_ANALYST,
     output: "",
-    sourceType: "user",
     temperature: 0.7,
     position: 1
   },
@@ -29,7 +28,6 @@ const initialAgents = [
     model: 'gpt-3.5-turbo',
     systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
     output: "",
-    sourceType: "left",
     temperature: 0.5,
     position: 2
   }
@@ -42,14 +40,12 @@ const initialSavedConfigurations = {
     name: "Analyst",
     model: DEFAULT_MODEL,
     systemPrompt: SYSTEM_PROMPT_ANALYST,
-    sourceType: "user",
     temperature: 0.7
   },
   "Implementer": {
     name: "Implementer",
     model: 'gpt-3.5-turbo',
     systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
-    sourceType: "left",
     temperature: 0.5
   }
 };

@@ -15,7 +15,6 @@ export const AgentProvider = ({ children }) => {
       name: `Agent ${agents.length + 1}`,
       type: 'ai',
       model: DEFAULT_MODEL,
-      sourceType: 'user',
       position: clickedAgentPosition,
     };
     dispatch({ type: 'ADD_AGENT', payload: newAgent });
