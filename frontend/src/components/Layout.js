@@ -21,7 +21,7 @@ function Layout() {
           <GridCard key={agent.id} columnPosition={agent.position}>
             <AgentColumn 
               agent={agent} 
-              onAdd={addAgent}
+              onAdd={() => addAgent(agent.position)}
               onRemove={() => removeAgent(agent.id)}
               onUpdateAgent={(updates) => updateAgent(agent.id, updates)}
               isOnlyColumn={agents.filter(a => a.type === 'ai').length === 1}

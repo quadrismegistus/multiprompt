@@ -1,5 +1,26 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
+import styled from 'styled-components';
+
+const GridLayoutContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(${props => props.columnCount}, 1fr);
+  gap: 0;
+  height: 100vh;
+  width: 100%;
+  overflow-x: auto;
+`;
+
+const GridColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+`;
+
+const GridItem = styled.div`
+  flex: 1;
+  min-height: 0;
+`;
 
 const GridLayout = ({ children }) => {
   // Group children by their columnPosition
@@ -14,36 +35,17 @@ const GridLayout = ({ children }) => {
   const sortedPositions = Object.keys(groupedChildren).sort((a, b) => Number(a) - Number(b));
 
   return (
-    <div className="grid-layout">
+    <GridLayoutContainer columnCount={sortedPositions.length}>
       {sortedPositions.map((position) => (
-        <div key={position} className="grid-column">
+        <GridColumn key={position}>
           {groupedChildren[position].map((child, index) => (
-            <div key={index} className="grid-item">
+            <GridItem key={index}>
               {child}
-            </div>
+            </GridItem>
           ))}
-        </div>
+        </GridColumn>
       ))}
-      <style jsx>{`
-        .grid-layout {
-          display: grid;
-          grid-template-columns: repeat(${sortedPositions.length}, 1fr);
-          gap: 0;
-          height: 100vh;
-          width: 100%;
-          overflow-x: auto;
-        }
-        .grid-column {
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-        }
-        .grid-item {
-          flex: 1;
-          min-height: 0;
-        }
-      `}</style>
-    </div>
+    </GridLayoutContainer>
   );
 };
 
