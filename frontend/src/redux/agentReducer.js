@@ -1,7 +1,6 @@
-
-
 import { v4 as uuidv4 } from 'uuid';
 import { DEFAULT_MODEL } from "../constants";
+import _ from 'lodash';
 
 const SYSTEM_PROMPT_ANALYST = "With reference to any provided code, analyze the user's query, outline the problem described, and suggest efficient and elegant solutions. Do NOT return the full contents of files; return only lines and functions changed.";
 
@@ -54,6 +53,49 @@ const initialState = {
   savedAgentConfigurations: initialSavedConfigurations
 };
 
+// Helper function to normalize positions
+const normalizePositions = (agents) => {
+  const sortedAgents = _.sortBy(agents, 'position');
+  return sortedAgents.map((agent, index) => ({ ...agent, position: index + 1 }));
+};
+
+const moveAgent = (state, agentId, direction) => {
+  const agentToMove = state.agents.find((agent) => agent.id === agentId);
+  const oldPosition = agentToMove.position;
+  const newPosition = direction === 'left' ? oldPosition - 1 : oldPosition + 1;
+
+  const agentsAtOldPosition = state.agents.filter(
+    (agent) => agent.position === oldPosition
+  );
+
+  if (agentsAtOldPosition.length > 1) {
+    const halfwayPosition = (oldPosition + newPosition) / 2;
+    return {
+      ...state,
+      agents: normalizePositions(
+        state.agents.map((agent) => {
+          if (agent.id === agentId) {
+            return { ...agent, position: halfwayPosition };
+          }
+          return agent;
+        })
+      ),
+    };
+  } else {
+    return {
+      ...state,
+      agents: normalizePositions(
+        state.agents.map((agent) => {
+          if (agent.id === agentId) {
+            return { ...agent, position: newPosition };
+          }
+          return agent;
+        })
+      ),
+    };
+  }
+};
+
 const agentReducer = (state = initialState, action) => {
   switch(action.type) {
     case 'UPDATE_AGENT':
@@ -64,50 +106,26 @@ const agentReducer = (state = initialState, action) => {
         )
       };
     case 'SET_AGENTS':
-      return { ...state, agents: action.payload };
-      
-    case 'MOVE_AGENT_LEFT':
-      return {
-        ...state,
-        agents: state.agents.map(agent => {
-          if (agent.id === action.payload) {
-            return { ...agent, position: agent.position - 1 };
-          }
-          return agent;
-        })
-      };
+      return { ...state, agents: normalizePositions(action.payload) };
 
-    case 'MOVE_AGENT_RIGHT':
-      return {
-        ...state,
-        agents: state.agents.map(agent => {
-          if (agent.id === action.payload) {
-            return { ...agent, position: agent.position + 1 };
-          }
-          return agent;
-        })
-      };
-  
-    
+    case "MOVE_AGENT_LEFT":
+      return moveAgent(state, action.payload, 'left');
+
+    case "MOVE_AGENT_RIGHT":
+      return moveAgent(state, action.payload, 'right');
+
     case 'ADD_AGENT':
-      const currentAgents = state.agents;
-      const clickedAgentPosition = action.payload.position;
-      const newPosition = clickedAgentPosition + 1;
-      
+      const newAgent = { ...action.payload, id: uuidv4() };
       return {
         ...state,
-        agents: [
-          ...currentAgents.map(agent => 
-            agent.position >= newPosition
-              ? { ...agent, position: agent.position + 1 }
-              : agent
-          ),
-          { ...action.payload, position: newPosition, id: uuidv4() }
-        ].sort((a, b) => a.position - b.position)
-      };  
+        agents: normalizePositions([...state.agents, newAgent])
+      };
     
     case 'REMOVE_AGENT':
-      return { ...state, agents: state.agents.filter(agent => agent.id !== action.payload) };
+      return {
+        ...state,
+        agents: normalizePositions(state.agents.filter(agent => agent.id !== action.payload))
+      };
     case 'CLEAR_AGENT_CACHE':
       return {
         ...initialState,
@@ -129,8 +147,10 @@ const agentReducer = (state = initialState, action) => {
       if (agentConfigToLoad) {
         return {
           ...state,
-          agents: state.agents.map(agent =>
-            agent.id === action.payload.agentId ? { ...agent, ...agentConfigToLoad } : agent
+          agents: normalizePositions(
+            state.agents.map(agent =>
+              agent.id === action.payload.agentId ? { ...agent, ...agentConfigToLoad } : agent
+            )
           )
         };
       }

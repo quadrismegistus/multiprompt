@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useApiClients } from '../contexts/LLMProvider';
-import { Card, Col, Accordion, Button, Form, Row } from 'react-bootstrap';
+import { Card, Form, Button, Col, Row, Accordion } from 'react-bootstrap';
 import { useAgents } from '../contexts/AgentContext';
 import DirectoryReader from './DirectoryReader';
 import MarkdownRenderer from './MarkdownRenderer';
@@ -77,7 +77,7 @@ function UserColumn() {
   }, [isEditing]);
 
   return (
-    <Col className='user-col useragent-col'>
+    <div className="column">
       <Card className="mb-3">
         <Card.Header className="d-flex justify-content-between align-items-center">
           <Accordion className='agentconfig'>
@@ -133,7 +133,7 @@ function UserColumn() {
           <DirectoryReader onMarkdownGenerated={handleDirectoryRead} />
         </Card.Footer>
       </Card>
-    </Col>
+    </div>
   );
 }
 
