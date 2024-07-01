@@ -17,7 +17,9 @@ function Layout({ children }) {
   return (
     <Container className='Layout'>
       <Header onConfigClick={handleConfigClick} />
-      {children}
+      <div className='Content'>
+        {children}
+      </div>
       <ConfigModal show={isConfigModalOpen} onHide={handleCloseConfigModal} />
     </Container>
   );

@@ -17,7 +17,7 @@ const initialState = {
       id: uuidv4(),
       name: "Engineer",
       type: "ai",
-      model: DEFAULT_MODEL,
+      model: 'gpt-3.5-turbo',
       systemPrompt: "With reference to any provided code, implement the user's query.",
       output: "",
       sourceType: "left" // Add default sourceType

@@ -6,7 +6,7 @@ function AgentColumns() {
   const { agents, addAgent, removeAgent, updateAgent } = useAgents();
 
   if (!agents) {
-    return null; // or return a loading indicator
+    return null;
   }
 
   const aiAgents = agents.filter(agent => agent.type === 'ai');

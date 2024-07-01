@@ -1,54 +1,135 @@
+/* @tailwind base; */
+@tailwind components;
+@tailwind utilities;
 
-
-body { overflow-x: hidden;}
-
-.BigRow {
-    height:95dvh;
-}
-
-.Layout { 
-    width:100dvw; 
-    height:100dvh; 
-    margin:0; 
-    padding:0;
-    max-width:none;
-}
-
-.card { height:100%;}
-
-.promptarea { 
-    /* border:1px solid red;  */
-    height:100%;
-}
-
-.agentconfig .accordion-header .accordion-button { font-size: 1.2rem;}
-
-.agentconfig { width:100%;margin-right:10px;}
-.agentconfig-buttons { text-align: right;}
-
-
-.btn-col { width:50px;}
-.logotitle { text-align: center;}
-.navbar-brand {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  
-  @media (max-width: 991px) {
-    .navbar-brand {
-      position: static;
-      transform: none;
-    }
+  :root {
+    --color-canvas-default: #ffffff;
+    --color-canvas-subtle: #f6f8fa;
+    --color-border-default: #d0d7de;
+    --color-border-muted: #d8dee4;
+    --color-neutral-muted: rgba(175,184,193,0.2);
+    --color-accent-fg: #0969da;
+    --color-accent-emphasis: #0969da;
+    --color-danger-fg: #cf222e;
+    --color-primer-shadow-inset: inset 0 1px 0 rgba(208,215,222,0.2);
+    --color-primer-shadow-focus: 0 0 0 3px rgba(9,105,218,0.3);
+    --color-fg-default: #24292f;
+    --color-fg-muted: #57606a;
+    --color-fg-subtle: #6e7781;
   }
 
-.btn-group { height:100%; padding-right: 20px;}
-.card-header { padding:0;}
-[contenteditable=true]:focus, [href]:focus, [tabindex]:not([tabindex="-1"]):focus, button:focus, details:focus, input:focus, select:focus, textarea:focus {
-    outline: none !important;
+  .dark {
+    --color-canvas-default: #0d1117;
+    --color-canvas-subtle: #161b22;
+    --color-border-default: #30363d;
+    --color-border-muted: #21262d;
+    --color-neutral-muted: rgba(110,118,129,0.4);
+    --color-accent-fg: #58a6ff;
+    --color-accent-emphasis: #1f6feb;
+    --color-danger-fg: #f85149;
+    --color-primer-shadow-inset: inset 0 1px 0 rgba(99,110,123,0.4);
+    --color-primer-shadow-focus: 0 0 0 3px rgba(31,111,235,0.3);
+    --color-fg-default: #c9d1d9;
+    --color-fg-muted: #8b949e;
+    --color-fg-subtle: #6e7681;
+  }
+
+body {
+  @apply bg-[color:var(--color-canvas-default)] text-[color:var(--color-fg-default)] transition-colors duration-300;
 }
 
+.flex-container {
+  @apply flex h-screen w-screen;
+}
 
-.card-body {
-  overflow-y: scroll;
+.Content {
+  @apply overflow-y-hidden overflow-x-auto;
+}
+
+.useragent-col {
+  @apply flex-1 min-w-[400px] h-full overflow-y-auto overflow-hidden max-h-[97dvh];
+}
+
+.card {
+  @apply h-full bg-[color:var(--color-canvas-subtle)] border border-[color:var(--color-border-default)] rounded-md shadow-sm;
+}
+
+.Layout {
+  @apply w-screen h-screen m-0 p-0 max-w-none;
+}
+
+.promptarea {
+  @apply h-full p-4 bg-[color:var(--color-canvas-default)] border border-[color:var(--color-border-muted)] rounded-md;
+}
+
+.agentconfig {
+  @apply w-full mr-2.5;
+}
+
+.agentconfig .accordion-header .accordion-button {
+  @apply text-lg bg-[color:var(--color-canvas-subtle)] text-[color:var(--color-fg-default)] border border-[color:var(--color-border-muted)] rounded-md;
+}
+
+.agentconfig-buttons {
+  @apply text-right;
+}
+
+.btn-col {
+  @apply w-[50px];
+}
+
+.btn-group {
+  @apply h-full;
+}
+
+.btn-group-vertical {
+  float:right;
+}
+
+.btn-primary {
+  @apply bg-[color:var(--color-accent-emphasis)] text-white hover:bg-opacity-90 focus:ring-2 focus:ring-[color:var(--color-accent-fg)] focus:ring-offset-2 focus:outline-none;
+}
+
+.btn-secondary {
+  @apply bg-[color:var(--color-canvas-subtle)] text-[color:var(--color-fg-default)] border border-[color:var(--color-border-default)] hover:bg-[color:var(--color-neutral-muted)] focus:ring-2 focus:ring-[color:var(--color-accent-fg)] focus:ring-offset-2 focus:outline-none;
+}
+
+.form-control {
+  @apply bg-[color:var(--color-canvas-default)] text-[color:var(--color-fg-default)] border border-[color:var(--color-border-default)] rounded-md focus:border-[color:var(--color-accent-fg)] focus:ring-2 focus:ring-[color:var(--color-accent-fg)] focus:outline-none;
+}
+
+.dropdown-menu {
+  @apply bg-[color:var(--color-canvas-default)] border border-[color:var(--color-border-default)] rounded-md shadow-md;
+}
+
+.dropdown-item {
+  @apply text-[color:var(--color-fg-default)] hover:bg-[color:var(--color-neutral-muted)];
+}
+
+.modal-content {
+  @apply bg-[color:var(--color-canvas-default)] text-[color:var(--color-fg-default)] border border-[color:var(--color-border-default)] rounded-md;
+}
+
+.modal-header,
+.modal-footer {
+  @apply border-[color:var(--color-border-muted)];
+}
+
+.navbar {
+  @apply bg-[color:var(--color-canvas-default)] border-b border-[color:var(--color-border-default)];
+}
+
+.promptarea-card-body {
+  padding:0;
+}
+
+[contenteditable=true]:focus,
+  [href]:focus,
+  [tabindex]:not([tabindex="-1"]):focus,
+  button:focus,
+  details:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    @apply outline-none ring-2 ring-[color:var(--color-accent-fg)] ring-offset-2;
 }

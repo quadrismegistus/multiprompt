@@ -1,5 +1,6 @@
+// src/App.js
 import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import { useSelector } from 'react-redux';
 import { AgentProvider } from './contexts/AgentContext';
 import { ConfigProvider } from './contexts/ConfigContext';
 import { LLMProvider } from './contexts/LLMProvider';
@@ -10,17 +11,17 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/index.css';
 
 function App() {
+  const isDarkMode = useSelector(state => state.config.isDarkMode);
+
   return (
     <ConfigProvider>
       <LLMProvider>
         <AgentProvider>
           <Layout>
-            <Container fluid>
-              <Row className='BigRow'>
-                  <UserColumn />
-                  <AgentColumns />
-              </Row>
-            </Container>
+            <div className={`flex-container ${isDarkMode ? 'dark' : ''}`}>
+              <UserColumn />
+              <AgentColumns />
+            </div>
           </Layout>
         </AgentProvider>
       </LLMProvider>

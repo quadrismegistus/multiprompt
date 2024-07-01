@@ -59,8 +59,13 @@ function UserColumn() {
         let responseContent = '';
         for await (const chunk of query(agent.model, messages)) {
           responseContent += chunk;
-          updateAgent(agent.id, { output: responseContent });
+          // if(chunk.includes('\n')) {
+            updateAgent(agent.id, { output: responseContent + '█' });
+          // }
         }
+        console.log('TOTAL RESPONSE:',responseContent);
+        updateAgent(agent.id, { output: responseContent });
+
         prevOutput = responseContent;
       } catch (error) {
         updateAgent(agent.id, { output: `Error: ${error.message}` });
@@ -114,7 +119,7 @@ function UserColumn() {
             </Button>
           </ButtonGroup>
         </Card.Header>
-        <Card.Body>
+        <Card.Body className='promptarea-card-body'>
           <div style={{ display: isEditing ? 'block' : 'none', height:'100%' }}>
             <div
               ref={editableDivRef}
