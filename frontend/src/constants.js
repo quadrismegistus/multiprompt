@@ -54,3 +54,4 @@ export const DEFAULT_SUMMARY_SYSTEM_PROMPT = "You are a senior developer reviewi
 export const DEFAULT_SUMMARY_USER_PROMPT = "Synthesize and summarize these suggested changes, and return a markdown representation of a directory structure of files necessary to change, along with the full functions or code snippets changed under a markdown heading for the filepath under which they appear.";
 export const DEFAULT_INCL_REPO = true;
 
+export const ANTHROPIC_BASE_URL = "https://super-custard-978c1f.netlify.app/api/anthropic"

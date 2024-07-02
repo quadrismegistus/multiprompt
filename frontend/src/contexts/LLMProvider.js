@@ -1,14 +1,13 @@
 import React, { createContext, useContext, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
-import Anthropic from '@anthropic-ai/sdk';
 import { useConfig } from './ConfigContext';
+import { ANTHROPIC_BASE_URL } from '../constants';
 
 const LLMContext = createContext(null);
 
 export const LLMProvider = ({ children }) => {
   const { config } = useConfig();
   const openai = useRef(null);
-  const anthropic = useRef(null);
 
   useEffect(() => {
     if (config.openaiApiKey) {
@@ -17,15 +16,10 @@ export const LLMProvider = ({ children }) => {
         dangerouslyAllowBrowser: true,
       });
     }
-    if (config.claudeApiKey) {
-      anthropic.current = new Anthropic({
-        apiKey: config.claudeApiKey,
-      });
-    }
   }, [config]);
 
   const query = async function* (model, messages, temperature = 0.7) {
-    if (!openai.current && !anthropic.current) {
+    if (!openai.current && !config.claudeApiKey) {
       throw new Error('API clients are not initialized. Please set API keys in the configuration.');
     }
 
@@ -37,6 +31,7 @@ export const LLMProvider = ({ children }) => {
       throw new Error(`Unsupported model: ${model}`);
     }
   };
+
 
   const queryOpenAI = async function* (model, messages, temperature) {
     if (!openai.current) {
@@ -63,33 +58,45 @@ export const LLMProvider = ({ children }) => {
   };
 
   const queryAnthropic = async function* (model, messages, temperature) {
-    if (!anthropic.current) {
-      throw new Error('Anthropic client is not initialized. Please set Claude API key in the configuration.');
+    if (!config.claudeApiKey) {
+      throw new Error('Anthropic API key is not set. Please set Claude API key in the configuration.');
     }
 
     try {
-      // Extract system message if present
-      const systemMessage = messages.find(msg => msg.role === 'system');
-      const userMessages = messages.filter(msg => msg.role !== 'system');
+      const response = await fetch(ANTHROPIC_BASE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          apiKey: config.claudeApiKey,
+          model,
+          messages,
+          max_tokens: 1024,
+          temperature,
+          stream: true,
+        }),
+      });
 
-      const streamParams = {
-        model: model,
-        messages: userMessages,
-        temperature: temperature,
-        max_tokens: 1024,
-        stream: true,
-      };
-
-      // Add system message if present
-      if (systemMessage) {
-        streamParams.system = systemMessage.content;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const stream = await anthropic.current.messages.create(streamParams);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
 
-      for await (const chunk of stream) {
-        if (chunk.delta?.text) {
-          yield chunk.delta.text;
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = JSON.parse(line.slice(6));
+            if (data.delta?.text) {
+              yield data.delta.text;
+            }
+          }
         }
       }
     } catch (error) {
