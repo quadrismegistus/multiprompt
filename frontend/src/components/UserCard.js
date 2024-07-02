@@ -54,7 +54,7 @@ function UserCard() {
           <Accordion.Item eventKey="0">
             <Accordion.Header>multiprompt</Accordion.Header>
             <Accordion.Body>
-              <UserConfigForm />
+              {/* <UserConfigForm /> */}
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
