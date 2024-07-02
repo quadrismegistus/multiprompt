@@ -4,7 +4,7 @@ import UserCard from './UserCard';
 import AgentCard from './AgentCard';
 import { GridLayout, GridCard } from './GridLayout';
 import { useAgents } from '../contexts/AgentContext';
-import ConversationHistory from './ConversationHistory';
+import IconSidebar from './IconSidebar';
 
 function Layout() {
   const isDarkMode = useSelector(state => state.config.isDarkMode);
@@ -14,7 +14,8 @@ function Layout() {
 
   return (
     <div className={`Layout ${isDarkMode ? 'dark' : ''}`}>
-      <GridLayout>
+      <IconSidebar /> {/* Add this line */}
+      <GridLayout classname='GridLayout'>
         <GridCard columnPosition={0}>
           <UserCard />
         </GridCard>

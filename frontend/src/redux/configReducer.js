@@ -37,6 +37,9 @@ const configReducer = (state = initialState, action) => {
         ...state.savedGlobalConfigurations[action.payload.name]
       };
     case 'ADD_CONVERSATION_HISTORY':
+      if (!Array.isArray(state.conversationHistory)) {
+        state.conversationHistory = [];
+      }
       return {
         ...state,
         conversationHistory: [...state.conversationHistory, action.payload]

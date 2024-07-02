@@ -15,21 +15,23 @@ const initialAgents = [
     id: uuidv4(),
     name: "Analyst",
     type: "ai",
-    model: DEFAULT_MODEL,
+    model: "gpt-4o",
     systemPrompt: SYSTEM_PROMPT_ANALYST,
     output: "",
     temperature: 0.7,
-    position: 1
+    position: 1,
+    progress: 0
   },
   {
     id: uuidv4(),
     name: "Implementer",
     type: "ai",
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-4o',
     systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
     output: "",
     temperature: 0.5,
-    position: 2
+    position: 1,
+    progress: 0
   }
 ];
 
@@ -38,13 +40,13 @@ const initialAgents = [
 const initialSavedConfigurations = {
   "Analyst": {
     name: "Analyst",
-    model: DEFAULT_MODEL,
+    model: 'gpt-4o',
     systemPrompt: SYSTEM_PROMPT_ANALYST,
     temperature: 0.7
   },
   "Implementer": {
     name: "Implementer",
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-4o',
     systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
     temperature: 0.5
   }

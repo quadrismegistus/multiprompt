@@ -23,7 +23,7 @@ export  const makeAsciiSection = (title, content, level = 1) => {
   // Calculate padding for centering the title
   const titleLength = levelIndicator.length + 1 + formattedTitle.length;
   const leftPadding = Math.floor((58 - titleLength) / 2);
-  const rightPadding = 58 - titleLength - leftPadding;
+  const rightPadding = 60 - titleLength - leftPadding;
   
   // Create the header box
   const headerBox = `

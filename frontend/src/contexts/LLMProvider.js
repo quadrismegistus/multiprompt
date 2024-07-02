@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef } from 'react';
 import OpenAI from 'openai';
-import Claude from 'claude-ai';
+import Anthropic from '@anthropic-ai/sdk';
 import { useConfig } from './ConfigContext';
 
 const LLMContext = createContext(null);
@@ -8,7 +8,7 @@ const LLMContext = createContext(null);
 export const LLMProvider = ({ children }) => {
   const { config } = useConfig();
   const openai = useRef(null);
-  const claude = useRef(null);
+  const anthropic = useRef(null);
 
   useEffect(() => {
     if (config.openaiApiKey) {
@@ -18,19 +18,21 @@ export const LLMProvider = ({ children }) => {
       });
     }
     if (config.claudeApiKey) {
-      claude.current = new Claude(config.claudeApiKey);
+      anthropic.current = new Anthropic({
+        apiKey: config.claudeApiKey,
+      });
     }
   }, [config]);
 
   const query = async function* (model, messages, temperature = 0.7) {
-    if (!openai.current && !claude.current) {
+    if (!openai.current && !anthropic.current) {
       throw new Error('API clients are not initialized. Please set API keys in the configuration.');
     }
 
     if (model.startsWith('gpt')) {
       yield* queryOpenAI(model, messages, temperature);
     } else if (model.startsWith('claude')) {
-      yield* queryClaude(model, messages, temperature);
+      yield* queryAnthropic(model, messages, temperature);
     } else {
       throw new Error(`Unsupported model: ${model}`);
     }
@@ -60,30 +62,38 @@ export const LLMProvider = ({ children }) => {
     }
   };
 
-  const queryClaude = async function* (model, messages, temperature) {
-    if (!claude.current) {
-      throw new Error('Claude client is not initialized. Please set Claude API key in the configuration.');
+  const queryAnthropic = async function* (model, messages, temperature) {
+    if (!anthropic.current) {
+      throw new Error('Anthropic client is not initialized. Please set Claude API key in the configuration.');
     }
 
     try {
-      const conversation = await claude.current.startConversation({
-        model,
-      });
+      // Extract system message if present
+      const systemMessage = messages.find(msg => msg.role === 'system');
+      const userMessages = messages.filter(msg => msg.role !== 'system');
 
-      const fullPrompt = messages.map(msg => `${msg.role.toUpperCase()}: ${msg.content}`).join('\n\n');
-
-      const response = await conversation.sendMessage(fullPrompt, {
+      const streamParams = {
+        model: model,
+        messages: userMessages,
         temperature: temperature,
+        max_tokens: 1024,
         stream: true,
-      });
+      };
 
-      for await (const chunk of response) {
-        if (chunk.completion) {
-          yield chunk.completion;
+      // Add system message if present
+      if (systemMessage) {
+        streamParams.system = systemMessage.content;
+      }
+
+      const stream = await anthropic.current.messages.create(streamParams);
+
+      for await (const chunk of stream) {
+        if (chunk.delta?.text) {
+          yield chunk.delta.text;
         }
       }
     } catch (error) {
-      console.error('Error querying Claude:', error);
+      console.error('Error querying Anthropic:', error);
       throw error;
     }
   };

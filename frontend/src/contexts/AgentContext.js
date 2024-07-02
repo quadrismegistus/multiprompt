@@ -26,6 +26,10 @@ export const AgentProvider = ({ children }) => {
 
   const updateAgent = (id, updates) => {
     dispatch({ type: 'UPDATE_AGENT', payload: { id, updates } });
+    if (updates.output && !updates.output.endsWith('█')) {
+      // When the agent finishes processing, set progress to 100%
+      dispatch({ type: 'UPDATE_AGENT', payload: { id, updates: { progress: 100 } } });
+    }
   };
 
   const moveAgentTo = (agentId, newPosition) => {

@@ -9,17 +9,20 @@ const GridLayoutContainer = styled.div`
   height: 100vh;
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
 `;
 
 const GridColumn = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0;
+  overflow: hidden;
 `;
 
 const GridItem = styled.div`
   flex: 1;
   min-height: 0;
+  overflow:hidden;
 `;
 
 const GridLayout = ({ children }) => {
@@ -49,8 +52,8 @@ const GridLayout = ({ children }) => {
   );
 };
 
-const GridCard = ({ columnPosition, children, ...props }) => (
-  <Card {...props} style={{ height: '100%', overflow: 'auto' }}>
+const GridCard = ({ columnPosition, children, columnCardCount, ...props }) => (
+  <Card {...props} style={{ maxHeight: `calc(100dvh / ${columnCardCount})`}}>
     {children}
   </Card>
 );

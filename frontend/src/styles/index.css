@@ -34,7 +34,7 @@
 
 body {
   @apply bg-[color:var(--color-canvas-default)] text-[color:var(--color-fg-default)] transition-colors duration-300;
-  /* overflow:scroll; */
+  overflow:hidden;
 }
 
 .flex-container {
@@ -47,6 +47,7 @@ body {
   min-height: 100dvh;
   max-height: 100dvh;
   width:fit-content;
+  overflow:hidden;
 
   /* @apply overflow-y-hidden overflow-x-scroll; */
 }
@@ -64,7 +65,8 @@ body {
 .useragent-col .card-body { overflow-y:auto; }
 
 .card {
-  @apply h-full bg-[color:var(--color-canvas-subtle)] border border-[color:var(--color-border-default)] rounded-md shadow-sm;
+  /* @apply h-full bg-[color:var(--color-canvas-subtle)] border border-[color:var(--color-border-default)] rounded-md shadow-sm; */
+  height:100%;
 }
 
 /* .Layout {
@@ -87,6 +89,9 @@ body {
   flex-direction: row;
   padding:0;
   margin:0;
+
+  padding-left:60px;
+
 }
 
 
@@ -290,3 +295,34 @@ body {
 
 /* .convo-history-offcanvas { width:50px; max-width:200px; overflow: scroll; margin-top:3rem;} */
 .convo-history-modal { }
+
+
+.icon-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 60px; /* Adjust the width of the sidebar */
+  height: 100%;
+  background-color: var(--color-canvas-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px; /* Space from the top */
+  /* box-shadow: 2px 0 5px rgba(0,0,0,0.1); */
+  border:none;
+  z-index:100;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.card-header { background-color: var(--color-canvas-subtle);}
+.card { border-right:0;}
+.card-body { background-color: var(--color-canvas-subtle);}
+#root, body, .Layout, .Content, .GridLayout { overflow:hidden; }
+
+.card-body { overflow: auto;}

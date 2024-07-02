@@ -1,12 +1,16 @@
-import React from 'react';
-import { Card, ButtonGroup, Button } from 'react-bootstrap';
+// src/components/AgentCard.js
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, ButtonGroup, Button, ProgressBar } from 'react-bootstrap'; // Add ProgressBar import
 import { PlusCircle, MinusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import MarkdownRenderer from './MarkdownRenderer';
 import AgentConfigAccordion from './AgentConfigAccordion';
 import { useAgents } from '../contexts/AgentContext';
+import { usePrompt } from '../contexts/PromptContext';
 
 function AgentCard({ agent }) {
   const { agents, addAgent, removeAgent, updateAgent, moveAgentTo } = useAgents();
+  const { agentProgress } = usePrompt();
 
   const isOnlyColumn = agents.filter(a => a.type === 'ai').length === 1;
 
@@ -42,6 +46,15 @@ function AgentCard({ agent }) {
     removeAgent(agent.id);
   };
 
+  const cardBodyRef = useRef(null);
+  useEffect(() => {
+    if (cardBodyRef.current) {
+      cardBodyRef.current.scrollTop = cardBodyRef.current.scrollHeight;
+    }
+  }, [agent.output]);
+
+  const progress = agentProgress[agent.id] || 0;
+
   return (
     <Card className={`agent-card useragent-card flex-grow`}>
       <Card.Header className="d-flex justify-content-between align-items-center">
@@ -52,6 +65,7 @@ function AgentCard({ agent }) {
           onSystemPromptChange={handleSystemPromptChange}
           onTemperatureChange={handleTemperatureChange}
         />
+
         <ButtonGroup>
           <Button variant="link" onClick={handleMoveAgentLeft} className="p-0 mx-1" title="Move Left">
             <ChevronLeft size={24} />
@@ -67,9 +81,12 @@ function AgentCard({ agent }) {
           </Button>
         </ButtonGroup>
       </Card.Header>
-      <Card.Body className="overflow-y-auto">
+      <Card.Body ref={cardBodyRef}>
         <MarkdownRenderer content={agent.output} />
       </Card.Body>
+      <Card.Footer>
+        {progress < 100 && <ProgressBar now={progress} label={`${Math.round(progress)}%`} />}
+      </Card.Footer>
     </Card>
   );
 }
