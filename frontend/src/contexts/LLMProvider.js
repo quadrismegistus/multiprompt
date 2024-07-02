@@ -76,7 +76,7 @@ export const LLMProvider = ({ children }) => {
           temperature,
           stream: true,
         }),
-        credentials: 'include', // Add this line
+        // Remove the credentials option
       });
 
       if (!response.ok) {
