@@ -1,6 +1,7 @@
 import React from 'react';
 import { Row, Container, Col, Accordion } from 'react-bootstrap';
 import AgentConfigForm from './AgentConfigForm';
+import { MODEL_DICT_r } from '../constants';
 
 function AgentConfigAccordion({ agent, onNameChange, onModelChange, onSystemPromptChange, onTemperatureChange }) {
   return (
@@ -10,7 +11,17 @@ function AgentConfigAccordion({ agent, onNameChange, onModelChange, onSystemProm
           <Accordion className='agentconfig'>
             <Accordion.Item eventKey="0">
               <Accordion.Header>
-                {agent.name} ({agent.model}) [pos={agent.position}]
+                {agent.name}
+                <span style={{
+                  fontFamily: "monospace", 
+                  fontSize: ".8em", 
+                  lineHeight: 'normal',
+                  fontStyle: "italic",
+                  marginLeft: ".5em",
+                  // marginTop:".5em"
+                }}>
+                  ({MODEL_DICT_r[agent.model]})
+                </span>
               </Accordion.Header>
               <Accordion.Body>
                 <AgentConfigForm
