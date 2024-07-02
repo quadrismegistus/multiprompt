@@ -57,7 +57,7 @@ function AgentCard({ agent }) {
 
   return (
     <Card className={`agent-card useragent-card flex-grow`}>
-      <Card.Header className="d-flex justify-content-between align-items-center">
+      <Card.Header className="d-flex justify-content-between align-items-start">
         <AgentConfigAccordion
           agent={agent}
           onNameChange={handleNameChange}

@@ -7,9 +7,12 @@ import { SOCKET_SERVER_URL } from '../constants';
 import { makeAsciiSection } from '../utils/promptUtils';
 import { addConversationHistory } from '../redux/actions';
 
+console.log('Initializing LLMContext');
+
 const LLMContext = createContext(null);
 
 export const LLMProvider = ({ children }) => {
+  console.log('Rendering LLMProvider');
   const { config } = useConfig();
   const { agents, updateAgent } = useAgents();
   const dispatch = useDispatch();
@@ -20,7 +23,11 @@ export const LLMProvider = ({ children }) => {
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
   const userPrompt = useSelector(state => state.config.userPrompt);
 
+  console.log('Current config:', config);
+  console.log('Current agents:', agents);
+
   useEffect(() => {
+    console.log('Setting up socket connection');
     socketRef.current = io(SOCKET_SERVER_URL, {
       reconnection: true,
       reconnectionAttempts: 5,
@@ -42,6 +49,7 @@ export const LLMProvider = ({ children }) => {
     });
 
     return () => {
+      console.log('Cleaning up socket connection');
       if (socketRef.current) {
         socketRef.current.disconnect();
       }
@@ -49,12 +57,14 @@ export const LLMProvider = ({ children }) => {
   }, [config]);
 
   const query = useCallback((userPrompt, agent, onChunk) => {
+    console.log('Initiating query');
     if (!socketRef.current || !isConnected) {
+      console.error('Socket is not connected.');
       throw new Error('Socket is not connected.');
     }
 
     const { model, systemPrompt, temperature } = agent;
-    console.log('Querying with:', userPrompt, model, systemPrompt, temperature);
+    console.log('Querying with:', { userPrompt, model, systemPrompt, temperature });
 
     return new Promise((resolve, reject) => {
       let fullResponse = '';
@@ -62,6 +72,7 @@ export const LLMProvider = ({ children }) => {
       socketRef.current.emit('generate', { userPrompt, model, systemPrompt, temperature });
 
       socketRef.current.on('response', (data) => {
+        console.log('Received chunk:', data);
         if (data.text) {
           fullResponse += data.text;
           onChunk(data.text);
@@ -69,6 +80,7 @@ export const LLMProvider = ({ children }) => {
       });
 
       socketRef.current.on('response_complete', (data) => {
+        console.log('Response complete');
         socketRef.current.off('response');
         socketRef.current.off('response_complete');
         socketRef.current.off('error');
@@ -76,6 +88,7 @@ export const LLMProvider = ({ children }) => {
       });
 
       socketRef.current.on('error', (error) => {
+        console.error('LLM query error:', error);
         socketRef.current.off('response');
         socketRef.current.off('response_complete');
         socketRef.current.off('error');
@@ -84,13 +97,15 @@ export const LLMProvider = ({ children }) => {
     });
   }, [isConnected]);
 
-  const handleSendPrompt = useCallback(async () => {
+  const handleSendPrompt = useCallback(async (userPrompt, referenceCodePrompt) => {
+    console.log('Handling send prompt');
     if (!isConnected) {
       console.error('Not connected to the LLM server');
       return;
     }
 
     const aiAgents = agents.filter(agent => agent.type === 'ai');
+    console.log('AI agents:', aiAgents);
     const agentsByPosition = aiAgents.reduce((acc, agent) => {
       if (!acc[agent.position]) {
         acc[agent.position] = [];
@@ -98,23 +113,28 @@ export const LLMProvider = ({ children }) => {
       acc[agent.position].push(agent);
       return acc;
     }, {});
+    console.log('Agents by position:', agentsByPosition);
 
     let userPromptSoFar = makeAsciiSection("User Prompt", userPrompt, 1)
     if (referenceCodePrompt) {
       userPromptSoFar += makeAsciiSection("Appendix to user prompt with reference material", referenceCodePrompt, 2)
     }
+    console.log('Initial user prompt:', userPromptSoFar);
     const conversation = [];
 
     for (const position of Object.keys(agentsByPosition).sort((a, b) => a - b)) {
-      console.log('at position', position, 'user prompt is', userPromptSoFar);
+      console.log('Processing position:', position);
+      console.log('Current user prompt:', userPromptSoFar);
 
       const agentsAtPosition = agentsByPosition[position];
       const agentsPromises = agentsAtPosition.map(async agent => {
+        console.log('Processing agent:', agent.name);
         try {
           let responseContent = '';
-          const maxTokens = 4096; // You might want to adjust this or get it from the agent config
+          const maxTokens = 4096; 
 
           const handleChunk = (chunk) => {
+            console.log('Received chunk for agent:', agent.name, chunk);
             responseContent += chunk;
             const progressPercentage = Math.min((responseContent.length / maxTokens) * 100, 100);
             setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
@@ -123,10 +143,12 @@ export const LLMProvider = ({ children }) => {
 
           const fullResponse = await query(userPromptSoFar, agent, handleChunk);
           
+          console.log('Full response for agent:', agent.name, fullResponse);
           updateAgent(agent.id, { output: fullResponse });
           setAgentProgress(prev => ({ ...prev, [agent.id]: 100 }));
           return { agent, output: fullResponse };
         } catch (error) {
+          console.error('Error processing agent:', agent.name, error);
           const errorMessage = `Error: ${error.message}`;
           updateAgent(agent.id, { output: errorMessage });
           return { agent, output: errorMessage };
@@ -134,6 +156,7 @@ export const LLMProvider = ({ children }) => {
       });
 
       const positionOutputs = await Promise.all(agentsPromises);
+      console.log('Position outputs:', positionOutputs);
 
       for (const { agent, output } of positionOutputs) {
         userPromptSoFar += makeAsciiSection(`Response from agent ${agent.name}`, output, 1)
@@ -141,9 +164,11 @@ export const LLMProvider = ({ children }) => {
       }
     }
 
+    console.log('Final conversation:', conversation);
     dispatch(addConversationHistory(conversation));  
-  }, [agents, query, isConnected, userPrompt, referenceCodePrompt, updateAgent, dispatch]);
+  }, [agents, query, isConnected, updateAgent, dispatch]);
 
+  console.log('Rendering LLMContext.Provider');
   return (
     <LLMContext.Provider value={{ handleSendPrompt, agentProgress, isConnected }}>
       {children}
@@ -152,9 +177,13 @@ export const LLMProvider = ({ children }) => {
 };
 
 export const useLLM = () => {
+  console.log('Using LLM context');
   const context = useContext(LLMContext);
   if (context === undefined) {
+    console.error('useLLM must be used within an LLMProvider');
     throw new Error('useLLM must be used within an LLMProvider');
   }
   return context;
 };
+
+console.log('LLMContext module loaded');

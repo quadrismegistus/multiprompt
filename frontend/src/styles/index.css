@@ -326,3 +326,7 @@ body {
 #root, body, .Layout, .Content, .GridLayout { overflow:hidden; }
 
 .card-body { overflow: auto;}
+
+.accordion-body {
+  padding:0;
+}

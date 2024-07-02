@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Card, Form, Button, Col, Row, Accordion, Modal } from 'react-bootstrap';
-import { updateReferenceCodePrompt, updateUserPrompt } from '../redux/actions';
+import { Card, Form, Button, Accordion, Row, Col, ButtonGroup } from 'react-bootstrap';
+import { updateReferenceCodePrompt, updateUserPrompt, updateConfig } from '../redux/actions';
 import DirectoryReader from './DirectoryReader';
 import MarkdownRenderer from './MarkdownRenderer';
 import { useLLM } from '../contexts/LLMProvider';
@@ -10,11 +10,13 @@ import { useLLM } from '../contexts/LLMProvider';
 function UserCard() {
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
   const userPrompt = useSelector(state => state.config.userPrompt);
+  const useFileInput = useSelector(state => state.config.useFileInput);
   const [promptText, setPromptText] = useState(userPrompt);
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef(null);
   const dispatch = useDispatch();
   const { handleSendPrompt } = useLLM();
+  const directoryReaderRef = useRef(null);
 
   const handleReferenceCodePromptChange = (e) => {
     dispatch(updateReferenceCodePrompt(e.target.value));
@@ -29,6 +31,23 @@ function UserCard() {
     dispatch(updateReferenceCodePrompt(markdown));
   };
 
+  const handleUseFileInputToggle = (e) => {
+    dispatch(updateConfig({ useFileInput: e.target.checked }));
+  };
+
+  const handleSend = useCallback(async () => {
+    let updatedReferenceCodePrompt = referenceCodePrompt;
+    if (useFileInput && directoryReaderRef.current && directoryReaderRef.current.readFileOrDirectory) {
+      const updatedMarkdown = await directoryReaderRef.current.readFileOrDirectory();
+      if (updatedMarkdown) {
+        updatedReferenceCodePrompt = updatedMarkdown;
+        dispatch(updateReferenceCodePrompt(updatedMarkdown));
+      }
+    }
+    
+    handleSendPrompt(promptText, updatedReferenceCodePrompt);
+  }, [handleSendPrompt, dispatch, promptText, referenceCodePrompt, useFileInput]);
+
   useEffect(() => {
     if (textareaRef.current && isEditing) {
       textareaRef.current.focus();
@@ -37,18 +56,66 @@ function UserCard() {
 
   return (
     <Card>
-      <Card.Header className="d-flex justify-content-between align-items-center">
+      <Card.Header className="d-flex justify-content-between align-items-start">
         <Accordion className='agentconfig'>
           <Accordion.Item eventKey="0">
             <Accordion.Header>multiprompt</Accordion.Header>
             <Accordion.Body>
-              {/* <UserConfigForm /> */}
+            <Form.Group className="mb-3">
+
+              <Row>
+                <Form.Label htmlFor="custom-switch">Prompt appendix (reference code or docs to send to LLM)</Form.Label>
+
+                <Col md={6}>
+                  <Button
+                    variant={useFileInput ? "primary" : "secondary"}
+                    onClick={() => handleUseFileInputToggle({ target: { checked: true } })}
+                    className="w-100 mb-2"
+                  >
+                    File Input
+                  </Button>
+                  {/* <Form.Check 
+                    type="switch"
+                    id="custom-switch"
+                    label="Use file/folder input"
+                    checked={useFileInput}
+                    onChange={handleUseFileInputToggle}
+                    className="mb-2"
+                  /> */}
+                  <DirectoryReader ref={directoryReaderRef} onMarkdownGenerated={handleDirectoryRead} disabled={!useFileInput} />
+                </Col>
+
+                <Col md={6}>
+                <Button
+                    variant={useFileInput ? "secondary" : "primary"}
+                    onClick={() => handleUseFileInputToggle({ target: { checked: false } })}
+                    className="w-100"
+                  >
+                    Manual Input
+                  </Button>
+                  {/* <Form.Label htmlFor="referenceCodePromptTextarea">
+                    Manual entry
+                  </Form.Label> */}
+                  <Form.Control
+                    as="textarea"
+                    id="referenceCodePromptTextarea"
+                    rows={5}
+                    value={referenceCodePrompt}
+                    onChange={handleReferenceCodePromptChange}
+                    placeholder="Enter reference code prompt here..."
+                    disabled={useFileInput}
+                    className="mt-2"
+                  />
+                </Col>
+
+                
+
+              </Row>
+            </Form.Group>
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
-        
-        
-        <Button variant="link" onClick={handleSendPrompt} className="p-0" title="Send Prompt">
+        <Button variant="link" onClick={handleSend} className="p-0" title="Send Prompt">
           <Send size={24} color="royalblue" />
         </Button>
       </Card.Header>
@@ -72,37 +139,6 @@ function UserCard() {
           </div>
         )}
       </Card.Body>
-      <Card.Footer>
-        <Accordion>
-          <Accordion.Item eventKey="1">
-            <Accordion.Header>Prompt appendix</Accordion.Header>
-            <Accordion.Body>
-              <Form.Group className="mb-3">
-                <Form.Control
-                  as="textarea"
-                  rows={5}
-                  value={referenceCodePrompt}
-                  onChange={handleReferenceCodePromptChange}
-                  placeholder="Enter reference code prompt here..."
-                />
-              </Form.Group>
-              <DirectoryReader onMarkdownGenerated={handleDirectoryRead} />
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      </Card.Footer>
-
-      {/* Modal for showing conversation history */}
-      {/* <Modal show={showHistory} onHide={() => setShowHistory(false)} size="lg" className="convo-history-modal">
-        <Modal.Header closeButton>
-          <Modal.Title>Conversation History</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <ConversationHistory />
-        </Modal.Body>
-        
-      </Modal> */}
-      {/* <ConfigModal show={showConfigModal} onHide={toggleConfigModal} /> */}
     </Card>
   );
 }

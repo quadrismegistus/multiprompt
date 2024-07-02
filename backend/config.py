@@ -1,8 +1,13 @@
+import sys
+sys.path.insert(0,'/Users/ryan/github/logmap')
+from logmap import logmap
+import logging
 import json
 import asyncio
 
 import socketio
 from aiohttp import web
+logging.getLogger('aiohttp.access').setLevel(logging.WARNING)
 import os
 import random
 from dotenv import load_dotenv

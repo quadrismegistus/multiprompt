@@ -9,3 +9,5 @@ pathspec
 python-socketio
 aiohttp
 sqlitedict
+logmap @ git+https://github.com/quadrismegistus/logmap@logmap2
+gitpython

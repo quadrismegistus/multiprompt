@@ -66,3 +66,9 @@ export const moveAgentTo = (agentId, newPosition) => ({
   type: 'MOVE_AGENT_TO',
   payload: { id: agentId, newPosition }
 });
+
+
+export const updateConfig = (config) => ({
+  type: 'UPDATE_CONFIG',
+  payload: config
+});

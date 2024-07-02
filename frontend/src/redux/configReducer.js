@@ -9,6 +9,7 @@ const initialState = {
   isDarkMode: false,
   savedGlobalConfigurations: {},
   conversationHistory: [],
+  useFileInput: false,
 };
 
 const configReducer = (state = initialState, action) => {

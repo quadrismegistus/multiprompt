@@ -1,12 +1,11 @@
-// src/components/DirectoryReader.js
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { RefreshCcw } from 'lucide-react';
+import { Row, Col, Container, Button, Badge, Alert, ButtonGroup } from 'react-bootstrap';
 
-const DirectoryReader = ({ onMarkdownGenerated }) => {
+const DirectoryReader = forwardRef(({ onMarkdownGenerated, disabled }, ref) => {
   const [error, setError] = useState(null);
   const [pathHandle, setPathHandle] = useState(null);
-  const [markdown, setMarkdown] = useState('');
-  const [selectedPath, setSelectedPath] = useState('No file or folder selected');
+  const [selectedPath, setSelectedPath] = useState('');
 
   const generateTree = (structure, prefix = '') => {
     if (!structure || typeof structure !== 'object') {
@@ -68,7 +67,7 @@ const DirectoryReader = ({ onMarkdownGenerated }) => {
         totalFiles += result.files;
         totalLines += result.lines;
         fileContents += result.contents;
-        // Remove empty directories
+        
         if (Object.keys(currentStructure[entry.name]).length === 0) {
           delete currentStructure[entry.name];
         }
@@ -80,7 +79,6 @@ const DirectoryReader = ({ onMarkdownGenerated }) => {
   const readFileOrDirectory = useCallback(async () => {
     try {
       setError(null);
-      setMarkdown('');
       let files = 0;
       let lines = 0;
       let structure = {};
@@ -137,28 +135,56 @@ const DirectoryReader = ({ onMarkdownGenerated }) => {
       const tree = Object.keys(structure).length > 0 ? `Directory structure:\n\`\`\`\n${generateTree(structure)}\`\`\`\n\n` : '';
       const newMarkdown = `# ${pathHandle && pathHandle.name ? pathHandle.name : 'Selected files'}\n\nTotal files: ${files}\nTotal lines: ${lines}\n\n${tree}${fileContents}`;
       
-      setMarkdown(newMarkdown);
       onMarkdownGenerated(newMarkdown.trim());
+      return newMarkdown.trim();
     } catch (err) {
       setError(err.message);
       setSelectedPath('No file or folder selected');
+      return null;
     }
   }, [pathHandle, onMarkdownGenerated]);
 
-  
+  useImperativeHandle(ref, () => ({
+    readFileOrDirectory
+  }));
+
   return (
-    <div>
-      <button className="button is-info mb-3" onClick={readFileOrDirectory}>
-        Read file or folder to reference code prompt
-        <br />
-        File path selected: {selectedPath}
-      </button>
-      <button className="button is-secondary mb-3" onClick={readFileOrDirectory}>
-        <RefreshCcw size={20} />
-      </button>
-      {error && <p className="has-text-danger">{error}</p>}
-    </div>
+    <Container fluid className="p-0">
+      {/* <Row>
+        <Col> */}
+        <ButtonGroup>
+          <Button
+            variant="primary"
+            onClick={readFileOrDirectory}
+            disabled={disabled}
+            className="w-100"
+          >
+            Share files
+            <Badge bg="light" text="dark" pill className="ms-2">
+              {selectedPath}
+            </Badge>
+          </Button>
+          
+        
+        {/* </Col> */}
+        {/* <Col xs="auto"> */}
+          <Button
+            variant="outline-secondary"
+            onClick={readFileOrDirectory}
+            disabled={disabled}
+          >
+            <RefreshCcw size={20} />
+          </Button>
+        </ButtonGroup>
+          {/* </Col> */}
+      {/* </Row> */}
+      {error && (
+        <Alert variant="danger" className="mt-2">
+          {error}
+        </Alert>
+      )}
+    </Container>
   );
-};
+});
 
 export default DirectoryReader;
