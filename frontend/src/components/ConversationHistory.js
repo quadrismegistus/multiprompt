@@ -14,7 +14,7 @@ const ConversationHistory = () => {
           {conversation.map(({ agent, output }, idx) => (
             <div key={idx} className="agent-response">
               <h4>{agent.name}</h4>
-              <MarkdownRenderer content={output} />
+              <MarkdownRenderer content={output.slice(0,1000)} />
             </div>
           ))}
         </div>

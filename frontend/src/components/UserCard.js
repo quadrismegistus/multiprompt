@@ -1,6 +1,5 @@
-// src/components/UserCard.js
-
 import React, { useState, useRef, useEffect } from 'react';
+import { Settings, Send, History } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Card, Form, Button, Col, Row, Accordion, Modal } from 'react-bootstrap';
 import { updateReferenceCodePrompt, updateUserPrompt } from '../redux/actions';
@@ -8,18 +7,19 @@ import { formatPromptMessages } from '../utils/promptUtils';
 import UserConfigForm from './UserConfigForm';
 import SaveConfigurationComponent from './SaveConfigurationComponent';
 import AgentDropdown from './AgentDropdown';
-import { Send, History } from 'lucide-react'; // Import the history icon
 import DirectoryReader from './DirectoryReader';
 import MarkdownRenderer from './MarkdownRenderer';
 import { usePrompt } from '../contexts/PromptContext';
-import ConversationHistory from './ConversationHistory'; // Import the ConversationHistory component
+import ConversationHistory from './ConversationHistory'; 
+import ConfigModal from './ConfigModal'; // Import the ConfigModal component
 
 function UserCard() {
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
   const userPrompt = useSelector(state => state.config.userPrompt);
   const [promptText, setPromptText] = useState(userPrompt);
   const [isEditing, setIsEditing] = useState(false);
-  const [showHistory, setShowHistory] = useState(false); // State to control the history modal
+  const [showHistory, setShowHistory] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false); // New state for ConfigModal
   const textareaRef = useRef(null);
   const dispatch = useDispatch();
   const { handleSendPrompt } = usePrompt();
@@ -37,6 +37,10 @@ function UserCard() {
     dispatch(updateReferenceCodePrompt(markdown));
   };
 
+  const toggleConfigModal = () => {
+    setShowConfigModal(!showConfigModal);
+  };
+
   useEffect(() => {
     if (textareaRef.current && isEditing) {
       textareaRef.current.focus();
@@ -51,22 +55,20 @@ function UserCard() {
             <Accordion.Header>multiprompt</Accordion.Header>
             <Accordion.Body>
               <UserConfigForm />
-              <Row className="mt-3">
-                <Col>
-                  <SaveConfigurationComponent />
-                </Col>
-                <Col>
-                  <AgentDropdown />
-                </Col>
-              </Row>
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
-        <Button variant="link" onClick={handleSendPrompt} className="p-0" title="Send Prompt">
-          <Send size={24} color="royalblue" />
+        
+        <Button variant="link" onClick={toggleConfigModal} className="p-0 ms-2" title="Settings">
+          <Settings size={24} color="royalblue" />
         </Button>
+
         <Button variant="link" onClick={() => setShowHistory(true)} className="p-0 ms-2" title="Show History">
           <History size={24} color="royalblue" />
+        </Button>
+
+        <Button variant="link" onClick={handleSendPrompt} className="p-0" title="Send Prompt">
+          <Send size={24} color="royalblue" />
         </Button>
       </Card.Header>
       <Card.Body className='promptarea-card-body'>
@@ -119,6 +121,7 @@ function UserCard() {
         </Modal.Body>
         
       </Modal>
+      <ConfigModal show={showConfigModal} onHide={toggleConfigModal} />
     </Card>
   );
 }
