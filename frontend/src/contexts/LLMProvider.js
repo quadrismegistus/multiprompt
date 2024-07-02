@@ -63,37 +63,45 @@ export const LLMProvider = ({ children }) => {
       throw new Error('Socket is not connected.');
     }
 
-    const { model, systemPrompt, temperature } = agent;
-    console.log('Querying with:', { userPrompt, model, systemPrompt, temperature });
+    const { id, model, systemPrompt, temperature } = agent;
+    console.log('Querying with:', { userPrompt, model, systemPrompt, temperature, agentId: id });
 
     return new Promise((resolve, reject) => {
       let fullResponse = '';
       
-      socketRef.current.emit('generate', { userPrompt, model, systemPrompt, temperature });
+      socketRef.current.emit('generate', { userPrompt, model, systemPrompt, temperature, agentId: id });
 
-      socketRef.current.on('response', (data) => {
-        console.log('Received chunk:', data);
-        if (data.text) {
+      const handleResponse = (data) => {
+        if (data.agentId === id && data.text) {
+          console.log('Received chunk for agent:', id, data.text);
           fullResponse += data.text;
           onChunk(data.text);
         }
-      });
+      };
 
-      socketRef.current.on('response_complete', (data) => {
-        console.log('Response complete');
-        socketRef.current.off('response');
-        socketRef.current.off('response_complete');
-        socketRef.current.off('error');
-        resolve(fullResponse);
-      });
+      const handleResponseComplete = (data) => {
+        if (data.agentId === id) {
+          console.log('Response complete for agent:', id);
+          cleanup();
+          resolve(fullResponse);
+        }
+      };
 
-      socketRef.current.on('error', (error) => {
+      const handleError = (error) => {
         console.error('LLM query error:', error);
-        socketRef.current.off('response');
-        socketRef.current.off('response_complete');
-        socketRef.current.off('error');
+        cleanup();
         reject(new Error(`LLM query error: ${error}`));
-      });
+      };
+
+      const cleanup = () => {
+        socketRef.current.off('response', handleResponse);
+        socketRef.current.off('response_complete', handleResponseComplete);
+        socketRef.current.off('error', handleError);
+      };
+
+      socketRef.current.on('response', handleResponse);
+      socketRef.current.on('response_complete', handleResponseComplete);
+      socketRef.current.on('error', handleError);
     });
   }, [isConnected]);
 
@@ -134,7 +142,6 @@ export const LLMProvider = ({ children }) => {
           const maxTokens = 4096; 
 
           const handleChunk = (chunk) => {
-            console.log('Received chunk for agent:', agent.name, chunk);
             responseContent += chunk;
             const progressPercentage = Math.min((responseContent.length / maxTokens) * 100, 100);
             setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));

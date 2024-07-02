@@ -100,11 +100,11 @@ const PromptAppendix = () => {
           </InputGroup>
         </Col>
       </Row>
-      {error && (
-        <Alert variant="danger" className="mt-2">
-          {error}
-        </Alert>
-      )}
+      {{error} && (<div>{error}</div>)}
+        
+        {/* <Button variant="danger" className="mt-2"> */}
+        {/* </Alert> */}
+      
     </Form.Group>
   );
 };

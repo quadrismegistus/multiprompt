@@ -1,9 +1,7 @@
-import sys
-sys.path.insert(0,'/Users/ryan/github/logmap')
-from logmap import logmap
 import logging
 import json
 import asyncio
+from collections import defaultdict
 
 import socketio
 from aiohttp import web

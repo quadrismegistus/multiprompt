@@ -1,18 +1,12 @@
 # app.py
 from config import *
 
-# Initialize the Socket.IO server
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins='*')
 app = web.Application()
 sio.attach(app)
 
-@sio.event
-async def connect(sid, environ):
-    logger.debug(f'Client connected: {sid}')
-
-@sio.event
-async def disconnect(sid):
-    logger.debug(f'Client disconnected: {sid}')
+# Store active tasks for each client
+client_tasks = defaultdict(dict)
 
 @sio.event
 async def generate(sid, data):
@@ -22,6 +16,7 @@ async def generate(sid, data):
         model = data.get("model", DEFAULT_MODEL)
         system_prompt = data.get("systemPrompt", DEFAULT_SYSTEM_PROMPT)
         temperature = data.get("temperature", DEFAULT_TEMP)
+        agent_id = data.get("agentId")  # New: Get agent ID from client
 
         if temperature is None or temperature < 0 or temperature > 3:
             temperature = DEFAULT_TEMP
@@ -30,21 +25,45 @@ async def generate(sid, data):
         query_d = dict(model=model, system_prompt=system_prompt, user_prompt=user_prompt, temperature=temperature)
         logger.debug(f'Query details: {query_d}')
 
-        model_output = ''
-        with logmap(f'Streaming response from {model}') as stream_log:
-            async for response in stream_llm_response(**query_d):
-                model_output += response
-                try:
-                    await sio.emit('response', {'model': model, 'text': response}, to=sid)
-                except Exception as e:
-                    logger.error(f"Error emitting to client {sid}: {str(e)}")
-                    break
+        # Create a new task for this generate request
+        task = asyncio.create_task(stream_response(sid, agent_id, query_d))
+        
+        # Store the task using both sid and agent_id as keys
+        client_tasks[sid][agent_id] = task
 
-        logger.debug('Emitting response_complete event')
-        await sio.emit('response_complete', {'model': model}, to=sid)
+        # Wait for the task to complete
+        await task
+
     except Exception as e:
         logger.error(f"Error in generate event: {str(e)}")
-        await sio.emit('error', {'message': str(e)}, to=sid)
+        await sio.emit('error', {'message': str(e), 'agentId': agent_id}, to=sid)
+
+async def stream_response(sid, agent_id, query_d):
+    model_output = ''
+    try:
+        async for response in stream_llm_response(**query_d):
+            model_output += response
+            await sio.emit('response', {'model': query_d['model'], 'text': response, 'agentId': agent_id}, to=sid)
+    except Exception as e:
+        logger.error(f"Error in stream_response: {str(e)}")
+    finally:
+        await sio.emit('response_complete', {'model': query_d['model'], 'agentId': agent_id}, to=sid)
+        # Remove the completed task
+        if sid in client_tasks and agent_id in client_tasks[sid]:
+            del client_tasks[sid][agent_id]
+
+@sio.event
+async def disconnect(sid):
+    logger.debug(f'Client disconnected: {sid}')
+    # Cancel all tasks for the disconnected client
+    if sid in client_tasks:
+        for task in client_tasks[sid].values():
+            task.cancel()
+        del client_tasks[sid]
+
+@sio.event
+async def connect(sid, environ):
+    logger.debug(f'Client connected: {sid}')
 
 @sio.event
 async def check_connection(sid):
@@ -84,3 +103,4 @@ async def send_repo_content(sid, task):
 if __name__ == '__main__':
     logger.debug(f'Running app on port 8989')
     web.run_app(app, port=8989)
+
