@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Send } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Card, Form, Button, Accordion, Row, Col, ButtonGroup } from 'react-bootstrap';
-import { updateReferenceCodePrompt, updateUserPrompt, updateConfig } from '../redux/actions';
-import DirectoryReader from './DirectoryReader';
+import { Card, Form, Button, Accordion } from 'react-bootstrap';
+import { updateUserPrompt } from '../redux/actions';
 import MarkdownRenderer from './MarkdownRenderer';
 import { useLLM } from '../contexts/LLMProvider';
+import PromptAppendix from './PromptAppendix';
+import { useDirectoryReader } from '../contexts/DirectoryReaderContext';
 
 function UserCard() {
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
@@ -16,37 +17,24 @@ function UserCard() {
   const textareaRef = useRef(null);
   const dispatch = useDispatch();
   const { handleSendPrompt } = useLLM();
-  const directoryReaderRef = useRef(null);
-
-  const handleReferenceCodePromptChange = (e) => {
-    dispatch(updateReferenceCodePrompt(e.target.value));
-  };
+  const { readFileOrDirectory } = useDirectoryReader();
 
   const handlePromptChange = (e) => {
     setPromptText(e.target.value);
     dispatch(updateUserPrompt(e.target.value));
   };
 
-  const handleDirectoryRead = (markdown) => {
-    dispatch(updateReferenceCodePrompt(markdown));
-  };
-
-  const handleUseFileInputToggle = (e) => {
-    dispatch(updateConfig({ useFileInput: e.target.checked }));
-  };
-
   const handleSend = useCallback(async () => {
     let updatedReferenceCodePrompt = referenceCodePrompt;
-    if (useFileInput && directoryReaderRef.current && directoryReaderRef.current.readFileOrDirectory) {
-      const updatedMarkdown = await directoryReaderRef.current.readFileOrDirectory();
-      if (updatedMarkdown) {
-        updatedReferenceCodePrompt = updatedMarkdown;
-        dispatch(updateReferenceCodePrompt(updatedMarkdown));
+    if (useFileInput) {
+      const updatedContent = await readFileOrDirectory();
+      if (updatedContent) {
+        updatedReferenceCodePrompt = updatedContent;
       }
     }
     
     handleSendPrompt(promptText, updatedReferenceCodePrompt);
-  }, [handleSendPrompt, dispatch, promptText, referenceCodePrompt, useFileInput]);
+  }, [handleSendPrompt, promptText, referenceCodePrompt, useFileInput, readFileOrDirectory]);
 
   useEffect(() => {
     if (textareaRef.current && isEditing) {
@@ -61,57 +49,7 @@ function UserCard() {
           <Accordion.Item eventKey="0">
             <Accordion.Header>multiprompt</Accordion.Header>
             <Accordion.Body>
-            <Form.Group className="mb-3">
-
-              <Row>
-                <Form.Label htmlFor="custom-switch">Prompt appendix (reference code or docs to send to LLM)</Form.Label>
-
-                <Col md={6}>
-                  <Button
-                    variant={useFileInput ? "primary" : "secondary"}
-                    onClick={() => handleUseFileInputToggle({ target: { checked: true } })}
-                    className="w-100 mb-2"
-                  >
-                    File Input
-                  </Button>
-                  {/* <Form.Check 
-                    type="switch"
-                    id="custom-switch"
-                    label="Use file/folder input"
-                    checked={useFileInput}
-                    onChange={handleUseFileInputToggle}
-                    className="mb-2"
-                  /> */}
-                  <DirectoryReader ref={directoryReaderRef} onMarkdownGenerated={handleDirectoryRead} disabled={!useFileInput} />
-                </Col>
-
-                <Col md={6}>
-                <Button
-                    variant={useFileInput ? "secondary" : "primary"}
-                    onClick={() => handleUseFileInputToggle({ target: { checked: false } })}
-                    className="w-100"
-                  >
-                    Manual Input
-                  </Button>
-                  {/* <Form.Label htmlFor="referenceCodePromptTextarea">
-                    Manual entry
-                  </Form.Label> */}
-                  <Form.Control
-                    as="textarea"
-                    id="referenceCodePromptTextarea"
-                    rows={5}
-                    value={referenceCodePrompt}
-                    onChange={handleReferenceCodePromptChange}
-                    placeholder="Enter reference code prompt here..."
-                    disabled={useFileInput}
-                    className="mt-2"
-                  />
-                </Col>
-
-                
-
-              </Row>
-            </Form.Group>
+              <PromptAppendix />
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
