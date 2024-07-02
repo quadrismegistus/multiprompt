@@ -63,7 +63,7 @@ export const LLMProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch(ANTHROPIC_BASE_URL, {
+      const response = await fetch('https://super-custard-978c1f.netlify.app/api/anthropic', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,10 +76,12 @@ export const LLMProvider = ({ children }) => {
           temperature,
           stream: true,
         }),
+        credentials: 'include', // Add this line
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const reader = response.body.getReader();
