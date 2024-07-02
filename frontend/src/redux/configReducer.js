@@ -7,7 +7,8 @@ const initialState = {
   referenceCodePrompt: '',
   userPrompt: '',
   isDarkMode: false,
-  savedGlobalConfigurations: {} // Add this line
+  savedGlobalConfigurations: {},
+  conversationHistory: [],
 };
 
 const configReducer = (state = initialState, action) => {
@@ -34,6 +35,11 @@ const configReducer = (state = initialState, action) => {
       return {
         ...state,
         ...state.savedGlobalConfigurations[action.payload.name]
+      };
+    case 'ADD_CONVERSATION_HISTORY':
+      return {
+        ...state,
+        conversationHistory: [...state.conversationHistory, action.payload]
       };
     default:
       return state;

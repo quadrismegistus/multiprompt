@@ -7,9 +7,9 @@ import { formatPromptMessages, makeAsciiSection } from '../utils/promptUtils';
 import { UserRoundPlus } from 'lucide-react';
 import { DEFAULT_SYSTEM_PROMPT } from '../constants';
 
+import { addConversationHistory } from '../redux/actions';
 const PromptContext = createContext();
 
-const HR_LINE = '------------------------------------------------------------\n';
 
 export const PromptProvider = ({ children }) => {
   const { agents, updateAgent } = useAgents();
@@ -33,6 +33,7 @@ export const PromptProvider = ({ children }) => {
     //   userPromptSoFar += `\n\n${HR_LINE}\n## [Appendix to user prompt with reference material]\n\n${referenceCodePrompt}`;
       userPromptSoFar += makeAsciiSection("Appendix to user prompt with reference material", referenceCodePrompt, 2)
     }
+    const conversation = [];
 
     for (const position of Object.keys(agentsByPosition).sort((a, b) => a - b)) {
       console.log('at position',position,'user prompt is',userPromptSoFar);
@@ -69,6 +70,7 @@ export const PromptProvider = ({ children }) => {
       // Add agent responses to userPromptSoFar
       for (const { agent, output } of positionOutputs) {
         userPromptSoFar += makeAsciiSection(`Response from agent ${agent.name}`, output, 1)
+        conversation.push({ agent, output });
       }
     }
   };
