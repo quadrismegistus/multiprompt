@@ -1,25 +1,28 @@
-import React, { createContext, useContext, useState } from 'react';
+// src/contexts/PromptContext.js
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useApiClients } from './LLMProvider';
 import { useAgents } from './AgentContext';
-import { updateAgent } from '../redux/actions';
-import { formatPromptMessages, makeAsciiSection } from '../utils/promptUtils';
-import { UserRoundPlus } from 'lucide-react';
-import { DEFAULT_SYSTEM_PROMPT } from '../constants';
-
+import { makeAsciiSection } from '../utils/promptUtils';
 import { addConversationHistory } from '../redux/actions';
+
 const PromptContext = createContext();
 
 export const PromptProvider = ({ children }) => {
   const { agents, updateAgent } = useAgents();
-  const { query } = useApiClients();
+  const { query, isConnected } = useApiClients();
   const dispatch = useDispatch();
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
   const userPrompt = useSelector(state => state.config.userPrompt);
 
   const [agentProgress, setAgentProgress] = useState({});
 
-  const handleSendPrompt = async () => {
+  const handleSendPrompt = useCallback(async () => {
+    if (!isConnected) {
+      console.error('Not connected to the LLM server');
+      return;
+    }
+
     const aiAgents = agents.filter(agent => agent.type === 'ai');
     const agentsByPosition = aiAgents.reduce((acc, agent) => {
       if (!acc[agent.position]) {
@@ -36,34 +39,26 @@ export const PromptProvider = ({ children }) => {
     const conversation = [];
 
     for (const position of Object.keys(agentsByPosition).sort((a, b) => a - b)) {
-      console.log('at position',position,'user prompt is',userPromptSoFar);
+      console.log('at position', position, 'user prompt is', userPromptSoFar);
 
       const agentsAtPosition = agentsByPosition[position];
       const agentsPromises = agentsAtPosition.map(async agent => {
-        const userMessage = {
-          role: 'user',
-          content: userPromptSoFar,
-        };
-        const systemMessage = agent.systemPrompt
-          ? { role: 'system', content: agent.systemPrompt }
-          : { role: 'system', content: DEFAULT_SYSTEM_PROMPT };
-        const messages = [systemMessage, userMessage];
-
         try {
           let responseContent = '';
-          let chunksReturned = 0;
-          const maxTokens = 4096;
+          const maxTokens = 4096; // You might want to adjust this or get it from the agent config
 
-          for await (const chunk of query(agent.model, messages, agent.temperature)) {
+          const handleChunk = (chunk) => {
             responseContent += chunk;
-            chunksReturned += chunk.length;
-            const progressPercentage = Math.min((chunksReturned / maxTokens) * 100, 100);
+            const progressPercentage = Math.min((responseContent.length / maxTokens) * 100, 100);
             setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
             updateAgent(agent.id, { output: responseContent + '█' });
-          }
-          updateAgent(agent.id, { output: responseContent });
+          };
+
+          const fullResponse = await query(userPromptSoFar, agent, handleChunk);
+          
+          updateAgent(agent.id, { output: fullResponse });
           setAgentProgress(prev => ({ ...prev, [agent.id]: 100 }));
-          return { agent, output: responseContent };
+          return { agent, output: fullResponse };
         } catch (error) {
           const errorMessage = `Error: ${error.message}`;
           updateAgent(agent.id, { output: errorMessage });
@@ -80,10 +75,10 @@ export const PromptProvider = ({ children }) => {
     }
 
     dispatch(addConversationHistory(conversation));  
-  };
+  }, [agents, query, isConnected, userPrompt, referenceCodePrompt, updateAgent, dispatch]);
 
   return (
-    <PromptContext.Provider value={{ handleSendPrompt, agentProgress }}>
+    <PromptContext.Provider value={{ handleSendPrompt, agentProgress, isConnected }}>
       {children}
     </PromptContext.Provider>
   );

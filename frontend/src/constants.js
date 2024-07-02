@@ -55,3 +55,4 @@ export const DEFAULT_SUMMARY_USER_PROMPT = "Synthesize and summarize these sugge
 export const DEFAULT_INCL_REPO = true;
 
 export const ANTHROPIC_BASE_URL = "https://super-custard-978c1f.netlify.app/api/anthropic"
+export const SOCKET_SERVER_URL = "http://localhost:8989";

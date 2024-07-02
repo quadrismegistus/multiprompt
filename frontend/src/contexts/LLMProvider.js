@@ -1,123 +1,252 @@
-import React, { createContext, useContext, useEffect, useRef } from 'react';
-import OpenAI from 'openai';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { io } from 'socket.io-client';
+import { useDispatch, useSelector } from 'react-redux';
 import { useConfig } from './ConfigContext';
-import { ANTHROPIC_BASE_URL } from '../constants';
+import { useAgents } from './AgentContext';
+import { SOCKET_SERVER_URL } from '../constants';
+import { makeAsciiSection } from '../utils/promptUtils';
+import { addConversationHistory } from '../redux/actions';
 
 const LLMContext = createContext(null);
 
 export const LLMProvider = ({ children }) => {
   const { config } = useConfig();
-  const openai = useRef(null);
+  const { agents, updateAgent } = useAgents();
+  const dispatch = useDispatch();
+  const socketRef = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [agentProgress, setAgentProgress] = useState({});
+
+  const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
+  const userPrompt = useSelector(state => state.config.userPrompt);
 
   useEffect(() => {
-    if (config.openaiApiKey) {
-      openai.current = new OpenAI({
-        apiKey: config.openaiApiKey,
-        dangerouslyAllowBrowser: true,
-      });
-    }
+    socketRef.current = io(SOCKET_SERVER_URL, {
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    socketRef.current.on('connect', () => {
+      console.log('Connected to LLM server');
+      setIsConnected(true);
+    });
+
+    socketRef.current.on('disconnect', () => {
+      console.log('Disconnected from LLM server');
+      setIsConnected(false);
+    });
+
+    socketRef.current.on('error', (error) => {
+      console.error('Socket error:', error);
+    });
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
   }, [config]);
 
-  const query = async function* (model, messages, temperature = 0.7) {
-    if (!openai.current && !config.claudeApiKey) {
-      throw new Error('API clients are not initialized. Please set API keys in the configuration.');
+  const query = useCallback((userPrompt, agent, onChunk) => {
+    if (!socketRef.current || !isConnected) {
+      throw new Error('Socket is not connected.');
     }
 
-    if (model.startsWith('gpt')) {
-      yield* queryOpenAI(model, messages, temperature);
-    } else if (model.startsWith('claude')) {
-      yield* queryAnthropic(model, messages, temperature);
-    } else {
-      throw new Error(`Unsupported model: ${model}`);
-    }
-  };
+    const { model, systemPrompt, temperature } = agent;
+    console.log('Querying with:', userPrompt, model, systemPrompt, temperature);
 
+    return new Promise((resolve, reject) => {
+      let fullResponse = '';
+      
+      socketRef.current.emit('generate', { userPrompt, model, systemPrompt, temperature });
 
-  const queryOpenAI = async function* (model, messages, temperature) {
-    if (!openai.current) {
-      throw new Error('OpenAI client is not initialized. Please set OpenAI API key in the configuration.');
-    }
-
-    try {
-      const stream = await openai.current.chat.completions.create({
-        model: model,
-        messages: messages,
-        temperature: temperature,
-        stream: true,
+      socketRef.current.on('response', (data) => {
+        if (data.text) {
+          fullResponse += data.text;
+          onChunk(data.text);
+        }
       });
 
-      for await (const chunk of stream) {
-        if (chunk.choices[0]?.delta?.content) {
-          yield chunk.choices[0].delta.content;
-        }
-      }
-    } catch (error) {
-      console.error('Error querying OpenAI:', error);
-      throw error;
-    }
-  };
-
-  const queryAnthropic = async function* (model, messages, temperature) {
-    if (!config.claudeApiKey) {
-      throw new Error('Anthropic API key is not set. Please set Claude API key in the configuration.');
-    }
-
-    try {
-      const response = await fetch(ANTHROPIC_BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          apiKey: config.claudeApiKey,
-          model,
-          messages,
-          max_tokens: 1024,
-          temperature,
-          stream: true,
-        }),
-        // Remove the credentials option
+      socketRef.current.on('response_complete', (data) => {
+        socketRef.current.off('response');
+        socketRef.current.off('response_complete');
+        socketRef.current.off('error');
+        resolve(fullResponse);
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-      }
+      socketRef.current.on('error', (error) => {
+        socketRef.current.off('response');
+        socketRef.current.off('response_complete');
+        socketRef.current.off('error');
+        reject(new Error(`LLM query error: ${error}`));
+      });
+    });
+  }, [isConnected]);
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim() !== '');
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = JSON.parse(line.slice(6));
-            if (data.delta?.text) {
-              yield data.delta.text;
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error querying Anthropic:', error);
-      throw error;
+  const handleSendPrompt = useCallback(async () => {
+    if (!isConnected) {
+      console.error('Not connected to the LLM server');
+      return;
     }
-  };
+
+    const aiAgents = agents.filter(agent => agent.type === 'ai');
+    const agentsByPosition = aiAgents.reduce((acc, agent) => {
+      if (!acc[agent.position]) {
+        acc[agent.position] = [];
+      }
+      acc[agent.position].push(agent);
+      return acc;
+    }, {});
+
+    let userPromptSoFar = makeAsciiSection("User Prompt", userPrompt, 1)
+    if (referenceCodePrompt) {
+      userPromptSoFar += makeAsciiSection("Appendix to user prompt with reference material", referenceCodePrompt, 2)
+    }
+    const conversation = [];
+
+    for (const position of Object.keys(agentsByPosition).sort((a, b) => a - b)) {
+      console.log('at position', position, 'user prompt is', userPromptSoFar);
+
+      const agentsAtPosition = agentsByPosition[position];
+      const agentsPromises = agentsAtPosition.map(async agent => {
+        try {
+          let responseContent = '';
+          const maxTokens = 4096; // You might want to adjust this or get it from the agent config
+
+          const handleChunk = (chunk) => {
+            responseContent += chunk;
+            const progressPercentage = Math.min((responseContent.length / maxTokens) * 100, 100);
+            setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
+            updateAgent(agent.id, { output: responseContent + '█' });
+          };
+
+          const fullResponse = await query(userPromptSoFar, agent, handleChunk);
+          
+          updateAgent(agent.id, { output: fullResponse });
+          setAgentProgress(prev => ({ ...prev, [agent.id]: 100 }));
+          return { agent, output: fullResponse };
+        } catch (error) {
+          const errorMessage = `Error: ${error.message}`;
+          updateAgent(agent.id, { output: errorMessage });
+          return { agent, output: errorMessage };
+        }
+      });
+
+      const positionOutputs = await Promise.all(agentsPromises);
+
+      for (const { agent, output } of positionOutputs) {
+        userPromptSoFar += makeAsciiSection(`Response from agent ${agent.name}`, output, 1)
+        conversation.push({ agent, output });
+      }
+    }
+
+    dispatch(addConversationHistory(conversation));  
+  }, [agents, query, isConnected, userPrompt, referenceCodePrompt, updateAgent, dispatch]);
 
   return (
-    <LLMContext.Provider value={{ query }}>
+    <LLMContext.Provider value={{ handleSendPrompt, agentProgress, isConnected }}>
       {children}
     </LLMContext.Provider>
   );
 };
 
-export const useApiClients = () => {
+export const useLLM = () => {
   const context = useContext(LLMContext);
   if (context === undefined) {
-    throw new Error('useApiClients must be used within an LLMProvider');
+    throw new Error('useLLM must be used within an LLMProvider');
   }
   return context;
 };
+
+// // src/contexts/LLMProvider.js
+// import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+// import { io } from 'socket.io-client';
+// import { useConfig } from './ConfigContext';
+// import { SOCKET_SERVER_URL } from '../constants';
+
+// const LLMContext = createContext(null);
+
+// export const LLMProvider = ({ children }) => {
+//   const { config } = useConfig();
+//   const socketRef = useRef(null);
+//   const [isConnected, setIsConnected] = useState(false);
+
+//   useEffect(() => {
+//     socketRef.current = io(SOCKET_SERVER_URL, {
+//       reconnection: true,
+//       reconnectionAttempts: 5,
+//       reconnectionDelay: 1000,
+//     });
+
+//     socketRef.current.on('connect', () => {
+//       console.log('Connected to LLM server');
+//       setIsConnected(true);
+//     });
+
+//     socketRef.current.on('disconnect', () => {
+//       console.log('Disconnected from LLM server');
+//       setIsConnected(false);
+//     });
+
+//     socketRef.current.on('error', (error) => {
+//       console.error('Socket error:', error);
+//     });
+
+//     return () => {
+//       if (socketRef.current) {
+//         socketRef.current.disconnect();
+//       }
+//     };
+//   }, [config]);
+
+//   const query = async (userPrompt, agent, onChunk) => {
+//     if (!socketRef.current || !isConnected) {
+//       throw new Error('Socket is not connected.');
+//     }
+
+//     const { model, systemPrompt, temperature } = agent;
+//     console.log('Querying with:', userPrompt, model, systemPrompt, temperature);
+
+//     return new Promise((resolve, reject) => {
+//       let fullResponse = '';
+      
+//       socketRef.current.emit('generate', { userPrompt, model, systemPrompt, temperature });
+
+//       socketRef.current.on('response', (data) => {
+//         if (data.text) {
+//           fullResponse += data.text;
+//           onChunk(data.text);
+//         }
+//       });
+
+//       socketRef.current.on('response_complete', (data) => {
+//         socketRef.current.off('response');
+//         socketRef.current.off('response_complete');
+//         socketRef.current.off('error');
+//         resolve(fullResponse);
+//       });
+
+//       socketRef.current.on('error', (error) => {
+//         socketRef.current.off('response');
+//         socketRef.current.off('response_complete');
+//         socketRef.current.off('error');
+//         reject(new Error(`LLM query error: ${error}`));
+//       });
+//     });
+//   };
+
+//   return (
+//     <LLMContext.Provider value={{ query, isConnected }}>
+//       {children}
+//     </LLMContext.Provider>
+//   );
+// };
+
+// export const useApiClients = () => {
+//   const context = useContext(LLMContext);
+//   if (context === undefined) {
+//     throw new Error('useApiClients must be used within an LLMProvider');
+//   }
+//   return context;
+// };

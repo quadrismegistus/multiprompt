@@ -171,3 +171,4 @@ package-lock.json
 frontend1
 # Local Netlify folder
 .netlify
+static

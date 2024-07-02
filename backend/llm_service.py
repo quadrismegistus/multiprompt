@@ -1,7 +1,5 @@
-from ..config import *
-from .repo2llm import *
-import hashlib
-import sqlitedict
+from config import *
+from repo2llm import *
 
 @cache
 def get_anthropic_client():
