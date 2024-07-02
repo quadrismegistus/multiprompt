@@ -5,7 +5,7 @@ import { Card, Form, Button, Col, Row, Accordion, Modal } from 'react-bootstrap'
 import { updateReferenceCodePrompt, updateUserPrompt } from '../redux/actions';
 import DirectoryReader from './DirectoryReader';
 import MarkdownRenderer from './MarkdownRenderer';
-import { usePrompt } from '../contexts/PromptContext';
+import { useLLM } from '../contexts/LLMProvider';
 
 function UserCard() {
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
@@ -14,7 +14,7 @@ function UserCard() {
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef(null);
   const dispatch = useDispatch();
-  const { handleSendPrompt } = usePrompt();
+  const { handleSendPrompt } = useLLM();
 
   const handleReferenceCodePromptChange = (e) => {
     dispatch(updateReferenceCodePrompt(e.target.value));

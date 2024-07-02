@@ -6,11 +6,11 @@ import { PlusCircle, MinusCircle, ChevronLeft, ChevronRight } from 'lucide-react
 import MarkdownRenderer from './MarkdownRenderer';
 import AgentConfigAccordion from './AgentConfigAccordion';
 import { useAgents } from '../contexts/AgentContext';
-import { usePrompt } from '../contexts/PromptContext';
+import { useLLM } from '../contexts/LLMProvider';
 
 function AgentCard({ agent }) {
   const { agents, addAgent, removeAgent, updateAgent, moveAgentTo } = useAgents();
-  const { agentProgress } = usePrompt();
+  const { agentProgress } = useLLM();
 
   const isOnlyColumn = agents.filter(a => a.type === 'ai').length === 1;
 

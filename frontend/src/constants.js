@@ -21,7 +21,7 @@ export const MODEL_LIST = [
     new LLMModel("gemini-1.5-flash", "Gemini-1.5-Flash", "Gemini"),
     new LLMModel("gemini-1.0-pro", "Gemini-1.0-Pro", "Gemini"),
     new LLMModel("codellama", "CodeLlama", "Local"),
-    new LLMModel("tinyllama", "TinyLlama", "Local"),
+    new LLMModel("  ", "TinyLlama", "Local"),
 ];
 
 export const MODEL_CATEGORIES = MODEL_LIST.reduce((acc, model) => {
