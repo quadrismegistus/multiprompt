@@ -136,6 +136,10 @@ class GitHubRepoReader(BaseRepoReader):
         self.temp_dir = None
 
     def _normalize_url(self, url):
+        if '.com/' not in url:
+            url=f'https://github.com/{url}'
+        elif url.startswith('github.com'): 
+            url=f'https://github.com/{url}'
         parsed_url = urlparse(url)
         path_parts = parsed_url.path.strip('/').split('/')
         
@@ -151,7 +155,7 @@ class GitHubRepoReader(BaseRepoReader):
                 if branch_index < len(path_parts):
                     branch = path_parts[branch_index]
         
-        normalized_url = f"https://github.com/{username}/{repo}.git"{}
+        normalized_url = f"https://github.com/{username}/{repo}.git"
         return normalized_url, branch, username, repo
 
     def clone_repo(self):
