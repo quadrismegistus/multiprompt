@@ -63,7 +63,7 @@ export const LLMProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch('https://super-custard-978c1f.netlify.app/api/anthropic', {
+      const response = await fetch(ANTHROPIC_BASE_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
