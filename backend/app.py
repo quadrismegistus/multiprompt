@@ -31,23 +31,20 @@ async def generate(sid, data):
         logger.debug(f'Query details: {query_d}')
 
         model_output = ''
-        logger.debug(f'Streaming response from {model}')
-        async for response in stream_llm_response(**query_d):
-            model_output += response
-            try:
-                await asyncio.wait_for(sio.emit('response', {'model': model, 'text': response}, room=sid), timeout=5.0)
-            except asyncio.TimeoutError:
-                logger.error(f"Emission to client {sid} timed out")
-                break
-            except Exception as e:
-                logger.error(f"Error emitting to client {sid}: {str(e)}")
-                break
+        with logmap(f'Streaming response from {model}') as stream_log:
+            async for response in stream_llm_response(**query_d):
+                model_output += response
+                try:
+                    await sio.emit('response', {'model': model, 'text': response}, to=sid)
+                except Exception as e:
+                    logger.error(f"Error emitting to client {sid}: {str(e)}")
+                    break
 
         logger.debug('Emitting response_complete event')
-        await sio.emit('response_complete', {'model': model}, room=sid)
+        await sio.emit('response_complete', {'model': model}, to=sid)
     except Exception as e:
         logger.error(f"Error in generate event: {str(e)}")
-        await sio.emit('error', {'message': str(e)}, room=sid)
+        await sio.emit('error', {'message': str(e)}, to=sid)
 
 @sio.event
 async def check_connection(sid):

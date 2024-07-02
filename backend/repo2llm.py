@@ -151,7 +151,7 @@ class GitHubRepoReader(BaseRepoReader):
                 if branch_index < len(path_parts):
                     branch = path_parts[branch_index]
         
-        normalized_url = f"https://github.com/{username}/{repo}.git"
+        normalized_url = f"https://github.com/{username}/{repo}.git"{}
         return normalized_url, branch, username, repo
 
     def clone_repo(self):
