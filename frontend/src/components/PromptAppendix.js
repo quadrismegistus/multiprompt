@@ -1,3 +1,5 @@
+// src/components/PromptAppendix.js
+
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Form, Row, Col, Button, Alert, InputGroup } from 'react-bootstrap';
@@ -9,7 +11,7 @@ const PromptAppendix = () => {
   const dispatch = useDispatch();
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
   const useFileInput = useSelector(state => state.config.useFileInput);
-  const { selectedPath, error, readFileOrDirectory, handleRefreshFiles, hasSelectedFiles } = useDirectoryReader();
+  const { selectedPath, error, readFileOrDirectory, handleRefreshFiles, fetchRepoContent, hasSelectedFiles } = useDirectoryReader();
   const [githubUrl, setGithubUrl] = useState('');
 
   const handleReferenceCodePromptChange = (e) => {
@@ -34,15 +36,19 @@ const PromptAppendix = () => {
     }
   };
 
-  const handleGithubSubmit = () => {
-    // Implement GitHub repo fetching logic here
-    console.log('Fetching GitHub repo:', githubUrl);
-    // After fetching, update the referenceCodePrompt with the content
+  const handleGithubSubmit = async () => {
+    try {
+      const content = await fetchRepoContent(githubUrl);
+      dispatch(updateReferenceCodePrompt(content));
+    } catch (error) {
+      console.error('Error fetching GitHub repo content:', error);
+      // Handle error appropriately
+    }
   };
 
   return (
-    <Form.Group className="mb-3">
-      <Form.Label>Prompt appendix (reference code or docs to send to LLM)</Form.Label>
+    <Form.Group>
+      <Form.Label style={{fontSize: "1.1em"}}>Prompt appendix (reference code or docs to send to LLM)</Form.Label>
       <Form.Control
         as="textarea"
         rows={5}
@@ -50,21 +56,18 @@ const PromptAppendix = () => {
         onChange={handleReferenceCodePromptChange}
         placeholder="Enter reference code prompt here..."
         className="mb-2"
+        style={{fontFamily: "monospace", fontSize: "0.9em"}}
       />
       <Row>
-        <Col md={6} className="mb-2">
+        <Col md={6}>
           <InputGroup>
-            
-            
             <Form.Control
               type="text"
               value={selectedPath}
               readOnly
               placeholder="No file selected"
-              
             />
-
-<Button
+            <Button
               variant="primary"
               onClick={() => {
                 handleUseFileInputToggle(true);
@@ -73,7 +76,6 @@ const PromptAppendix = () => {
             >
               <Folder />
             </Button>
-
             <Button
               style={{border:"none"}}
               variant="success"
@@ -82,21 +84,18 @@ const PromptAppendix = () => {
             >
               <RefreshCw />
             </Button>
-            
           </InputGroup>
         </Col>
         <Col md={6}>
           <InputGroup>
-            
             <Form.Control
               type="text"
               placeholder="Enter GitHub URL"
               value={githubUrl}
               onChange={(e) => setGithubUrl(e.target.value)}
             />
-            
             <Button variant="dark" onClick={handleGithubSubmit}>
-            <Github />
+              <Github />
             </Button>
           </InputGroup>
         </Col>

@@ -1,45 +1,5 @@
 #!/usr/bin/env python3
-import os
-import logging
-from pathlib import Path
-from tqdm import tqdm
-from pathspec import PathSpec
-from pathspec.patterns import GitWildMatchPattern
-import re
-import tempfile
-import shutil
-from git import Repo
-from urllib.parse import urlparse
-from abc import ABC, abstractmethod
-import fnmatch
-from functools import cached_property
-import argparse
-
-logger = logging.getLogger(__name__)
-
-# List of paths to ignore
-IGNORE_PATHS = [
-    'setup.py',
-    'tests',
-    '__init__.py',
-    '.github',
-    '.gitignore',
-    'LICENSE',
-    'requirements.txt',
-    'venv',
-    '.vscode',
-    '.idea',
-    '_version.py',
-    'package.json',
-    'public',
-    '*.config.js',
-    '*.pyc',
-    '*.log',
-    '*.tmp',
-    '*.temp',
-    '*.bak',
-    'static'
-]
+from config import *
 
 def remove_comments(code_contents_str, code_file_extension):
     if code_file_extension in ['js', 'css']:
@@ -207,10 +167,11 @@ class GitHubRepoReader(BaseRepoReader):
         try:
             for root, _, files in os.walk(self.temp_dir):
                 for file in files:
-                    file_path = Path(root) / file
-                    relative_path = file_path.relative_to(self.temp_dir)
-                    if not self.should_ignore(relative_path) and file_path.suffix in self.extensions:
-                        yield relative_path
+                    if file not in IGNORE_PATHS:
+                        file_path = Path(root) / file
+                        relative_path = file_path.relative_to(self.temp_dir)
+                        if not self.should_ignore(relative_path) and file_path.suffix in self.extensions:
+                            yield relative_path
         finally:
             self.cleanup()
 

@@ -29,7 +29,50 @@ import asyncio
 import logging
 import hashlib
 import sqlitedict
+from celery import Celery
+from tasks import fetch_repo_content, celery_app  # Import the Celery task and app
 
+import os
+import logging
+from pathlib import Path
+from tqdm import tqdm
+from pathspec import PathSpec
+from pathspec.patterns import GitWildMatchPattern
+import re
+import tempfile
+import shutil
+from git import Repo
+from urllib.parse import urlparse
+from abc import ABC, abstractmethod
+import fnmatch
+from functools import cached_property
+import argparse
+
+logger = logging.getLogger(__name__)
+
+# List of paths to ignore
+IGNORE_PATHS = {
+    'setup.py',
+    'tests',
+    '__init__.py',
+    '.github',
+    '.gitignore',
+    'LICENSE',
+    'requirements.txt',
+    'venv',
+    '.vscode',
+    '.idea',
+    '_version.py',
+    'package.json',
+    'public',
+    '*.config.js',
+    '*.pyc',
+    '*.log',
+    '*.tmp',
+    '*.temp',
+    '*.bak',
+    'static'
+}
 
 
 
@@ -85,6 +128,10 @@ MODEL_DICT = {
 
 }
 
+
+DEFAULT_MAX_TOKENS=4096
+
+
 DEFAULT_MODELS = [
     MODEL_DICT["GPT-4o"],
     MODEL_DICT["Claude-3.5-Sonnet"],
@@ -105,3 +152,15 @@ PATH_HOMEDIR = os.path.expanduser('~/.multiprompt')
 PATH_DATA = os.path.join(PATH_HOMEDIR,'data')
 PATH_LLM_CACHE=os.path.join(PATH_DATA,'cache.multiprompt_llm_cache.sqlitedict')
 os.makedirs(PATH_DATA,exist_ok=True)
+
+
+
+
+
+
+
+
+
+
+from llm_service import stream_llm_response
+from repo2llm import GitHubRepoReader

@@ -15,7 +15,7 @@ const initialAgents = [
     id: uuidv4(),
     name: "Analyst",
     type: "ai",
-    model: "gpt-4o",
+    model: "claude-3-5-sonnet-20240620",
     systemPrompt: SYSTEM_PROMPT_ANALYST,
     output: "",
     temperature: 0.7,
@@ -29,7 +29,7 @@ const initialAgents = [
     model: 'gpt-4o',
     systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
     output: "",
-    temperature: 0.5,
+    temperature: 0.7,
     position: 1,
     progress: 0
   }

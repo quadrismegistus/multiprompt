@@ -1,4 +1,8 @@
-import React, { createContext, useState, useContext, useCallback } from 'react';
+// src/contexts/DirectoryReaderContext.js
+
+import React, { createContext, useState, useContext, useCallback, useRef, useEffect } from 'react';
+import { io } from 'socket.io-client';
+import { SOCKET_SERVER_URL } from '../constants';
 
 const DirectoryReaderContext = createContext();
 
@@ -15,7 +19,29 @@ export const DirectoryReaderProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [directoryHandle, setDirectoryHandle] = useState(null);
   const [fileHandles, setFileHandles] = useState([]);
+  const socket = useRef(null);
 
+  useEffect(() => {
+    socket.current = io(SOCKET_SERVER_URL);
+    return () => {
+      socket.current.disconnect();
+    };
+  }, []);
+
+  const fetchRepoContent = useCallback((repoUrl) => {
+    return new Promise((resolve, reject) => {
+      socket.current.emit('fetchRepoContent', { url: repoUrl });
+
+      socket.current.on('repoContent', (data) => {
+        resolve(data.content);
+      });
+
+      socket.current.on('repoContentError', (error) => {
+        reject(error);
+      });
+    });
+  }, []);
+  
   const readFileOrDirectory = useCallback(async () => {
     try {
       setError(null);
@@ -121,6 +147,7 @@ export const DirectoryReaderProvider = ({ children }) => {
       error, 
       readFileOrDirectory, 
       handleRefreshFiles,
+      fetchRepoContent,
       hasSelectedFiles: !!directoryHandle || fileHandles.length > 0 
     }}>
       {children}

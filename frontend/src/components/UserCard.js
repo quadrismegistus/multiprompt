@@ -25,15 +25,16 @@ function UserCard() {
   };
 
   const handleSend = useCallback(async () => {
-    let updatedReferenceCodePrompt = referenceCodePrompt;
-    if (useFileInput) {
-      const updatedContent = await readFileOrDirectory();
-      if (updatedContent) {
-        updatedReferenceCodePrompt = updatedContent;
-      }
-    }
+    // let updatedReferenceCodePrompt = referenceCodePrompt;
+    // if (useFileInput) {
+    //   const updatedContent = await readFileOrDirectory();
+    //   if (updatedContent) {
+    //     updatedReferenceCodePrompt = updatedContent;
+    //   }
+    // }
     
-    handleSendPrompt(promptText, updatedReferenceCodePrompt);
+    // handleSendPrompt(promptText, updatedReferenceCodePrompt);
+    handleSendPrompt(promptText, referenceCodePrompt);
   }, [handleSendPrompt, promptText, referenceCodePrompt, useFileInput, readFileOrDirectory]);
 
   useEffect(() => {
@@ -49,7 +50,6 @@ function UserCard() {
           <Accordion.Item eventKey="0">
             <Accordion.Header>multiprompt</Accordion.Header>
             <Accordion.Body>
-              <PromptAppendix />
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
@@ -77,6 +77,9 @@ function UserCard() {
           </div>
         )}
       </Card.Body>
+      <Card.Footer>
+        <PromptAppendix />
+      </Card.Footer>
     </Card>
   );
 }
