@@ -1,22 +1,25 @@
 // src/components/UserCard.js
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Card, Form, Button, Col, Row, Accordion } from 'react-bootstrap';
+import { Card, Form, Button, Col, Row, Accordion, Modal } from 'react-bootstrap';
 import { updateReferenceCodePrompt, updateUserPrompt } from '../redux/actions';
 import { formatPromptMessages } from '../utils/promptUtils';
 import UserConfigForm from './UserConfigForm';
 import SaveConfigurationComponent from './SaveConfigurationComponent';
 import AgentDropdown from './AgentDropdown';
-import { Send } from 'lucide-react';
+import { Send, History } from 'lucide-react'; // Import the history icon
 import DirectoryReader from './DirectoryReader';
 import MarkdownRenderer from './MarkdownRenderer';
 import { usePrompt } from '../contexts/PromptContext';
+import ConversationHistory from './ConversationHistory'; // Import the ConversationHistory component
 
 function UserCard() {
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
   const userPrompt = useSelector(state => state.config.userPrompt);
   const [promptText, setPromptText] = useState(userPrompt);
   const [isEditing, setIsEditing] = useState(false);
+  const [showHistory, setShowHistory] = useState(false); // State to control the history modal
   const textareaRef = useRef(null);
   const dispatch = useDispatch();
   const { handleSendPrompt } = usePrompt();
@@ -62,6 +65,9 @@ function UserCard() {
         <Button variant="link" onClick={handleSendPrompt} className="p-0" title="Send Prompt">
           <Send size={24} color="royalblue" />
         </Button>
+        <Button variant="link" onClick={() => setShowHistory(true)} className="p-0 ms-2" title="Show History">
+          <History size={24} color="royalblue" />
+        </Button>
       </Card.Header>
       <Card.Body className='promptarea-card-body'>
         {isEditing ? (
@@ -102,6 +108,17 @@ function UserCard() {
           </Accordion.Item>
         </Accordion>
       </Card.Footer>
+
+      {/* Modal for showing conversation history */}
+      <Modal show={showHistory} onHide={() => setShowHistory(false)} size="lg" className="convo-history-modal">
+        <Modal.Header closeButton>
+          <Modal.Title>Conversation History</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ConversationHistory />
+        </Modal.Body>
+        
+      </Modal>
     </Card>
   );
 }

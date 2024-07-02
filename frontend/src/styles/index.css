@@ -286,3 +286,7 @@ body {
 .h-12 { height: 100%; } */
 
 .red { border:1px solid red; }
+
+
+/* .convo-history-offcanvas { width:50px; max-width:200px; overflow: scroll; margin-top:3rem;} */
+.convo-history-modal { }

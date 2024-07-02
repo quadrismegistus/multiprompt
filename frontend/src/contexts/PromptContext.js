@@ -73,6 +73,8 @@ export const PromptProvider = ({ children }) => {
         conversation.push({ agent, output });
       }
     }
+
+    dispatch(addConversationHistory(conversation));  // Add this line to save the conversation
   };
 
   return (
