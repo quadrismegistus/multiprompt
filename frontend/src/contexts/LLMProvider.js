@@ -39,7 +39,7 @@ export const LLMProvider = ({ children }) => {
         return new Promise((resolve, reject) => {
             let fullResponse = '';
 
-
+            console.log(userPrompt);
             socket.emit('generate', { userPrompt, model, temperature, agentId: id, systemPrompt: finalSystemPrompt });
 
             const handleResponse = (data) => {
@@ -160,7 +160,7 @@ export const LLMProvider = ({ children }) => {
     
       // Integrate previous conversation history into userPromptSoFar
       currentConversation.forEach(msg => {
-        userPromptSoFar += makeAsciiSection(`${msg.sender === "User" ? "User Prompt" : `Response from ${getAgentById(msg.agentId).name}`} AIs`, msg.content, 1);
+        userPromptSoFar += makeAsciiSection(`${msg.sender === "User" ? "User Prompt" : `Response from ${getAgentById(msg.agentId).name}`}`, msg.content, 1);
       });
     
       for (const position of Object.keys(agentsByPosition).sort((a, b) => a - b)) {
