@@ -139,7 +139,7 @@ class GitHubRepoReader(BaseRepoReader):
         if '.com/' not in url:
             url=f'https://github.com/{url}'
         elif url.startswith('github.com'): 
-            url=f'https://github.com/{url}'
+            url=f'https://{url}'
         parsed_url = urlparse(url)
         path_parts = parsed_url.path.strip('/').split('/')
         

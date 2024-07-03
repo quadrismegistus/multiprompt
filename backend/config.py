@@ -56,6 +56,7 @@ IGNORE_PATHS = {
     '.github',
     '.gitignore',
     'LICENSE',
+    'README.md',
     'requirements.txt',
     'venv',
     '.vscode',

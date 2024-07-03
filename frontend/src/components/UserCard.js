@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { debounce } from 'lodash'; // Make sure to install lodash if not already present
 import { Send } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Card, Form, Button, Accordion } from 'react-bootstrap';
@@ -19,9 +20,16 @@ function UserCard() {
   const { handleSendPrompt } = useLLM();
   const { readFileOrDirectory } = useDirectoryReader();
 
+  const debouncedHandlePromptChange = useCallback(
+    debounce((value) => {
+      dispatch(updateUserPrompt(value));
+    }, 300),
+    [dispatch]
+  );
+
   const handlePromptChange = (e) => {
     setPromptText(e.target.value);
-    dispatch(updateUserPrompt(e.target.value));
+    debouncedHandlePromptChange(e.target.value);
   };
 
   const handleSend = useCallback(async () => {
