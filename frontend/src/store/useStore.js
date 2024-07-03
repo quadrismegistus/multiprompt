@@ -25,6 +25,33 @@ const useStore = create(
       },
 
       savedAgentConfigurations: initialAgentTypes,
+      conversations: [],
+      currentConversationId: null,
+      startNewConversation: () => set(state => {
+        const newConversation = { id: Date.now(), turns: [] };
+        return {
+          conversations: [...state.conversations, newConversation],
+          currentConversationId: newConversation.id
+        };
+      }),
+
+      addTurn: (userPrompt) => set(state => {
+        const currentConversation = state.conversations.find(c => c.id === state.currentConversationId);
+        if (!currentConversation) return state;
+
+        const newTurn = { userPrompt, agentResponses: [] };
+        currentConversation.turns.push(newTurn);
+        return { conversations: [...state.conversations] };
+      }),
+
+      addAgentResponse: (agentId, response) => set(state => {
+        const currentConversation = state.conversations.find(c => c.id === state.currentConversationId);
+        if (!currentConversation) return state;
+
+        const currentTurn = currentConversation.turns[currentConversation.turns.length - 1];
+        currentTurn.agentResponses.push({ agentId, response });
+        return { conversations: [...state.conversations] };
+      }),
 
       // Update functions for top-level items
       updateUserPrompt: (prompt) => {

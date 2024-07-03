@@ -10,7 +10,8 @@ function UserCard() {
   const {
     referenceCodePrompt,
     userPrompt,
-    updateUserPrompt
+    updateUserPrompt,
+    
   } = useStore(state => ({
     referenceCodePrompt: state.referenceCodePrompt,
     userPrompt: state.userPrompt,
@@ -51,6 +52,24 @@ function UserCard() {
         </Button>
       </Card.Header>
       <Card.Body className='promptarea-card-body'>
+        
+      {currentConversation.turns.map((turn, turnIndex) => (
+          <div key={turnIndex}>
+            <div className="user-prompt">
+              <MarkdownRenderer content={turn.userPrompt} />
+            </div>
+            {turn.agentResponses.map((response, responseIndex) => (
+              <div key={responseIndex} className="agent-response">
+                <MarkdownRenderer content={response.response} />
+                <Button onClick={() => handleRepromptAgent(response.agentId)}>
+                  Reprompt
+                </Button>
+              </div>
+            ))}
+          </div>
+        ))}
+        
+        
         {isEditing ? (
           <textarea
             ref={textareaRef}
