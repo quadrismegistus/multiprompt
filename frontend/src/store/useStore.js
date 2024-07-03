@@ -50,6 +50,7 @@ const useStore = create(
 
         const currentTurn = currentConversation.turns[currentConversation.turns.length - 1];
         currentTurn.agentResponses.push({ agentId, response });
+        console.log('currentTurn',currentTurn);
         return { conversations: [...state.conversations] };
       }),
 
@@ -73,7 +74,7 @@ const useStore = create(
 
       // Update functions for agents
       updateAgent: (id, updates) => {
-        console.log("updateAgent", id, updates);
+        // console.log("updateAgent", id, updates);
         set((state) => ({
           agents: normalizePositions(state.agents.map((agent) =>
             agent.id === id ? { ...agent, ...updates } : agent
