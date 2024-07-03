@@ -1,4 +1,5 @@
 import React from 'react';
+import { Container, Row, Col } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import UserCard from './UserCard';
 import AgentCard from './AgentCard';
@@ -13,9 +14,10 @@ function Layout() {
   const sortedAgents = [...agents].sort((a, b) => a.position - b.position);
 
   return (
-    <div className={`Layout ${isDarkMode ? 'dark' : ''}`}>
-      <IconSidebar /> {/* Add this line */}
-      <GridLayout classname='GridLayout'>
+    <Container className={`Layout ${isDarkMode ? 'dark' : ''}`}>
+      <IconSidebar />
+
+      {/* <GridLayout classname='GridLayout'>
         <GridCard columnPosition={0}>
           <UserCard />
         </GridCard>
@@ -24,11 +26,14 @@ function Layout() {
             <AgentCard agent={agent} />
           </GridCard>
         ))}
-        {/* <GridCard columnPosition={sortedAgents.length + 1}> */}
-          {/* <ConversationHistory /> */}
-        {/* </GridCard> */}
-      </GridLayout>
-    </div>
+      </GridLayout> */}
+      <Col key={0}><UserCard /></Col>
+      {sortedAgents.filter(agent => agent.type === 'ai').map((agent) => (
+          <Col key={agent.id}>
+            <AgentCard agent={agent} />
+          </Col>
+        ))}
+    </Container>
   );
 }
 

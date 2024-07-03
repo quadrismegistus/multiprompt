@@ -20,7 +20,7 @@ function AgentConfigAccordion({ agent, onNameChange, onModelChange, onSystemProm
                   marginLeft: ".5em",
                   // marginTop:".5em"
                 }}>
-                  ({MODEL_DICT_r[agent.model]})
+                  ({MODEL_DICT_r[agent.model]}) [{agent.position}]
                 </span>
               </Accordion.Header>
               <Accordion.Body>
