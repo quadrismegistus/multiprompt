@@ -1,0 +1,103 @@
+#prompt {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    resize: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: 1.5;
+    outline: none;
+    overflow: hidden;
+}
+
+#modelSelection {
+    padding: 15px;
+    border-top: 1px solid #ddd;
+    overflow-y: auto;
+    max-height: 200px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.model-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.model-checkbox input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.model-output pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 10px;
+}
+
+#summaryModelDropdown {
+    margin-left: 10px;
+    padding: 2px 5px;
+}
+
+.copy-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 12px;
+    display: none;
+}
+
+.markdown-content:hover .copy-btn {
+    display: block;
+}
+
+.system-prompt-bar {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 38px;
+    z-index: 1;
+}
+
+
+.editable-div.empty::before {
+    content: attr(data-placeholder);
+    color: red; /* Placeholder text color */
+    pointer-events: none;
+}
+
+
+.column-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px;
+    margin: 0;
+    color: inherit; /* Inherit text color from parent */
+}
+
+.column-btn:hover {
+    background: rgba(0, 0, 0, 0.1); /* Optional: Add a hover effect */
+}
+.column-btn-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px; /* Optional: Add some space between the buttons */
+    margin-left: auto; /* Push the container to the right */
+}

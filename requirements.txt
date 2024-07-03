@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-dotenv
+anthropic
+openai
+google-generativeai
+ollama
+pathspec
+python-socketio
+aiohttp
+sqlitedict
+gitpython

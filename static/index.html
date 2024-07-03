@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiprompt</title>
+    <script src="/static/lib/marked.min.js"></script>
+    <script src="/static/lib/highlight.min.js"></script>
+    <script src="/static/lib/clipboard.min.js"></script>
+    <link rel="stylesheet" href="/static/lib/github.min.css">
+    <link rel="stylesheet" href="/static/css/base.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/modal.css">
+    <link rel="stylesheet" href="/static/css/dark-theme.css">
+    <link rel="stylesheet" href="/static/css/responsive.css">
+    <link rel="stylesheet" href="/static/css/column-config-modal.css">
+</head>
+<body>
+    <div class="container">
+        <div class="column prompt-column">
+            <h3>User
+                <div id="configIcon" onclick="toggleConfigModal()">⚙️</div>
+                <button id="sendPromptBtn" onclick="sendPrompt()">Send</button>
+            </h3>
+            <div class="markdown-content">
+                <div id="prompt" class="editable-content" contenteditable="true" placeholder="Enter your prompt"></div>
+            </div>
+        </div>
+        <div id="output" class="output-container"></div>
+    </div>
+    <div id="configModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="toggleConfigModal()">&times;</span>
+            <h2>Workflow Configuration</h2>
+            <p>Adjust the settings below to customize the behavior of the models:</p>
+            <div id="modelSelection">
+                <div class="model-checkbox">
+                    <input type="checkbox" id="includeRepoAnalysis" name="includeRepoAnalysis" checked>
+                    <label for="includeRepoAnalysis">Include Repository Analysis</label>
+                </div>
+                <div class="model-checkbox">
+                    <input type="checkbox" id="summaryModel" name="model" value="summaryModel">
+                    <label for="summaryModel">Summary Model</label>
+                    <select id="summaryModelDropdown"></select>
+                </div>
+            </div>
+            <!-- <h3>Workflow Configuration</h3> -->
+            <label for="workflowDropdown">Workflow:</label>
+            <select id="workflowDropdown" onchange="UI.handleWorkflowChange(event)">
+                <option value="new">New Workflow</option>
+            </select>
+            <div id="newWorkflowFields" style="display: none;">
+                <label for="workflowName">Workflow Name:</label>
+                <input type="text" id="workflowName">
+                <div id="currentAgentsContainer">
+                    <h4>Current Agents/Models:</h4>
+                    <ul id="currentAgentsList"></ul>
+                </div>
+            </div>
+            <div id="agentsListContainer"></div>
+            <button onclick="UI.saveWorkflow()">Save Workflow</button>
+            
+        </div>
+    </div>
+    <template id="columnConfigModalTemplate">
+        <div class="column-config-modal" style="display: none;">
+            <div class="modal-content">
+                <h3>Column Configuration</h3>
+                <label for="column-model-dropdown">Model:</label>
+                <select class="column-model-dropdown"></select>
+                <label for="agent-dropdown">Agent:</label>
+                <select class="agent-dropdown" onchange="UI.handleAgentChange(event)">
+                    <option value="new">New Agent</option>
+                </select>
+                <div class="new-agent-fields" style="display: none;">
+                    <label for="agent-name">Agent Name:</label>
+                    <input type="text" class="agent-name">
+                </div>
+                <label for="column-system-prompt">System Prompt:</label>
+                <textarea class="column-system-prompt"></textarea>
+                <label for="column-temperature">Temperature:</label>
+                <input type="number" class="column-temperature" min="0" max="1" step="0.1" value="0.7">
+                <button onclick="UI.saveColumnConfig(event)">Save</button>
+            </div>
+        </div>
+    </template>
+    
+    <script src="/static/js/config.js"></script>
+    <script src="/static/js/models.js"></script>
+    <script src="/static/js/ui.js"></script>
+    <script src="/static/js/websocket.js"></script>
+    <script src="/static/js/workflow.js"></script>
+    <script src="/static/js/column.js"></script>
+    <script src="/static/js/agent.js"></script>
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            new ClipboardJS('.copy-btn');
+        });
+    </script>
+</body>
+</html>
