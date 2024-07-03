@@ -166,6 +166,11 @@ const useStore = create(
       //     return { agents: normalizedAgents };
       //   });
       // },
+
+      getCurrentConversation: () => {
+        const state = get();
+        return state.conversations.find(c => c.id === state.currentConversationId);
+      },
       
 
       // Update function for config object

@@ -11,11 +11,12 @@ function UserCard() {
     referenceCodePrompt,
     userPrompt,
     updateUserPrompt,
-    
+    getCurrentConversation,
   } = useStore(state => ({
     referenceCodePrompt: state.referenceCodePrompt,
     userPrompt: state.userPrompt,
-    updateUserPrompt: state.updateUserPrompt
+    updateUserPrompt: state.updateUserPrompt,
+    getCurrentConversation: state.getCurrentConversation,
   }));
 
   const [isEditing, setIsEditing] = useState(false);
@@ -37,6 +38,16 @@ function UserCard() {
     }
   }, [isEditing]);
 
+  const handleRepromptAgent = (agentId) => {
+    const currentConversation = getCurrentConversation();
+    if (currentConversation) {
+      const lastTurn = currentConversation.turns[currentConversation.turns.length - 1];
+      handleSendPrompt(lastTurn.userPrompt, referenceCodePrompt, agentId);
+    }
+  };
+
+  const currentConversation = getCurrentConversation();
+
   return (
     <Card>
       <Card.Header className="d-flex justify-content-between align-items-start">
@@ -53,7 +64,7 @@ function UserCard() {
       </Card.Header>
       <Card.Body className='promptarea-card-body'>
         
-      {currentConversation.turns.map((turn, turnIndex) => (
+        {currentConversation && currentConversation.turns.map((turn, turnIndex) => (
           <div key={turnIndex}>
             <div className="user-prompt">
               <MarkdownRenderer content={turn.userPrompt} />
@@ -68,7 +79,6 @@ function UserCard() {
             ))}
           </div>
         ))}
-        
         
         {isEditing ? (
           <textarea
