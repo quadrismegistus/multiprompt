@@ -1,9 +1,10 @@
+// frontend/src/components/MarkdownRenderer.js
+
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-// New CopyButton component
 const CopyButton = ({ code }) => {
   const [copied, setCopied] = useState(false);
 

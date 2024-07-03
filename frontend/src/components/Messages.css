@@ -7,6 +7,10 @@
   /* padding: 1px; */
   /* display: inline-block; */
 }
+.message p {margin:0;}
+
+.message .card-body { padding:.5em;
+  margin:0;}
 
 .message-user {
   align-self: flex-end;

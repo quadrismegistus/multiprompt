@@ -1,25 +1,42 @@
-// frontend/src/components/Message.js
-import { React, useEffect, useRef } from 'react';
+// frontend/src/components/Messages.js
+
+import React, { useEffect, useRef } from 'react';
 import { Card } from 'react-bootstrap';
 import './Messages.css';
 import { extractTLDR } from '../utils/promptUtils';
+import ReactMarkdown from 'react-markdown';
+
+
+const copyToClipboard = (text) => {
+  navigator.clipboard.writeText(text).then(() => {
+    console.log('Copied to clipboard');
+  }).catch(err => {
+    console.error('Failed to copy: ', err);
+  });
+};
 
 export const Message = ({ text, sender, position }) => {
   const tldrContent = extractTLDR(text);
+
+  const handleCopy = () => {
+    copyToClipboard(text);
+  };
+  const msgtextstr = text || "?"
+  const msgtext = tldrContent || msgtextstr.slice(0, 100);
+  const msg = `${sender}: ${msgtext}`.trim()
+
   return (
-    <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'} agentpos-${position}`}>
-      <Card.Body>
-        <Card.Text>{sender}: {tldrContent || (text ? text.slice(0, 100) : "?")}</Card.Text>
+    <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'} agentpos-${position}`} onClick={handleCopy}>
+      <Card.Body >
+        <Card.Text>
+          <ReactMarkdown>{msg}</ReactMarkdown>
+        </Card.Text>
       </Card.Body>
     </Card>
   );
 };
 
-
-
-
-
-export const MessageList = ( { messages } ) => {
+export const MessageList = ({ messages }) => {
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -28,7 +45,6 @@ export const MessageList = ( { messages } ) => {
     }
   }, [messages]);
 
-  console.log('got messages',messages);
   return (
     <div className="message-list" ref={listRef}>
       {messages.map((message, index) => (
@@ -37,4 +53,3 @@ export const MessageList = ( { messages } ) => {
     </div>
   );
 };
-
