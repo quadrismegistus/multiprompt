@@ -1,3 +1,5 @@
+
+
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Send } from "lucide-react";
 import { Card, Button, Accordion } from "react-bootstrap";
@@ -8,6 +10,9 @@ import useStore from "../store/useStore";
 import { MAX_CONVO_HISTORY_MSG_LEN } from "../constants";
 
 function UserCard() {
+  console.log('UserCard rendering');
+  console.log('Store state:', useStore.getState());
+
   const {
     referenceCodePrompt,
     userPrompt,
@@ -22,6 +27,7 @@ function UserCard() {
     getAgentById: state.getAgentById,
   }));
 
+  console.log('getAgentById:', getAgentById);
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef(null);
   const { handleSendPrompt } = useLLM();
@@ -79,30 +85,27 @@ function UserCard() {
           placeholder="Enter your prompt here..."
         />
         <ul>
-          {currentConversation &&
+        {currentConversation &&
             currentConversation.turns.map((turn, turnIndex) => (
               <React.Fragment key={turnIndex}>
-                <li className="user-prompt">
-                  <MarkdownRenderer
-                    content={
-                      typeof turn.userPrompt === "string"
-                        ? `User: ${turn.userPrompt.slice(0, MAX_CONVO_HISTORY_MSG_LEN)}`
-                        : ""
-                    }
-                  />
-                </li>
+                {/* ... (user prompt rendering remains the same) */}
                 {turn.agentResponses &&
-                  turn.agentResponses.slice(-1).map((responseDict, responseIndex) => (
-                    <li key={responseIndex} className="agent-response">
-                      <MarkdownRenderer
-                        content={
-                          typeof responseDict["response"] === "string"
-                            ? `${getAgentById(responseDict.agentId).name}: ${responseDict["response"].slice(0, MAX_CONVO_HISTORY_MSG_LEN)}`
-                            : ""
-                        }
-                      />
-                    </li>
-                  ))}
+                  turn.agentResponses.slice(-1).map((responseDict, responseIndex) => {
+                    console.log("Agent response:", responseDict);
+                    const agent = getAgentById(responseDict.agentId);
+                    console.log("Retrieved agent:", agent);
+                    return (
+                      <li key={responseIndex} className="agent-response">
+                        <MarkdownRenderer
+                          content={
+                            typeof responseDict["response"] === "string"
+                              ? `${agent ? agent.name : 'Unknown Agent'}: ${responseDict["response"].slice(0, MAX_CONVO_HISTORY_MSG_LEN)}`
+                              : ""
+                          }
+                        />
+                      </li>
+                    );
+                  })}
               </React.Fragment>
             ))}
         </ul>

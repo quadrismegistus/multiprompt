@@ -71,7 +71,7 @@ export const SYSTEM_PROMPT_SECONDDRAFTER = "You are an expert analyst and you ha
 
 export const initialAgents = [
   {
-    id: uuidv4(),
+    id: "Analyst",
     name: "Analyst",
     type: "ai",
     model: MODEL_DICT["GPT-4o"],
@@ -82,7 +82,7 @@ export const initialAgents = [
     progress: 0
   },
   {
-    id: uuidv4(),
+    id: "Second Passer",
     name: "Second Passer",
     type: "ai",
     model: "claude-3-5-sonnet-20240620",
@@ -93,7 +93,7 @@ export const initialAgents = [
     progress: 0
   },
   {
-    id: uuidv4(),
+    id: "Implementer",
     name: "Implementer",
     type: "ai",
     model: MODEL_DICT["GPT-3.5"],

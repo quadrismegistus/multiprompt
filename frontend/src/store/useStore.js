@@ -175,6 +175,7 @@ const useStore = create(
 
       getAgentById: (agentId) => {
         const state = get();
+        console.log('agents now',state.agents);
         return state.agents.find(a => a.id === agentId);
       },
       
@@ -235,7 +236,7 @@ const useStore = create(
     }),
     {
       name: 'multiprompt-state',
-      storage: createJSONStorage(() => localStorage)
+      storage: createJSONStorage(() => sessionStorage)
     }
   )
 );
