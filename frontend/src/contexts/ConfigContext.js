@@ -1,21 +1,14 @@
-// src/contexts/ConfigContext.js
-
 import React, { createContext, useContext } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import useStore from '../store/useStore';
 
 const ConfigContext = createContext();
 
 export function ConfigProvider({ children }) {
-  const config = useSelector(state => state.config);
-  const dispatch = useDispatch();
-
-  const updateConfig = (newConfig) => {
-    dispatch({ type: 'UPDATE_CONFIG', payload: newConfig });
-  };
-
-  const clearAgentCache = () => {
-    dispatch({ type: 'CLEAR_AGENT_CACHE' });
-  };
+  const {
+    config,
+    updateConfig,
+    clearAgentCache
+  } = useStore();
 
   return (
     <ConfigContext.Provider value={{ config, updateConfig, clearAgentCache }}>
