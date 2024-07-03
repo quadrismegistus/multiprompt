@@ -96,7 +96,7 @@ export const initialAgents = [
     id: "Implementer",
     name: "Implementer",
     type: "ai",
-    model: MODEL_DICT["GPT-3.5"],
+    model: MODEL_DICT["CodeLlama"],
     systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
     output: "",
     temperature: 0.7,

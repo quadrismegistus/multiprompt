@@ -193,6 +193,7 @@ const useStore = create(
         console.log("clearAgentCache");
         set((state) => ({
           agents: initialAgents,
+          currentConversation: []
         }));
       },
 

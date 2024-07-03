@@ -133,7 +133,7 @@ export const LLMProvider = ({ children }) => {
 
     const {
       startNewConversation,
-      addTurn,
+      addUserMessage,
       addAgentResponse,
       currentConversationId
     } = useStore.getState();
@@ -141,7 +141,7 @@ export const LLMProvider = ({ children }) => {
     if (!currentConversationId) {
       startNewConversation();
     }
-    addTurn(userPrompt);
+    addUserMessage(userPrompt);
 
     const aiAgents = agents.filter(agent => agent.type === 'ai');
     const agentsByPosition = aiAgents.reduce((acc, agent) => {
