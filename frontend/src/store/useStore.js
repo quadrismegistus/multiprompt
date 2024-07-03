@@ -71,77 +71,122 @@ const useStore = create(
       },
 
       // Update functions for top-level items
-      updateUserPrompt: (prompt) => set({ userPrompt: prompt }),
-      updateReferenceCodePrompt: (prompt) => set({ referenceCodePrompt: prompt }),
-      setActiveModal: (modalType) => set({ activeModal: modalType }),
-      toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+      updateUserPrompt: (prompt) => {
+        console.log("updateUserPrompt", prompt);
+        set({ userPrompt: prompt });
+      },
+      updateReferenceCodePrompt: (prompt) => {
+        console.log("updateReferenceCodePrompt", prompt);
+        set({ referenceCodePrompt: prompt });
+      },
+      setActiveModal: (modalType) => {
+        console.log("setActiveModal", modalType);
+        set({ activeModal: modalType });
+      },
+      toggleTheme: () => {
+        console.log("toggleTheme");
+        set((state) => ({ isDarkMode: !state.isDarkMode }));
+      },
 
       // Update functions for agents
-      updateAgent: (id, updates) => set((state) => ({
-        agents: normalizePositions(state.agents.map((agent) =>
-          agent.id === id ? { ...agent, ...updates } : agent
-        ))
-      })),
+      updateAgent: (id, updates) => {
+        console.log("updateAgent", id, updates);
+        set((state) => ({
+          agents: normalizePositions(state.agents.map((agent) =>
+            agent.id === id ? { ...agent, ...updates } : agent
+          ))
+        }));
+      },
 
-      addAgent: (clickedAgentPosition) => set((state) => {
-        const newAgent = {
-          id: uuidv4(),
-          name: `Agent ${state.agents.length + 1}`,
-          type: 'ai',
-          model: DEFAULT_MODEL,
-          position: clickedAgentPosition + 1,
-          systemPrompt: '',
-          output: '',
-          temperature: 0.7,
-          progress: 0
-        };
-        return {
-          agents: normalizePositions([...state.agents, newAgent])
-        };
-      }),
+      addAgent: (clickedAgentPosition) => {
+        console.log("addAgent", clickedAgentPosition);
+        set((state) => {
+          const newAgent = {
+            id: uuidv4(),
+            name: `Agent ${state.agents.length + 1}`,
+            type: 'ai',
+            model: DEFAULT_MODEL,
+            position: clickedAgentPosition + 1,
+            systemPrompt: '',
+            output: '',
+            temperature: 0.7,
+            progress: 0
+          };
+          return {
+            agents: normalizePositions([...state.agents, newAgent])
+          };
+        });
+      },
 
-      removeAgent: (id) => set((state) => ({
-        agents: normalizePositions(state.agents.filter((agent) => agent.id !== id))
-      })),
+      removeAgent: (id) => {
+        console.log("removeAgent", id);
+        set((state) => ({
+          agents: normalizePositions(state.agents.filter((agent) => agent.id !== id))
+        }));
+      },
 
-      moveAgentTo: (id, newPosition) => set((state) => ({
-        agents: normalizePositions(state.agents.map((agent) =>
-          agent.id === id ? { ...agent, position: newPosition } : agent
-        ))
-      })),
+      moveAgentTo: (id, newPosition) => {
+        console.log("moveAgentTo", id, newPosition);
+        set((state) => ({
+          agents: normalizePositions(state.agents.map((agent) =>
+            agent.id === id ? { ...agent, position: newPosition } : agent
+          ))
+        }));
+      },
 
       // Update function for config object
-      updateConfig: (updates) => set((state) => ({
-        config: { ...state.config, ...updates }
-      })),
+      updateConfig: (updates) => {
+        console.log("updateConfig", updates);
+        set((state) => ({
+          config: { ...state.config, ...updates }
+        }));
+      },
 
       // Other functions
-      clearAgentCache: () => set((state) => ({
-        agents: initialAgents,
-      })),
+      clearAgentCache: () => {
+        console.log("clearAgentCache");
+        set((state) => ({
+          agents: initialAgents,
+        }));
+      },
 
-      saveAgentConfiguration: (name, configuration) => set((state) => ({
-        savedAgentConfigurations: {
-          ...state.savedAgentConfigurations,
-          [name]: configuration
-        }
-      })),
+      saveAgentConfiguration: (name, configuration) => {
+        console.log("saveAgentConfiguration", name, configuration);
+        set((state) => ({
+          savedAgentConfigurations: {
+            ...state.savedAgentConfigurations,
+            [name]: configuration
+          }
+        }));
+      },
 
-      loadAgentConfiguration: (agentId, name) => set((state) => ({
-        agents: normalizePositions(state.agents.map((agent) =>
-          agent.id === agentId ? { ...agent, ...state.savedAgentConfigurations[name] } : agent
-        ))
-      })),
+      loadAgentConfiguration: (agentId, name) => {
+        console.log("loadAgentConfiguration", agentId, name);
+        set((state) => ({
+          agents: normalizePositions(state.agents.map((agent) =>
+            agent.id === agentId ? { ...agent, ...state.savedAgentConfigurations[name] } : agent
+          ))
+        }));
+      },
 
-      addConversationHistory: (conversation) => set((state) => ({
-        config: {
-          ...state.config,
-          conversationHistory: [...state.config.conversationHistory, conversation]
-        }
-      })),
+      addConversationHistory: (conversation) => {
+        console.log("addConversationHistory", conversation);
+        set((state) => ({
+          config: {
+            ...state.config,
+            conversationHistory: [...state.config.conversationHistory, conversation]
+          }
+        }));
+      },
 
-      showModal: (modalType) => set({ activeModal: modalType }),
-      hideModal: () => set({ activeModal: null }),
+      showModal: (modalType) => {
+        console.log("showModal", modalType);
+        set({ activeModal: modalType });
+      },
+      hideModal: () => {
+        console.log("hideModal");
+        set({ activeModal: null });
+      },
     }),
     {
       name: 'multiprompt-state',
