@@ -3,9 +3,9 @@ import React from 'react';
 import { Card } from 'react-bootstrap';
 import './Messages.css';
 
-export const Message = ({ text, sender }) => {
+export const Message = ({ text, sender, position }) => {
   return (
-    <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'}`}>
+    <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'} agentpos-${position}`}>
       <Card.Body>
         <Card.Text>{sender}: {text}</Card.Text>
       </Card.Body>
@@ -22,7 +22,7 @@ export const MessageList = ( { messages } ) => {
   return (
     <div className="message-list">
       {messages.map((message, index) => (
-        <Message key={index} text={message.content} sender={message.sender} />
+        <Message key={index} text={message.content} sender={message.sender} position={message.isUser ? 0 : message.agentPosition} />
       ))}
     </div>
   );

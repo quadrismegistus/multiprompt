@@ -341,6 +341,9 @@ body {
 }
 
  .progress { background-color: var(--color-border-muted);}
+ 
+ .agentpos-1  { background-color: 2px solid #e41a1c; } /* Red */
+ 
  .agentpos-1 .card-header { border-bottom: 2px solid #e41a1c; } /* Red */
  .agentpos-2 .card-header { border-bottom: 2px solid #377eb8; } /* Blue */
  .agentpos-3 .card-header { border-bottom: 2px solid #4daf4a; } /* Green */
