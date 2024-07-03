@@ -90,7 +90,7 @@ body {
   padding:0;
   margin:0;
 
-  padding-right:60px;
+  padding-left:60px;
 
 }
 
@@ -299,7 +299,7 @@ body {
 
 .icon-sidebar {
   position: fixed;
-  right: 0;
+  left: 0;
   top: 0;
   width: 60px; /* Adjust the width of the sidebar */
   height: 100%;
@@ -307,22 +307,23 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: 20px; /* Space from the top */
+  padding-top: 15px;
   /* box-shadow: 2px 0 5px rgba(0,0,0,0.1); */
   border:none;
   z-index:100;
+  /* padding:0; */
 }
 
 .icon-btn {
   background: none;
   border: none;
-  margin: 30px 0;
+  margin-bottom: 50px;
   cursor: pointer;
 }
 .i
 
 .card-header { background-color: var(--color-canvas-subtle);}
-.card { border-left:0;}
+.card { border-right:0;}
 .card-body { background-color: var(--color-canvas-subtle);}
 #root, body, .Layout, .Content, .GridLayout { overflow:hidden; }
 
