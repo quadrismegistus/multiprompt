@@ -1,10 +1,10 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
+import useStore from '../store/useStore';
 import { Modal, Button } from 'react-bootstrap';
 import MarkdownRenderer from './MarkdownRenderer';
 
 const ConversationHistory = ({ show, onHide }) => {
-  const conversationHistory = useSelector(state => state.config.conversationHistory);
+  const conversationHistory = useStore(state => state.conversationHistory);
 
   return (
     <Modal show={show} onHide={onHide} size="lg">

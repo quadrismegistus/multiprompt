@@ -1,15 +1,14 @@
 import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import { useSelector } from 'react-redux';
 import UserCard from './UserCard';
 import AgentCard from './AgentCard';
 import { GridLayout, GridCard } from './GridLayout';
-import { useAgents } from '../contexts/AgentContext';
 import IconSidebar from './IconSidebar';
+import useStore from '../store/useStore';
 
 function Layout() {
-  const isDarkMode = useSelector(state => state.config.isDarkMode);
-  const { agents } = useAgents();
+  const agents = useStore((state) => state.agents);
+  const isDarkMode = useStore((state) => state.config.isDarkMode);
 
   const sortedAgents = [...agents].sort((a, b) => a.position - b.position);
   const numCols = sortedAgents.length + 1;

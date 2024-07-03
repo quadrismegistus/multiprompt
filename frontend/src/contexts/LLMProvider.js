@@ -1,26 +1,27 @@
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { io } from 'socket.io-client';
-import { useDispatch, useSelector } from 'react-redux';
-import { useConfig } from './ConfigContext';
-import { useAgents } from './AgentContext';
-import { SOCKET_SERVER_URL } from '../constants';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { makeAsciiSection } from '../utils/promptUtils';
-import { addConversationHistory } from '../redux/actions';
 import { useSocket } from './SocketContext';
+import useStore from '../store/useStore';
 
 console.log('Initializing LLMContext');
 
 const LLMContext = createContext(null);
 
 export const LLMProvider = ({ children }) => {
-    const { config } = useConfig();
-    const { agents, updateAgent } = useAgents();
-    const dispatch = useDispatch();
     const { socket, isConnected } = useSocket();
     const [agentProgress, setAgentProgress] = useState({});
 
-    const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
-    const userPrompt = useSelector(state => state.config.userPrompt);
+    const {
+        config,
+        agents,
+        updateAgent,
+        addConversationHistory
+    } = useStore(state => ({
+        config: state.config,
+        agents: state.agents,
+        updateAgent: state.updateAgent,
+        addConversationHistory: state.addConversationHistory
+    }));
 
     const memoizedConfig = useMemo(() => config, [config]);
 
@@ -121,8 +122,8 @@ export const LLMProvider = ({ children }) => {
             }
         }
 
-        dispatch(addConversationHistory(conversation));
-    }, [agents, query, isConnected, updateAgent, dispatch]);
+        addConversationHistory(conversation);
+    }, [agents, query, isConnected, updateAgent, addConversationHistory]);
 
     return (
         <LLMContext.Provider value={{ handleSendPrompt, agentProgress, isConnected }}>

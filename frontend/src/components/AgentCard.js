@@ -1,16 +1,20 @@
-// src/components/AgentCard.js
-
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, ButtonGroup, Button, ProgressBar } from 'react-bootstrap'; // Add ProgressBar import
+import React, { useRef, useEffect } from 'react';
+import { Card, ButtonGroup, Button, ProgressBar } from 'react-bootstrap'; 
 import { PlusCircle, MinusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import MarkdownRenderer from './MarkdownRenderer';
-import AgentConfigAccordion from './AgentConfigAccordion';
-import { useAgents } from '../contexts/AgentContext';
-import { useLLM } from '../contexts/LLMProvider';
+import useStore from '../store/useStore';
+import { Row, Container, Col, Accordion } from 'react-bootstrap';
+import AgentConfigForm from './AgentConfigForm';
+import { MODEL_DICT_r } from '../constants';
+
 
 function AgentCard({ agent }) {
-  const { agents, addAgent, removeAgent, updateAgent, moveAgentTo } = useAgents();
-  const { agentProgress } = useLLM();
+  const updateAgent = useStore((state) => state.updateAgent);
+  const addAgent = useStore((state) => state.addAgent);
+  const removeAgent = useStore((state) => state.removeAgent);
+  const moveAgentTo = useStore((state) => state.moveAgentTo);
+  const agents = useStore((state) => state.agents);
+  const agentProgress = useStore((state) => state.agents.find(a => a.id === agent.id)?.progress || 0);
 
   const isOnlyColumn = agents.filter(a => a.type === 'ai').length === 1;
 
@@ -53,18 +57,28 @@ function AgentCard({ agent }) {
     }
   }, [agent.output]);
 
-  const progress = agentProgress[agent.id] || 0;
-
   return (
     <Card className={`agent-card useragent-card flex-grow`}>
       <Card.Header className="d-flex justify-content-between align-items-start">
-        <AgentConfigAccordion
-          agent={agent}
-          onNameChange={handleNameChange}
-          onModelChange={handleModelChange}
-          onSystemPromptChange={handleSystemPromptChange}
-          onTemperatureChange={handleTemperatureChange}
-        />
+        <Accordion className='agentconfig'>
+            <Accordion.Item eventKey="0">
+              <Accordion.Header>
+                {agent.name}
+                <span style={{
+                  fontFamily: "monospace", 
+                  fontSize: ".8em", 
+                  lineHeight: 'normal',
+                  fontStyle: "italic",
+                  marginLeft: ".5em",
+                }}>
+                  ({MODEL_DICT_r[agent.model]}) [{agent.position}]
+                </span>
+              </Accordion.Header>
+              <Accordion.Body>
+                <AgentConfigForm agent={agent} />
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
 
         <ButtonGroup>
           <Button variant="link" onClick={handleMoveAgentLeft} className="p-0 mx-1" title="Move Left">
@@ -85,7 +99,7 @@ function AgentCard({ agent }) {
         <MarkdownRenderer content={agent.output} />
       </Card.Body>
       <Card.Footer>
-        {progress < 100 && <ProgressBar now={progress} label={`${Math.round(progress)}%`} />}
+        {agentProgress < 100 && <ProgressBar now={agentProgress} label={`${Math.round(agentProgress)}%`} />}
       </Card.Footer>
     </Card>
   );

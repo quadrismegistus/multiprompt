@@ -1,23 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Form, Dropdown, Button } from "react-bootstrap";
-import { useDispatch, useSelector } from 'react-redux';
 import { MODEL_CATEGORIES, MODEL_LIST } from "../constants";
-import { saveAgentConfiguration, loadAgentConfiguration } from "../redux/actions";
+import useStore from '../store/useStore';
 
-function AgentConfigForm({
-  agent,
-  onNameChange,
-  onModelChange,
-  onSystemPromptChange,
-  onTemperatureChange,
-}) {
-  const dispatch = useDispatch();
+function AgentConfigForm({ agent }) {
   const [roleName, setRoleName] = useState(agent.name);
-  const savedAgentConfigurations = useSelector(state => state.agents.savedAgentConfigurations);
+  
+  const updateAgent = useStore(state => state.updateAgent);
+  const saveAgentConfiguration = useStore(state => state.saveAgentConfiguration);
+  const loadAgentConfiguration = useStore(state => state.loadAgentConfiguration);
+  const savedAgentConfigurations = useStore(state => state.savedAgentConfigurations);
+  const savedGlobalConfigurations = useStore(state => state.config.savedGlobalConfigurations || []);
+  const loadConfiguration = useStore(state => state.loadConfiguration);
 
   useEffect(() => {
     setRoleName(agent.name);
   }, [agent.name]);
+
+  const handleNameChange = (e) => {
+    updateAgent(agent.id, { name: e.target.value });
+  };
+
+  const handleModelChange = (model) => {
+    updateAgent(agent.id, { model });
+  };
+
+  const handleSystemPromptChange = (e) => {
+    updateAgent(agent.id, { systemPrompt: e.target.value });
+  };
+
+  const handleTemperatureChange = (e) => {
+    updateAgent(agent.id, { temperature: parseFloat(e.target.value) });
+  };
 
   const handleSaveRole = () => {
     if (roleName.trim() === '') {
@@ -29,12 +43,16 @@ function AgentConfigForm({
       systemPrompt: agent.systemPrompt,
       temperature: agent.temperature,
     };
-    dispatch(saveAgentConfiguration(roleName, roleToSave));
-    onNameChange({ target: { value: roleName } });
+    saveAgentConfiguration(roleName, roleToSave);
+    handleNameChange({ target: { value: roleName } });
   };
 
   const handleLoadRole = (name) => {
-    dispatch(loadAgentConfiguration(agent.id, name));
+    loadAgentConfiguration(agent.id, name);
+  };
+
+  const handleLoadGlobalConfiguration = (configuration) => {
+    loadConfiguration(configuration);
   };
 
   return (
@@ -55,7 +73,7 @@ function AgentConfigForm({
                       {models.map((model) => (
                         <Dropdown.Item
                           key={model}
-                          onClick={() => onModelChange(model)}
+                          onClick={() => handleModelChange(model)}
                         >
                           {MODEL_LIST.find((m) => m.model === model).name}
                         </Dropdown.Item>
@@ -76,7 +94,7 @@ function AgentConfigForm({
               max="1.5"
               step="0.1"
               value={agent.temperature}
-              onChange={(e) => onTemperatureChange(parseFloat(e.target.value))}
+              onChange={handleTemperatureChange}
             />
           </Form.Group>
         </Col>
@@ -89,13 +107,13 @@ function AgentConfigForm({
               as="textarea"
               rows={5}
               value={agent.systemPrompt}
-              onChange={onSystemPromptChange}
+              onChange={handleSystemPromptChange}
               placeholder="Enter system prompt here..."
             />
           </Form.Group>
         </Col>
       </Row>
-      <Row className="align-items-center">
+      <Row className="align-items-center mb-3">
         <Col md={4}>
           <Dropdown>
             <Dropdown.Toggle variant="success" className="w-100">
@@ -131,6 +149,26 @@ function AgentConfigForm({
         </Col>
         <Col md={4}>
           <Button onClick={handleSaveRole} className="w-100">Save Role</Button>
+        </Col>
+      </Row>
+      <Row>
+        <Col>
+          <Dropdown>
+            <Dropdown.Toggle variant="info" id="dropdown-global-config" className="w-100">
+              Load Global Configuration
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="w-100">
+              {Object.keys(savedGlobalConfigurations).length > 0 ? (
+                Object.keys(savedGlobalConfigurations).map(name => (
+                  <Dropdown.Item key={name} onClick={() => handleLoadGlobalConfiguration(name)}>
+                    {name}
+                  </Dropdown.Item>
+                ))
+              ) : (
+                <Dropdown.Item disabled>No saved global configurations</Dropdown.Item>
+              )}
+            </Dropdown.Menu>
+          </Dropdown>
         </Col>
       </Row>
     </Form>

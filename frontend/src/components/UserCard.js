@@ -1,49 +1,34 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { debounce } from 'lodash'; // Make sure to install lodash if not already present
 import { Send } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Card, Form, Button, Accordion } from 'react-bootstrap';
-import { updateUserPrompt } from '../redux/actions';
+import { Card, Button, Accordion } from 'react-bootstrap';
 import MarkdownRenderer from './MarkdownRenderer';
 import { useLLM } from '../contexts/LLMProvider';
 import PromptAppendix from './PromptAppendix';
-import { useDirectoryReader } from '../contexts/DirectoryReaderContext';
+import useStore from '../store/useStore';
 
 function UserCard() {
-  const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
-  const userPrompt = useSelector(state => state.config.userPrompt);
-  const useFileInput = useSelector(state => state.config.useFileInput);
-  const [promptText, setPromptText] = useState(userPrompt);
+  const {
+    referenceCodePrompt,
+    userPrompt,
+    updateUserPrompt
+  } = useStore(state => ({
+    referenceCodePrompt: state.config.referenceCodePrompt,
+    userPrompt: state.config.userPrompt,
+    updateUserPrompt: state.updateUserPrompt
+  }));
+
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef(null);
-  const dispatch = useDispatch();
   const { handleSendPrompt } = useLLM();
-  const { readFileOrDirectory } = useDirectoryReader();
-
-  const debouncedHandlePromptChange = useCallback(
-    debounce((value) => {
-      dispatch(updateUserPrompt(value));
-    }, 300),
-    [dispatch]
-  );
 
   const handlePromptChange = (e) => {
-    setPromptText(e.target.value);
-    debouncedHandlePromptChange(e.target.value);
+    const newValue = e.target.value;
+    updateUserPrompt(newValue);
   };
 
-  const handleSend = useCallback(async () => {
-    // let updatedReferenceCodePrompt = referenceCodePrompt;
-    // if (useFileInput) {
-    //   const updatedContent = await readFileOrDirectory();
-    //   if (updatedContent) {
-    //     updatedReferenceCodePrompt = updatedContent;
-    //   }
-    // }
-    
-    // handleSendPrompt(promptText, updatedReferenceCodePrompt);
-    handleSendPrompt(promptText, referenceCodePrompt);
-  }, [handleSendPrompt, promptText, referenceCodePrompt, useFileInput, readFileOrDirectory]);
+  const handleSend = useCallback(() => {
+    handleSendPrompt(userPrompt, referenceCodePrompt);
+  }, [handleSendPrompt, userPrompt, referenceCodePrompt]);
 
   useEffect(() => {
     if (textareaRef.current && isEditing) {
@@ -70,7 +55,7 @@ function UserCard() {
           <textarea
             ref={textareaRef}
             className='promptarea w-100 h-100'
-            value={promptText}
+            value={userPrompt}
             onChange={handlePromptChange}
             placeholder="Enter your prompt here..."
             onBlur={() => setIsEditing(false)}
@@ -81,19 +66,19 @@ function UserCard() {
             className='promptarea w-100 h-100'
             style={{ cursor: 'text' }}
           >
-            <MarkdownRenderer content={promptText || "Click to edit prompt..."} />
+            <MarkdownRenderer content={userPrompt || "Click to edit prompt..."} />
           </div>
         )}
       </Card.Body>
       <Card.Footer>
-      <Accordion className='agentconfig'>
+        <Accordion className='agentconfig'>
           <Accordion.Item eventKey="1">
             <Accordion.Header>Prompt appendix</Accordion.Header>
             <Accordion.Body>
               <PromptAppendix />
             </Accordion.Body>
           </Accordion.Item>
-          </Accordion>
+        </Accordion>
       </Card.Footer>
     </Card>
   );

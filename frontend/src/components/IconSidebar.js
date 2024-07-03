@@ -1,25 +1,24 @@
 import React from 'react';
 import { Settings, History, Trash2, Sun, Moon } from 'lucide-react';
-import { useDispatch, useSelector } from 'react-redux';
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
-import { clearAgentCache, toggleTheme, showModal } from '../redux/actions';
-import { useTheme } from '../contexts/ThemeContext';
+import useStore from '../store/useStore';
 
 function IconSidebar() {
-  const dispatch = useDispatch();
-  const isDarkMode = useSelector(state => state.config.isDarkMode);
-  const { theme, toggleTheme } = useTheme();
+  const clearAgentCache = useStore(state => state.clearAgentCache);
+  const showModal = useStore(state => state.showModal);
+  const toggleTheme = useStore(state => state.toggleTheme);
+  const isDarkMode = useStore(state => state.config.isDarkMode);
 
   const handleClearAgentCache = () => {
-    dispatch(clearAgentCache());
+    clearAgentCache();
   };
 
   const handleShowModal = (modalType) => {
-    dispatch(showModal(modalType));
+    showModal(modalType);
   };
 
   const handleToggleTheme = () => {
-    dispatch(toggleTheme());
+    toggleTheme();
   };
 
   const renderTooltip = (content) => (
@@ -33,15 +32,15 @@ function IconSidebar() {
 
   return (
     <div className="icon-sidebar">
-    <OverlayTrigger placement="right" overlay={renderTooltip("Settings")}>
-      <button 
-        className="icon-btn" 
-        onClick={() => handleShowModal('config')}
-        aria-label="Open settings"
-      >
-        <Settings size={iconSize} color={iconColor} />
-      </button>
-    </OverlayTrigger>
+      <OverlayTrigger placement="right" overlay={renderTooltip("Settings")}>
+        <button 
+          className="icon-btn" 
+          onClick={() => handleShowModal('config')}
+          aria-label="Open settings"
+        >
+          <Settings size={iconSize} color={iconColor} />
+        </button>
+      </OverlayTrigger>
 
       <OverlayTrigger placement="right" overlay={renderTooltip("Clear Agent Cache")}>
         <button 
@@ -53,13 +52,13 @@ function IconSidebar() {
         </button>
       </OverlayTrigger>
 
-      <OverlayTrigger placement="right" overlay={renderTooltip(theme === 'dark' ? "Switch to Light Mode" : "Switch to Dark Mode")}>
+      <OverlayTrigger placement="right" overlay={renderTooltip(isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")}>
         <button 
           className="icon-btn" 
-          onClick={toggleTheme}
-          aria-label={theme === 'dark' ? "Switch to light mode" : "Switch to dark mode"}
+          onClick={handleToggleTheme}
+          aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
         >
-          {theme === 'dark' ? <Sun size={iconSize} color={iconColor} /> : <Moon size={iconSize} color={iconColor} />}
+          {isDarkMode ? <Sun size={iconSize} color={iconColor} /> : <Moon size={iconSize} color={iconColor} />}
         </button>
       </OverlayTrigger>
 

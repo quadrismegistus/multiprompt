@@ -1,15 +1,14 @@
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { hideModal } from '../redux/actions';
+import useStore from '../store/useStore';
 import ConfigModal from './ConfigModal';
 import ConversationHistory from './ConversationHistory';
 
 const ModalManager = () => {
-  const activeModal = useSelector(state => state.config.activeModal);
-  const dispatch = useDispatch();
+  const activeModal = useStore(state => state.config.activeModal);
+  const hideModal = useStore(state => state.hideModal);
 
   const handleClose = () => {
-    dispatch(hideModal());
+    hideModal();
   };
 
   if (!activeModal) return null;

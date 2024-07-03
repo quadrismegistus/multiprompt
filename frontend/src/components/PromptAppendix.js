@@ -1,59 +1,65 @@
-// src/components/PromptAppendix.js
-
-import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { Form, Row, Col, Button, Alert, InputGroup } from 'react-bootstrap';
+import React from 'react';
+import { Form, Row, Col, Button, InputGroup } from 'react-bootstrap';
 import { RefreshCw, Github, Folder } from 'lucide-react';
-import { updateReferenceCodePrompt, updateConfig, updateGithubUrl } from '../redux/actions';
 import { useDirectoryReader } from '../contexts/DirectoryReaderContext';
+import useStore from '../store/useStore';
 
 const PromptAppendix = () => {
-  const dispatch = useDispatch();
-  const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
-  const useFileInput = useSelector(state => state.config.useFileInput);
-  const { selectedPath, error, readFileOrDirectory, handleRefreshFiles, fetchRepoContent, hasSelectedFiles } = useDirectoryReader();
-  const githubUrl = useSelector(state => state.config.githubUrl);
+  const {
+    referenceCodePrompt,
+    githubUrl,
+    updateReferenceCodePrompt,
+    updateConfig,
+    updateGithubUrl
+  } = useStore(state => ({
+    referenceCodePrompt: state.config.referenceCodePrompt,
+    githubUrl: state.config.githubUrl,
+    updateReferenceCodePrompt: state.updateReferenceCodePrompt,
+    updateConfig: state.updateConfig,
+    updateGithubUrl: state.updateGithubUrl
+  }));
 
+  const { selectedPath, error, readFileOrDirectory, handleRefreshFiles, fetchRepoContent, hasSelectedFiles } = useDirectoryReader();
 
   const handleReferenceCodePromptChange = (e) => {
-    dispatch(updateReferenceCodePrompt(e.target.value));
+    updateReferenceCodePrompt(e.target.value);
   };
 
   const handleUseFileInputToggle = (useFile) => {
-    dispatch(updateConfig({ useFileInput: useFile }));
+    updateConfig({ useFileInput: useFile });
   };
 
   const handleDirectoryRead = async () => {
     const content = await readFileOrDirectory();
     if (content) {
-      dispatch(updateReferenceCodePrompt(content));
+      updateReferenceCodePrompt(content);
     }
   };
 
   const handleRefresh = async () => {
     const content = await handleRefreshFiles();
     if (content) {
-      dispatch(updateReferenceCodePrompt(content));
+      updateReferenceCodePrompt(content);
     }
   };
 
   const handleGithubSubmit = async () => {
     try {
       const content = await fetchRepoContent(githubUrl);
-      dispatch(updateReferenceCodePrompt(content));
+      updateReferenceCodePrompt(content);
     } catch (error) {
       console.error('Error fetching GitHub repo content:', error);
       // Handle error appropriately
     }
   };
+
   const handleGithubUrlChange = (e) => {
     const newUrl = e.target.value;
-    dispatch(updateGithubUrl(newUrl));
+    updateGithubUrl(newUrl);
   };
 
   return (
     <Form.Group>
-      {/* <Form.Label style={{fontSize: "1.1em"}}>Prompt appendix (reference code or docs to send to LLM)</Form.Label> */}
       <Form.Control
         as="textarea"
         rows={5}
@@ -105,11 +111,7 @@ const PromptAppendix = () => {
           </InputGroup>
         </Col>
       </Row>
-      {{error} && (<div>{error}</div>)}
-        
-        {/* <Button variant="danger" className="mt-2"> */}
-        {/* </Alert> */}
-      
+      {error && (<div>{error}</div>)}
     </Form.Group>
   );
 };
