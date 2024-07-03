@@ -67,13 +67,14 @@ export const SOCKET_SERVER_URL = "http://localhost:8989";
 
 export const SYSTEM_PROMPT_ANALYST = "With reference to any provided code, analyze the user's query, outline the problem described, and suggest efficient and elegant solutions. Do NOT return the full contents of files; return only lines and functions changed.";
 export const SYSTEM_PROMPT_IMPLEMENTER = "With reference to any provided code, implement the suggestions by the previous AI, returning:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.";
+export const SYSTEM_PROMPT_SECONDDRAFTER = "You are an expert analyst and you have been given a query from a user followed by a first analyst's first attempt at responding to it. You may see code provided by the user as reference to their query, as well as code suggested by the first analyst. Your task is to give a second opinion and examine what the first analyst may have left out or got wrong, and what they definitely got right.";
 
 export const initialAgents = [
   {
     id: uuidv4(),
     name: "Analyst",
     type: "ai",
-    model: "claude-3-5-sonnet-20240620",
+    model: MODEL_DICT["GPT-4o"],
     systemPrompt: SYSTEM_PROMPT_ANALYST,
     output: "",
     temperature: 0.7,
@@ -82,28 +83,34 @@ export const initialAgents = [
   },
   {
     id: uuidv4(),
-    name: "Implementer",
+    name: "Second Passer",
     type: "ai",
-    model: MODEL_DICT["GPT-4o"],
-    systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
+    model: "claude-3-5-sonnet-20240620",
+    systemPrompt: SYSTEM_PROMPT_SECONDDRAFTER,
     output: "",
     temperature: 0.7,
     position: 2,
     progress: 0
-  }
+  },
+  {
+    id: uuidv4(),
+    name: "Implementer",
+    type: "ai",
+    model: MODEL_DICT["GPT-3.5"],
+    systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
+    output: "",
+    temperature: 0.7,
+    position: 3,
+    progress: 0
+  },
 ];
 
-export const initialAgentTypes = {
-    "Analyst": {
-      name: "Analyst",
-      model: MODEL_DICT["GPT-4o"],
-      systemPrompt: SYSTEM_PROMPT_ANALYST,
-      temperature: 0.7
-    },
-    "Implementer": {
-      name: "Implementer",
-      model: MODEL_DICT["GPT-4o"],
-      systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
-      temperature: 0.5
-    }
-  }
+export const initialAgentTypes = initialAgents.reduce((acc, agent) => {
+  acc[agent.name] = {
+    name: agent.name,
+    model: agent.model,
+    systemPrompt: agent.systemPrompt,
+    temperature: agent.temperature
+  };
+  return acc;
+}, {});

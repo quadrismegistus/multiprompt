@@ -341,3 +341,38 @@ body {
 }
 
  .progress { background-color: var(--color-border-muted);}
+ .agentpos-1 .card-header { border-bottom: 2px solid #e41a1c; } /* Red */
+ .agentpos-2 .card-header { border-bottom: 2px solid #377eb8; } /* Blue */
+ .agentpos-3 .card-header { border-bottom: 2px solid #4daf4a; } /* Green */
+ .agentpos-4 .card-header { border-bottom: 2px solid #984ea3; } /* Purple */
+ .agentpos-5 .card-header { border-bottom: 2px solid #ff7f00; } /* Orange */
+ .agentpos-6 .card-header { border-bottom: 2px solid #ffff33; } /* Yellow */
+ .agentpos-7 .card-header { border-bottom: 2px solid #a65628; } /* Brown */
+ .agentpos-8 .card-header { border-bottom: 2px solid #f781bf; } /* Pink */
+ 
+ .last-in-position .card-header {
+  position: relative;
+}
+
+.last-in-position .card-header::after {
+  content: '';
+  position: absolute;
+  right: 0px;
+  bottom: -20px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 10px solid;  /* This creates the arrow shape */
+}
+
+/* Coloring the arrow based on the position */
+.agentpos-1.last-in-position .card-header::after { border-left-color: #e41a1c; }
+.agentpos-2.last-in-position .card-header::after { border-left-color: #377eb8; }
+.agentpos-3.last-in-position .card-header::after { border-left-color: #4daf4a; }
+.agentpos-4.last-in-position .card-header::after { border-left-color: #984ea3; }
+.agentpos-5.last-in-position .card-header::after { border-left-color: #ff7f00; }
+.agentpos-6.last-in-position .card-header::after { border-left-color: #ffff33; }
+.agentpos-7.last-in-position .card-header::after { border-left-color: #a65628; }
+.agentpos-8.last-in-position .card-header::after { border-left-color: #f781bf; }

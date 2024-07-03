@@ -156,8 +156,8 @@ async def generate_ollama(
         model=model,
         prompt=formatted_prompt,
         stream=True,
-        num_predict=max_tokens,
-        temperature=temperature,
+        # num_predict=max_tokens,
+        # temperature=temperature,
     )
     async for part in response:
         yield part["response"]
