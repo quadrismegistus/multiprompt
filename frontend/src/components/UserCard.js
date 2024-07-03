@@ -32,27 +32,32 @@ function UserCard() {
 
   const handleSend = useCallback(() => {
     handleSendPrompt(userPrompt, referenceCodePrompt);
-    updateUserPrompt(''); // Clear the prompt after sending
+    updateUserPrompt(''); 
+    // Clear the textarea
+    if (textareaRef.current) {
+      textareaRef.current.value = '';
+    }
   }, [handleSendPrompt, userPrompt, referenceCodePrompt, updateUserPrompt]);
+
+  const handleCardClick = () => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
 
   return (
     <Card>
       <Card.Header className="d-flex justify-content-between align-items-start">
-        <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}}>
+        <Card.Title className="mt-1">multiprompt</Card.Title>
+        {/* <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}} defaultActiveKey="0">
           <Accordion.Item eventKey="0">
             <Accordion.Header>multiprompt</Accordion.Header>
             <Accordion.Body>
-            <textarea
-                ref={textareaRef}
-                className="promptarea w-100 h-100"
-                value={userPrompt}
-                onChange={handlePromptChange}
-                placeholder="Enter your prompt here..."
-              />
+            
 
             </Accordion.Body>
           </Accordion.Item>
-        </Accordion>
+        </Accordion> */}
         <Button
           variant="link"
           onClick={handleSend}
@@ -62,11 +67,25 @@ function UserCard() {
           <Send size={24} color="royalblue" />
         </Button>
       </Card.Header>
-      <Card.Body className="promptarea-card-body">
+      <Card.Body className="promptarea-card-body" onClick={handleCardClick}>
         <MessageList messages={currentConversation} />
       </Card.Body>
       <Card.Footer>
-        
+        {/* <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}} defaultActiveKey="0">
+          <Accordion.Item eventKey="0">
+            <Accordion.Header>Prompt</Accordion.Header>
+            <Accordion.Body> */}
+            <textarea
+                ref={textareaRef}
+                className="promptarea w-100"
+                value={userPrompt}
+                onChange={handlePromptChange}
+                placeholder="Enter your prompt here..."
+              />      
+            {/* </Accordion.Body>
+          </Accordion.Item>
+        </Accordion> */}
+      
         <Accordion className="prompt-appendix">
           <Accordion.Item eventKey="2">
             <Accordion.Header>Prompt appendix</Accordion.Header>
