@@ -63,7 +63,7 @@ function AgentCard({ agent }) {
         <Accordion className='agentconfig'>
             <Accordion.Item eventKey="0">
               <Accordion.Header>
-                {agent.name}
+               [{agent.position}] {agent.name}
                 <span style={{
                   fontFamily: "monospace", 
                   fontSize: ".8em", 
@@ -71,7 +71,7 @@ function AgentCard({ agent }) {
                   fontStyle: "italic",
                   marginLeft: ".5em",
                 }}>
-                  ({MODEL_DICT_r[agent.model]}) [{agent.position}]
+                  ({MODEL_DICT_r[agent.model]})
                 </span>
               </Accordion.Header>
               <Accordion.Body>

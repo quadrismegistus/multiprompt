@@ -1,40 +1,9 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { DEFAULT_MODEL, MODEL_DICT } from '../constants';
+import { DEFAULT_MODEL, MODEL_DICT, initialAgentTypes, initialAgents } from '../constants';
+import { normalizePositions } from '../utils/agentUtils';
 
-const SYSTEM_PROMPT_ANALYST = "With reference to any provided code, analyze the user's query, outline the problem described, and suggest efficient and elegant solutions. Do NOT return the full contents of files; return only lines and functions changed.";
-const SYSTEM_PROMPT_IMPLEMENTER = "With reference to any provided code, implement the suggestions by the previous AI, returning:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.";
-
-const initialAgents = [
-  {
-    id: uuidv4(),
-    name: "Analyst",
-    type: "ai",
-    model: "claude-3-5-sonnet-20240620",
-    systemPrompt: SYSTEM_PROMPT_ANALYST,
-    output: "",
-    temperature: 0.7,
-    position: 1,
-    progress: 0
-  },
-  {
-    id: uuidv4(),
-    name: "Implementer",
-    type: "ai",
-    model: MODEL_DICT["GPT-4o"],
-    systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
-    output: "",
-    temperature: 0.7,
-    position: 2,
-    progress: 0
-  }
-];
-
-const normalizePositions = (agents) => {
-  const sortedAgents = [...agents].sort((a, b) => a.position - b.position);
-  return sortedAgents.map((agent, index) => ({ ...agent, position: index + 1 }));
-};
 
 const useStore = create(
   persist(
@@ -55,20 +24,7 @@ const useStore = create(
         githubUrl: '',
       },
 
-      savedAgentConfigurations: {
-        "Analyst": {
-          name: "Analyst",
-          model: MODEL_DICT["GPT-4o"],
-          systemPrompt: SYSTEM_PROMPT_ANALYST,
-          temperature: 0.7
-        },
-        "Implementer": {
-          name: "Implementer",
-          model: MODEL_DICT["GPT-4o"],
-          systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
-          temperature: 0.5
-        }
-      },
+      savedAgentConfigurations: initialAgentTypes,
 
       // Update functions for top-level items
       updateUserPrompt: (prompt) => {
@@ -125,14 +81,65 @@ const useStore = create(
         }));
       },
 
+          
       moveAgentTo: (id, newPosition) => {
-        console.log("moveAgentTo", id, newPosition);
-        set((state) => ({
-          agents: normalizePositions(state.agents.map((agent) =>
-            agent.id === id ? { ...agent, position: newPosition } : agent
-          ))
-        }));
+        console.log("moveAgentTo called", id, newPosition);
+        if (newPosition > 0) {
+          set((state) => {
+            const agents = [...state.agents];
+            const agentIndex = agents.findIndex(agent => agent.id === id);
+            if (agentIndex === -1) {
+              console.log("Agent not found", id);
+              return state;
+            }
+      
+            const agent = { ...agents[agentIndex], position: newPosition };
+            agents[agentIndex] = agent;
+            console.log("Agent position updated", agent);
+      
+            const normalizedAgents = normalizePositions(agents);
+            console.log("Agents after normalization", normalizedAgents);
+      
+            return {
+              ...state,
+              agents: normalizedAgents
+            };
+          });
+        } else {
+          console.log("Invalid newPosition", newPosition);
+          return get();  // return the current state if the position is not valid
+        }
       },
+      
+
+      // moveAgentTo: (id, newPosition) => {
+      //   console.log("moveAgentTo", id, newPosition);
+      //   set((state) => {
+      //     const originalPosition = state.agents.find(a => a.id === id).position;
+      //     console.log("originalPosition", originalPosition);
+          
+      //     const updatedAgents = state.agents.map(agent => {
+      //       if (agent.id === id) {
+      //         console.log("Updating agent position", agent.id, "from", agent.position, "to", newPosition);
+      //         return { ...agent, position: newPosition };
+      //       } else if (agent.position >= newPosition && agent.position < originalPosition) {
+      //         console.log("Incrementing agent position", agent.id, "from", agent.position, "to", agent.position + 1);
+      //         return { ...agent, position: agent.position + 1 };
+      //       } else if (agent.position <= newPosition && agent.position > originalPosition) {
+      //         console.log("Decrementing agent position", agent.id, "from", agent.position, "to", agent.position - 1);
+      //         return { ...agent, position: agent.position - 1 };
+      //       }
+      //       return agent;
+      //     });
+          
+      //     console.log("Updated agents", updatedAgents);
+      //     const normalizedAgents = normalizePositions(updatedAgents);
+      //     console.log("Normalized agents", normalizedAgents);
+          
+      //     return { agents: normalizedAgents };
+      //   });
+      // },
+      
 
       // Update function for config object
       updateConfig: (updates) => {

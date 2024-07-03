@@ -1,4 +1,5 @@
 // src/constants.js
+import { v4 as uuidv4 } from 'uuid';
 
 class LLMModel {
     constructor(model, name, category) {
@@ -61,3 +62,48 @@ export const DEFAULT_INCL_REPO = true;
 
 export const ANTHROPIC_BASE_URL = "https://super-custard-978c1f.netlify.app/api/anthropic"
 export const SOCKET_SERVER_URL = "http://localhost:8989";
+
+
+
+export const SYSTEM_PROMPT_ANALYST = "With reference to any provided code, analyze the user's query, outline the problem described, and suggest efficient and elegant solutions. Do NOT return the full contents of files; return only lines and functions changed.";
+export const SYSTEM_PROMPT_IMPLEMENTER = "With reference to any provided code, implement the suggestions by the previous AI, returning:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.";
+
+export const initialAgents = [
+  {
+    id: uuidv4(),
+    name: "Analyst",
+    type: "ai",
+    model: "claude-3-5-sonnet-20240620",
+    systemPrompt: SYSTEM_PROMPT_ANALYST,
+    output: "",
+    temperature: 0.7,
+    position: 1,
+    progress: 0
+  },
+  {
+    id: uuidv4(),
+    name: "Implementer",
+    type: "ai",
+    model: MODEL_DICT["GPT-4o"],
+    systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
+    output: "",
+    temperature: 0.7,
+    position: 2,
+    progress: 0
+  }
+];
+
+export const initialAgentTypes = {
+    "Analyst": {
+      name: "Analyst",
+      model: MODEL_DICT["GPT-4o"],
+      systemPrompt: SYSTEM_PROMPT_ANALYST,
+      temperature: 0.7
+    },
+    "Implementer": {
+      name: "Implementer",
+      model: MODEL_DICT["GPT-4o"],
+      systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
+      temperature: 0.5
+    }
+  }
