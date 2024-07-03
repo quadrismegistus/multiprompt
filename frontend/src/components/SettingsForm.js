@@ -51,7 +51,7 @@ function SettingsForm() {
           placeholder="Enter Claude API Key"
         />
       </Form.Group>
-      <Form.Group className="mb-3">
+      {/* <Form.Group className="mb-3">
         <Form.Label>Theme</Form.Label>
         <Button 
           variant="link" 
@@ -65,7 +65,7 @@ function SettingsForm() {
       </Form.Group>
       <Button variant="danger" onClick={handleClearAgentCache}>
         Clear Agent Cache
-      </Button>
+      </Button> */}
     </Form>
   );
 }

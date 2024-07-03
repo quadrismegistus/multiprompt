@@ -90,7 +90,7 @@ body {
   padding:0;
   margin:0;
 
-  padding-left:60px;
+  padding-right:60px;
 
 }
 
@@ -299,7 +299,7 @@ body {
 
 .icon-sidebar {
   position: fixed;
-  left: 0;
+  right: 0;
   top: 0;
   width: 60px; /* Adjust the width of the sidebar */
   height: 100%;
@@ -316,12 +316,13 @@ body {
 .icon-btn {
   background: none;
   border: none;
-  margin: 10px 0;
+  margin: 30px 0;
   cursor: pointer;
 }
+.i
 
 .card-header { background-color: var(--color-canvas-subtle);}
-.card { border-right:0;}
+.card { border-left:0;}
 .card-body { background-color: var(--color-canvas-subtle);}
 #root, body, .Layout, .Content, .GridLayout { overflow:hidden; }
 

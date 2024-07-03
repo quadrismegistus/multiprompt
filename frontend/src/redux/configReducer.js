@@ -45,6 +45,15 @@ const configReducer = (state = initialState, action) => {
         ...state,
         conversationHistory: [...state.conversationHistory, action.payload]
       };
+    case 'SHOW_MODAL':
+      return { ...state, activeModal: action.payload };
+
+    case 'HIDE_MODAL':
+      return { ...state, activeModal: null };
+
+    case 'TOGGLE_THEME':
+      return { ...state, isDarkMode: !state.isDarkMode };
+
     default:
       return state;
   }

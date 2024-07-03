@@ -260,6 +260,16 @@ const agentReducer = (state = initialState, action) => {
     case 'MOVE_AGENT_TO':
       return moveAgentTo(state, action.payload.id, action.payload.position);  
 
+    case 'CLEAR_AGENT_CACHE':
+      return {
+        ...initialState,
+        savedAgentConfigurations: {
+          ...initialSavedConfigurations,
+          ...state.savedAgentConfigurations
+        }
+      };
+  
+
     default:
       //console.log('Unknown action type:', action.type);
       return state;

@@ -72,3 +72,20 @@ export const updateConfig = (config) => ({
   type: 'UPDATE_CONFIG',
   payload: config
 });
+
+export const clearAgentCache = () => ({
+  type: 'CLEAR_AGENT_CACHE'
+});
+
+export const showModal = (modalType) => ({
+  type: 'SHOW_MODAL',
+  payload: modalType
+});
+
+export const hideModal = () => ({
+  type: 'HIDE_MODAL'
+})
+
+export const toggleTheme = () => ({
+  type: 'TOGGLE_THEME'
+});
