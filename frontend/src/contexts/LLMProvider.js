@@ -31,7 +31,8 @@ export const LLMProvider = ({ children }) => {
         }
 
         const { id, model, systemPrompt, temperature } = agent;
-        const finalSystemPrompt = `${config.systemMessagePreface ? config.systemMessagePreface : ""}\n\n${systemPrompt}`.trim()
+        const { systemMessagePreface } = config;
+        const finalSystemPrompt = `${systemMessagePreface ? systemMessagePreface : ""}\n\n${systemPrompt}`.trim()
         
         console.log('final system prompt: ',finalSystemPrompt);
         return new Promise((resolve, reject) => {
@@ -69,7 +70,7 @@ export const LLMProvider = ({ children }) => {
             socket.on('response_complete', handleResponseComplete);
             socket.on('error', handleError);
         });
-    }, [isConnected, socket]);
+    }, [isConnected, socket, config]);
 
     // const handleSendPrompt = useCallback(async (userPrompt, referenceCodePrompt) => {
     //     if (!isConnected) {

@@ -436,3 +436,6 @@ textarea { border:none;}
 
 
 .form-label { font-weight:500}
+
+
+.prompt-config .promptarea { font-size: 1.2rem; line-height:1.5rem; font-family: inherit;}
