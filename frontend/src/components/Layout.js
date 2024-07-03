@@ -12,6 +12,8 @@ function Layout() {
   const { agents } = useAgents();
 
   const sortedAgents = [...agents].sort((a, b) => a.position - b.position);
+  const numCols = sortedAgents.length + 1;
+  console.log(numCols,'mi,')
 
   return (
     <Container className={`Layout ${isDarkMode ? 'dark' : ''}`}>
@@ -27,9 +29,9 @@ function Layout() {
           </GridCard>
         ))}
       </GridLayout> */}
-      <Col key={0}><UserCard /></Col>
+      <Col key={0} style={{ maxWidth: `calc(100vw / ${numCols})`}}><UserCard /></Col>
       {sortedAgents.filter(agent => agent.type === 'ai').map((agent) => (
-          <Col key={agent.id}>
+          <Col key={agent.id}  style={{ maxWidth: `calc(100vw / ${numCols})`}}>
             <AgentCard agent={agent} />
           </Col>
         ))}
