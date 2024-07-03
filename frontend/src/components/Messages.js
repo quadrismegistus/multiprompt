@@ -7,7 +7,7 @@ export const Message = ({ text, sender, position }) => {
   return (
     <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'} agentpos-${position}`}>
       <Card.Body>
-        <Card.Text>{sender}: {text}</Card.Text>
+        <Card.Text>{sender}: {text ? text.slice(0,100) : "?"}</Card.Text>
       </Card.Body>
     </Card>
   );

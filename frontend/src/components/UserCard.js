@@ -38,10 +38,19 @@ function UserCard() {
   return (
     <Card>
       <Card.Header className="d-flex justify-content-between align-items-start">
-        <Accordion className="agentconfig">
+        <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}}>
           <Accordion.Item eventKey="0">
             <Accordion.Header>multiprompt</Accordion.Header>
-            <Accordion.Body></Accordion.Body>
+            <Accordion.Body>
+            <textarea
+                ref={textareaRef}
+                className="promptarea w-100 h-100"
+                value={userPrompt}
+                onChange={handlePromptChange}
+                placeholder="Enter your prompt here..."
+              />
+
+            </Accordion.Body>
           </Accordion.Item>
         </Accordion>
         <Button
@@ -54,18 +63,12 @@ function UserCard() {
         </Button>
       </Card.Header>
       <Card.Body className="promptarea-card-body">
-        <textarea
-          ref={textareaRef}
-          className="promptarea w-100 h-25"
-          value={userPrompt}
-          onChange={handlePromptChange}
-          placeholder="Enter your prompt here..."
-        />
         <MessageList messages={currentConversation} />
       </Card.Body>
       <Card.Footer>
-        <Accordion className="agentconfig">
-          <Accordion.Item eventKey="1">
+        
+        <Accordion className="prompt-appendix">
+          <Accordion.Item eventKey="2">
             <Accordion.Header>Prompt appendix</Accordion.Header>
             <Accordion.Body>
               <PromptAppendix />
