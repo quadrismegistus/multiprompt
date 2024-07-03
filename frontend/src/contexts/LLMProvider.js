@@ -10,6 +10,7 @@ const LLMContext = createContext(null);
 export const LLMProvider = ({ children }) => {
     const { socket, isConnected } = useSocket();
     const [agentProgress, setAgentProgress] = useState({});
+    const { getAgentById } = useStore();
 
     const {
         config,
@@ -132,72 +133,79 @@ export const LLMProvider = ({ children }) => {
     // }, [agents, query, isConnected, updateAgent, addConversationHistory]);
 
 
-  const handleSendPrompt = useCallback(async (userPrompt, referenceCodePrompt, targetAgentId = null) => {
-    if (!isConnected) return;
-
-    const {
-      addUserMessage,
-      addAgentResponse,
-    } = useStore.getState();
-
-    addUserMessage(userPrompt);
-
-    const aiAgents = agents.filter(agent => agent.type === 'ai');
-    const agentsByPosition = aiAgents.reduce((acc, agent) => {
-      if (!acc[agent.position]) {
-        acc[agent.position] = [];
-      }
-      acc[agent.position].push(agent);
-      return acc;
-    }, {});
-
-    let userPromptSoFar = makeAsciiSection("User Prompt", userPrompt, 1);
-    if (referenceCodePrompt) {
-      userPromptSoFar += makeAsciiSection("Appendix to user prompt with reference material", referenceCodePrompt, 2);
-    }
-
-    for (const position of Object.keys(agentsByPosition).sort((a, b) => a - b)) {
-      const agentsAtPosition = agentsByPosition[position];
-      const agentsToProcess = targetAgentId 
-        ? agentsAtPosition.filter(agent => agent.id === targetAgentId)
-        : agentsAtPosition;
-
-      const agentsPromises = agentsToProcess.map(async agent => {
-        try {
-          let responseContent = '';
-          const maxTokens = 4096;
-
-          const handleChunk = (chunk) => {
-            responseContent += chunk;
-            const progressPercentage = Math.min((responseContent.length / maxTokens) * 100, 100);
-            setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
-            if(chunk.includes('\n')) { updateAgent(agent.id, { output: responseContent + '█' }); }
-          };
-
-          const fullResponse = await query(userPromptSoFar, agent, handleChunk);
-
-          updateAgent(agent.id, { output: fullResponse });
-          setAgentProgress(prev => ({ ...prev, [agent.id]: 100 }));
-          addAgentResponse(agent.id, fullResponse);
-
-          return { agent, output: fullResponse };
-        } catch (error) {
-          const errorMessage = `Error: ${error.message}`;
-          updateAgent(agent.id, { output: errorMessage });
-          addAgentResponse(agent.id, errorMessage);
-          return { agent, output: errorMessage };
+    const handleSendPrompt = useCallback(async (userPrompt, referenceCodePrompt, targetAgentId = null) => {
+      if (!isConnected) return;
+    
+      const {
+        addUserMessage,
+        addAgentResponse,
+        currentConversation,
+      } = useStore.getState();
+    
+      addUserMessage(userPrompt);
+    
+      const aiAgents = agents.filter(agent => agent.type === 'ai');
+      const agentsByPosition = aiAgents.reduce((acc, agent) => {
+        if (!acc[agent.position]) {
+          acc[agent.position] = [];
         }
-      });
-
-      const positionOutputs = await Promise.all(agentsPromises);
-
-      for (const { agent, output } of positionOutputs) {
-        userPromptSoFar += makeAsciiSection(`Response from agent ${agent.name}`, output, 1);
+        acc[agent.position].push(agent);
+        return acc;
+      }, {});
+    
+      let userPromptSoFar = makeAsciiSection("User Prompt", userPrompt, 1);
+      if (referenceCodePrompt) {
+        userPromptSoFar += makeAsciiSection("Appendix to user prompt with reference material", referenceCodePrompt, 2);
       }
-
-      if (targetAgentId) break; // Stop after processing the target agent
-    }
-  }, [agents, query, isConnected, updateAgent]);
+    
+      // Integrate previous conversation history into userPromptSoFar
+      currentConversation.forEach(msg => {
+        userPromptSoFar += makeAsciiSection(`${msg.sender === "User" ? "User Prompt" : `Response from ${getAgentById(msg.agentId).name}`} AIs`, msg.content, 1);
+      });
+    
+      for (const position of Object.keys(agentsByPosition).sort((a, b) => a - b)) {
+        const agentsAtPosition = agentsByPosition[position];
+        const agentsToProcess = targetAgentId 
+          ? agentsAtPosition.filter(agent => agent.id === targetAgentId)
+          : agentsAtPosition;
+    
+        const agentsPromises = agentsToProcess.map(async agent => {
+          try {
+            let responseContent = '';
+            const maxTokens = 4096;
+    
+            const handleChunk = (chunk) => {
+              responseContent += chunk;
+              const progressPercentage = Math.min((responseContent.length / maxTokens) * 100, 100);
+              setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
+              if(chunk.includes('\n')) { updateAgent(agent.id, { output: responseContent + '█' }); }
+            };
+    
+            const fullResponse = await query(userPromptSoFar, agent, handleChunk);
+    
+            updateAgent(agent.id, { output: fullResponse });
+            setAgentProgress(prev => ({ ...prev, [agent.id]: 100 }));
+            addAgentResponse(agent.id, fullResponse);
+    
+            return { agent, output: fullResponse };
+          } catch (error) {
+            const errorMessage = `Error: ${error.message}`;
+            updateAgent(agent.id, { output: errorMessage });
+            addAgentResponse(agent.id, errorMessage);
+            return { agent, output: errorMessage };
+          }
+        });
+    
+        const positionOutputs = await Promise.all(agentsPromises);
+    
+        for (const { agent, output } of positionOutputs) {
+          userPromptSoFar += makeAsciiSection(`Response from agent ${agent.name}`, output, 1);
+        }
+    
+        if (targetAgentId) break; 
+      }
+    }, [agents, query, isConnected, updateAgent]);
+    
 
     return (
         <LLMContext.Provider value={{ handleSendPrompt, agentProgress, isConnected }}>
