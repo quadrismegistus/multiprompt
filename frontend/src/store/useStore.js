@@ -25,33 +25,33 @@ const useStore = create(
       },
 
       savedAgentConfigurations: initialAgentTypes,
-      conversations: [],
-      currentConversationId: null,
-      startNewConversation: () => set(state => {
-        const newConversation = { id: Date.now(), turns: [] };
-        return {
-          conversations: [...state.conversations, newConversation],
-          currentConversationId: newConversation.id
-        };
-      }),
+      
+      currentConversation: [], // List to store all messages in the current conversation
 
-      addTurn: (userPrompt) => set(state => {
-        const currentConversation = state.conversations.find(c => c.id === state.currentConversationId);
-        if (!currentConversation) return state;
-
-        const newTurn = { userPrompt, agentResponses: [] };
-        currentConversation.turns.push(newTurn);
-        return { conversations: [...state.conversations] };
-      }),
+      addUserMessage: (userPrompt) => set(state => ({
+        currentConversation: [
+          ...state.currentConversation,
+          { content: userPrompt, isUser: true }
+        ]
+      })),
 
       addAgentResponse: (agentId, response) => set(state => {
-        const currentConversation = state.conversations.find(c => c.id === state.currentConversationId);
-        if (!currentConversation) return state;
-
-        const currentTurn = currentConversation.turns[currentConversation.turns.length - 1];
-        currentTurn.agentResponses.push({ agentId, response });
-        console.log('currentTurn',currentTurn);
-        return { conversations: [...state.conversations] };
+        const agent = get().agents.find(agent => agent.id === agentId);
+        return {
+          currentConversation: [
+            ...state.currentConversation,
+            {
+              content: response,
+              isUser: false,
+              agentId: agent.id,
+              agentName: agent.name,
+              agentModel: agent.model,
+              agentPosition: agent.position,
+              agentSystemPrompt: agent.systemPrompt,
+              agentTemperature: agent.temperature
+            }
+          ]
+        };
       }),
 
       // Update functions for top-level items
