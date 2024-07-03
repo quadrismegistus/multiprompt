@@ -172,6 +172,11 @@ const useStore = create(
         const state = get();
         return state.conversations.find(c => c.id === state.currentConversationId);
       },
+
+      getAgentById: (agentId) => {
+        const state = get();
+        return state.agents.find(a => a.id === agentId);
+      },
       
 
       // Update function for config object

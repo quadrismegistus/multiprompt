@@ -13,11 +13,13 @@ function UserCard() {
     userPrompt,
     updateUserPrompt,
     getCurrentConversation,
+    getAgentById,
   } = useStore((state) => ({
     referenceCodePrompt: state.referenceCodePrompt,
     userPrompt: state.userPrompt,
     updateUserPrompt: state.updateUserPrompt,
     getCurrentConversation: state.getCurrentConversation,
+    getAgentById: state.getAgentById,
   }));
 
   const [isEditing, setIsEditing] = useState(false);
@@ -76,79 +78,36 @@ function UserCard() {
           onChange={handlePromptChange}
           placeholder="Enter your prompt here..."
         />
-        <div>
+        <ul>
           {currentConversation &&
             currentConversation.turns.map((turn, turnIndex) => (
-              <div key={turnIndex}>
-                <div className="user-prompt">
-                  User prompt
+              <React.Fragment key={turnIndex}>
+                <li className="user-prompt">
                   <MarkdownRenderer
                     content={
                       typeof turn.userPrompt === "string"
-                        ? turn.userPrompt.slice(0, MAX_CONVO_HISTORY_MSG_LEN)
+                        ? `User: ${turn.userPrompt.slice(0, MAX_CONVO_HISTORY_MSG_LEN)}`
                         : ""
                     }
                   />
-                </div>
-                <div>
-                  {turn.agentResponses &&
-                    turn.agentResponses.map((responseDict, responseIndex) => (
-                      <div key={responseIndex} className="agent-response">
-                        Agent response:
-                        <MarkdownRenderer
-                          content={
-                            typeof responseDict['response'] === "string"
-                              ? responseDict['response'].slice(0, MAX_CONVO_HISTORY_MSG_LEN)
-                              : ""
-                          }
-                        />
-                      </div>
-                    ))}
-                </div>
-              </div>
+                </li>
+                {turn.agentResponses &&
+                  turn.agentResponses.slice(-1).map((responseDict, responseIndex) => (
+                    <li key={responseIndex} className="agent-response">
+                      <MarkdownRenderer
+                        content={
+                          typeof responseDict["response"] === "string"
+                            ? `${getAgentById(responseDict.agentId).name}: ${responseDict["response"].slice(0, MAX_CONVO_HISTORY_MSG_LEN)}`
+                            : ""
+                        }
+                      />
+                    </li>
+                  ))}
+              </React.Fragment>
             ))}
-        </div>
-
-        {/* {isEditing ? (
-          <textarea
-            ref={textareaRef}
-            className="promptarea w-100 h-100"
-            value={userPrompt}
-            onChange={handlePromptChange}
-            placeholder="Enter your prompt here..."
-            onBlur={() => setIsEditing(false)}
-          />
-        ) : (
-          <div onclick={() => setIsEditing(true)}>
-            {currentConversation &&
-              currentConversation.turns.map((turn, turnIndex) => (
-                <div key={turnIndex}>
-                  <div className="user-prompt">
-                    <MarkdownRenderer
-                      content={turn.userPrompt.slice(
-                        0,
-                        MAX_CONVO_HISTORY_MSG_LEN
-                      )}
-                    />
-                  </div>
-                  <div>
-                    {turn.agentResponses &&
-                      turn.agentResponses.map((response, responseIndex) => (
-                        <div key={responseIndex} className="agent-response">
-                          <MarkdownRenderer
-                            content={response.slice(
-                              0,
-                              MAX_CONVO_HISTORY_MSG_LEN
-                            )}
-                          />
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              ))}
-          </div>
-        )}*/}
+        </ul>
       </Card.Body>
+
       <Card.Footer>
         <Accordion className="agentconfig">
           <Accordion.Item eventKey="1">

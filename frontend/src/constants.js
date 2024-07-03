@@ -115,4 +115,4 @@ export const initialAgentTypes = initialAgents.reduce((acc, agent) => {
   return acc;
 }, {});
 
-export const MAX_CONVO_HISTORY_MSG_LEN = 100; // Example value, set this to your required length
+export const MAX_CONVO_HISTORY_MSG_LEN = 50; // Example value, set this to your required length
