@@ -12,7 +12,7 @@ const ConversationHistory = ({ show, onHide }) => {
         <Modal.Title>Conversation History</Modal.Title>
       </Modal.Header>
       <Modal.Body style={{ maxHeight: 'calc(100vh - 210px)', overflowY: 'auto' }}>
-        {conversationHistory.map((conversation, index) => (
+        {conversationHistory && conversationHistory.map((conversation, index) => (
           <div key={index} className="conversation mb-4">
             <h3>Conversation {index + 1}</h3>
             {conversation.map(({ agent, output }, idx) => (

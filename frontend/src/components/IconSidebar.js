@@ -7,7 +7,7 @@ function IconSidebar() {
   const clearAgentCache = useStore(state => state.clearAgentCache);
   const showModal = useStore(state => state.showModal);
   const toggleTheme = useStore(state => state.toggleTheme);
-  const isDarkMode = useStore(state => state.config.isDarkMode);
+  const isDarkMode = useStore(state => state.isDarkMode);
 
   const handleClearAgentCache = () => {
     clearAgentCache();

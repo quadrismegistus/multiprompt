@@ -8,7 +8,7 @@ import useStore from '../store/useStore';
 
 function Layout() {
   const agents = useStore((state) => state.agents);
-  const isDarkMode = useStore((state) => state.config.isDarkMode);
+  const isDarkMode = useStore((state) => state.isDarkMode);
 
   const sortedAgents = [...agents].sort((a, b) => a.position - b.position);
   const numCols = sortedAgents.length + 1;

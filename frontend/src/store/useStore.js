@@ -31,22 +31,6 @@ const initialAgents = [
   }
 ];
 
-const initialConfig = {
-  includeRepoAnalysis: true,
-  summaryModel: false,
-  summaryModelValue: '',
-  openaiApiKey: '',
-  claudeApiKey: '',
-  referenceCodePrompt: '',
-  userPrompt: '',
-  isDarkMode: false,
-  savedGlobalConfigurations: {},
-  conversationHistory: [],
-  useFileInput: false,
-  githubUrl: '',
-  activeModal: null,
-};
-
 const normalizePositions = (agents) => {
   const sortedAgents = [...agents].sort((a, b) => a.position - b.position);
   return sortedAgents.map((agent, index) => ({ ...agent, position: index + 1 }));
@@ -55,106 +39,115 @@ const normalizePositions = (agents) => {
 const useStore = create(
   persist(
     (set, get) => ({
-    agents: initialAgents,
-    config: initialConfig,
-    savedAgentConfigurations: {
-      "Analyst": {
-        name: "Analyst",
-        model: MODEL_DICT["GPT-4o"],
-        systemPrompt: SYSTEM_PROMPT_ANALYST,
-        temperature: 0.7
-      },
-      "Implementer": {
-        name: "Implementer",
-        model: MODEL_DICT["GPT-4o"],
-        systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
-        temperature: 0.5
-      }
-    },
-
-    updateUserPrompt: (prompt) => set(state => ({
-      config: { ...state.config, userPrompt: prompt }
-    })),
-
-    updateAgent: (id, updates) => set((state) => ({
-      agents: normalizePositions(state.agents.map((agent) =>
-        agent.id === id ? { ...agent, ...updates } : agent
-      ))
-    })),
-
-    addAgent: (clickedAgentPosition) => set((state) => {
-      const newAgent = {
-        id: uuidv4(),
-        name: `Agent ${state.agents.length + 1}`,
-        type: 'ai',
-        model: DEFAULT_MODEL,
-        position: clickedAgentPosition + 1,
-        systemPrompt: '',
-        output: '',
-        temperature: 0.7,
-        progress: 0
-      };
-      return {
-        agents: normalizePositions([...state.agents, newAgent])
-      };
-    }),
-
-    removeAgent: (id) => set((state) => ({
-      agents: normalizePositions(state.agents.filter((agent) => agent.id !== id))
-    })),
-
-    moveAgentTo: (id, newPosition) => set((state) => ({
-      agents: normalizePositions(state.agents.map((agent) =>
-        agent.id === id ? { ...agent, position: newPosition } : agent
-      ))
-    })),
-
-    updateConfig: (newConfig) => set((state) => ({
-      config: { ...state.config, ...newConfig }
-    })),
-
-    clearAgentCache: () => set(() => ({
+      // Frequently updated items at top level
       agents: initialAgents,
-      config: initialConfig
-    })),
+      userPrompt: '',
+      referenceCodePrompt: '',
+      activeModal: null,
+      isDarkMode: false,
 
-    saveAgentConfiguration: (name, configuration) => set((state) => ({
-      savedAgentConfigurations: {
-        ...state.savedAgentConfigurations,
-        [name]: configuration
-      }
-    })),
-
-    loadAgentConfiguration: (agentId, name) => set((state) => ({
-      agents: normalizePositions(state.agents.map((agent) =>
-        agent.id === agentId ? { ...agent, ...state.savedAgentConfigurations[name] } : agent
-      ))
-    })),
-
-    addConversationHistory: (conversation) => set((state) => ({
+      // Less frequently updated items in config
       config: {
-        ...state.config,
-        conversationHistory: [...state.config.conversationHistory, conversation]
-      }
-    })),
+        openaiApiKey: '',
+        claudeApiKey: '',
+        savedGlobalConfigurations: {},
+        conversationHistory: [],
+        githubUrl: '',
+      },
 
-    showModal: (modalType) => set((state) => ({
-      config: { ...state.config, activeModal: modalType }
-    })),
+      savedAgentConfigurations: {
+        "Analyst": {
+          name: "Analyst",
+          model: MODEL_DICT["GPT-4o"],
+          systemPrompt: SYSTEM_PROMPT_ANALYST,
+          temperature: 0.7
+        },
+        "Implementer": {
+          name: "Implementer",
+          model: MODEL_DICT["GPT-4o"],
+          systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
+          temperature: 0.5
+        }
+      },
 
-    hideModal: () => set((state) => ({
-      config: { ...state.config, activeModal: null }
-    })),
+      // Update functions for top-level items
+      updateUserPrompt: (prompt) => set({ userPrompt: prompt }),
+      updateReferenceCodePrompt: (prompt) => set({ referenceCodePrompt: prompt }),
+      setActiveModal: (modalType) => set({ activeModal: modalType }),
+      toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
 
-    toggleTheme: () => set((state) => ({
-      config: { ...state.config, isDarkMode: !state.config.isDarkMode }
-    })),
-  }),
-  {
-    name:'multiprompt-state',
-    storage: createJSONStorage(() => localStorage)
-  }
-)
+      // Update functions for agents
+      updateAgent: (id, updates) => set((state) => ({
+        agents: normalizePositions(state.agents.map((agent) =>
+          agent.id === id ? { ...agent, ...updates } : agent
+        ))
+      })),
+
+      addAgent: (clickedAgentPosition) => set((state) => {
+        const newAgent = {
+          id: uuidv4(),
+          name: `Agent ${state.agents.length + 1}`,
+          type: 'ai',
+          model: DEFAULT_MODEL,
+          position: clickedAgentPosition + 1,
+          systemPrompt: '',
+          output: '',
+          temperature: 0.7,
+          progress: 0
+        };
+        return {
+          agents: normalizePositions([...state.agents, newAgent])
+        };
+      }),
+
+      removeAgent: (id) => set((state) => ({
+        agents: normalizePositions(state.agents.filter((agent) => agent.id !== id))
+      })),
+
+      moveAgentTo: (id, newPosition) => set((state) => ({
+        agents: normalizePositions(state.agents.map((agent) =>
+          agent.id === id ? { ...agent, position: newPosition } : agent
+        ))
+      })),
+
+      // Update function for config object
+      updateConfig: (updates) => set((state) => ({
+        config: { ...state.config, ...updates }
+      })),
+
+      // Other functions
+      clearAgentCache: () => set((state) => ({
+        agents: initialAgents,
+      })),
+
+      saveAgentConfiguration: (name, configuration) => set((state) => ({
+        savedAgentConfigurations: {
+          ...state.savedAgentConfigurations,
+          [name]: configuration
+        }
+      })),
+
+      loadAgentConfiguration: (agentId, name) => set((state) => ({
+        agents: normalizePositions(state.agents.map((agent) =>
+          agent.id === agentId ? { ...agent, ...state.savedAgentConfigurations[name] } : agent
+        ))
+      })),
+
+      addConversationHistory: (conversation) => set((state) => ({
+        config: {
+          ...state.config,
+          conversationHistory: [...state.config.conversationHistory, conversation]
+        }
+      })),
+
+      showModal: (modalType) => set({ activeModal: modalType }),
+      hideModal: () => set({ activeModal: null }),
+    }),
+    {
+      name: 'multiprompt-state',
+      storage: createJSONStorage(() => localStorage)
+    }
+  )
 );
 
 export default useStore;

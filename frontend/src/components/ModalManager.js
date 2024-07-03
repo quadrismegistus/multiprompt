@@ -4,7 +4,7 @@ import ConfigModal from './ConfigModal';
 import ConversationHistory from './ConversationHistory';
 
 const ModalManager = () => {
-  const activeModal = useStore(state => state.config.activeModal);
+  const activeModal = useStore(state => state.activeModal);
   const hideModal = useStore(state => state.hideModal);
 
   const handleClose = () => {

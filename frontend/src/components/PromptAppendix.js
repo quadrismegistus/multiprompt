@@ -7,16 +7,14 @@ import useStore from '../store/useStore';
 const PromptAppendix = () => {
   const {
     referenceCodePrompt,
-    githubUrl,
     updateReferenceCodePrompt,
-    updateConfig,
-    updateGithubUrl
+    config,
+    updateConfig
   } = useStore(state => ({
-    referenceCodePrompt: state.config.referenceCodePrompt,
-    githubUrl: state.config.githubUrl,
+    referenceCodePrompt: state.referenceCodePrompt,
     updateReferenceCodePrompt: state.updateReferenceCodePrompt,
-    updateConfig: state.updateConfig,
-    updateGithubUrl: state.updateGithubUrl
+    config: state.config,
+    updateConfig: state.updateConfig
   }));
 
   const { selectedPath, error, readFileOrDirectory, handleRefreshFiles, fetchRepoContent, hasSelectedFiles } = useDirectoryReader();
@@ -45,7 +43,7 @@ const PromptAppendix = () => {
 
   const handleGithubSubmit = async () => {
     try {
-      const content = await fetchRepoContent(githubUrl);
+      const content = await fetchRepoContent(config.githubUrl);
       updateReferenceCodePrompt(content);
     } catch (error) {
       console.error('Error fetching GitHub repo content:', error);
@@ -55,7 +53,7 @@ const PromptAppendix = () => {
 
   const handleGithubUrlChange = (e) => {
     const newUrl = e.target.value;
-    updateGithubUrl(newUrl);
+    updateConfig({ githubUrl: newUrl });
   };
 
   return (
@@ -102,7 +100,7 @@ const PromptAppendix = () => {
             <Form.Control
               type="text"
               placeholder="Enter GitHub URL"
-              value={githubUrl}
+              value={config.githubUrl}
               onChange={handleGithubUrlChange}
             />
             <Button variant="dark" onClick={handleGithubSubmit}>

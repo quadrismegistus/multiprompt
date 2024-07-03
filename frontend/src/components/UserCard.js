@@ -12,8 +12,8 @@ function UserCard() {
     userPrompt,
     updateUserPrompt
   } = useStore(state => ({
-    referenceCodePrompt: state.config.referenceCodePrompt,
-    userPrompt: state.config.userPrompt,
+    referenceCodePrompt: state.referenceCodePrompt,
+    userPrompt: state.userPrompt,
     updateUserPrompt: state.updateUserPrompt
   }));
 
