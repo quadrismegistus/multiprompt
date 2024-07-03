@@ -89,3 +89,8 @@ export const hideModal = () => ({
 export const toggleTheme = () => ({
   type: 'TOGGLE_THEME'
 });
+
+export const updateGithubUrl = (url) => ({
+  type: 'UPDATE_GITHUB_URL',
+  payload: url,
+});

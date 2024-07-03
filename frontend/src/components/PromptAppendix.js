@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Form, Row, Col, Button, Alert, InputGroup } from 'react-bootstrap';
 import { RefreshCw, Github, Folder } from 'lucide-react';
-import { updateReferenceCodePrompt, updateConfig } from '../redux/actions';
+import { updateReferenceCodePrompt, updateConfig, updateGithubUrl } from '../redux/actions';
 import { useDirectoryReader } from '../contexts/DirectoryReaderContext';
 
 const PromptAppendix = () => {
@@ -12,7 +12,8 @@ const PromptAppendix = () => {
   const referenceCodePrompt = useSelector(state => state.config.referenceCodePrompt);
   const useFileInput = useSelector(state => state.config.useFileInput);
   const { selectedPath, error, readFileOrDirectory, handleRefreshFiles, fetchRepoContent, hasSelectedFiles } = useDirectoryReader();
-  const [githubUrl, setGithubUrl] = useState('');
+  const githubUrl = useSelector(state => state.config.githubUrl);
+
 
   const handleReferenceCodePromptChange = (e) => {
     dispatch(updateReferenceCodePrompt(e.target.value));
@@ -44,6 +45,10 @@ const PromptAppendix = () => {
       console.error('Error fetching GitHub repo content:', error);
       // Handle error appropriately
     }
+  };
+  const handleGithubUrlChange = (e) => {
+    const newUrl = e.target.value;
+    dispatch(updateGithubUrl(newUrl));
   };
 
   return (
@@ -92,7 +97,7 @@ const PromptAppendix = () => {
               type="text"
               placeholder="Enter GitHub URL"
               value={githubUrl}
-              onChange={(e) => setGithubUrl(e.target.value)}
+              onChange={handleGithubUrlChange}
             />
             <Button variant="dark" onClick={handleGithubSubmit}>
               <Github />

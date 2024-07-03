@@ -86,7 +86,14 @@ function UserCard() {
         )}
       </Card.Body>
       <Card.Footer>
-        <PromptAppendix />
+      <Accordion className='agentconfig'>
+          <Accordion.Item eventKey="1">
+            <Accordion.Header>Prompt appendix</Accordion.Header>
+            <Accordion.Body>
+              <PromptAppendix />
+            </Accordion.Body>
+          </Accordion.Item>
+          </Accordion>
       </Card.Footer>
     </Card>
   );

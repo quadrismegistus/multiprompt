@@ -222,7 +222,7 @@ body {
 
 .agentconfig .accordion-header { background:rgba(0,0,0,0);}
 
-.agentconfig .card-body { z-index: 100; background-color: white;}
+.agentconfig .card-body { z-index: 100; }
 
 .userconfig textarea {height:5rem;}
 
@@ -303,13 +303,14 @@ body {
   top: 0;
   width: 60px; /* Adjust the width of the sidebar */
   height: 100%;
-  background-color: var(--color-canvas-subtle);
+  background-color: var(--color-canvas-default);
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-top: 15px;
   /* box-shadow: 2px 0 5px rgba(0,0,0,0.1); */
   border:none;
+  border-right: 1px solid var(--color-border-muted);
   z-index:100;
   /* padding:0; */
 }
@@ -319,16 +320,21 @@ body {
   border: none;
   margin-bottom: 50px;
   cursor: pointer;
+  color: var(--color-accent-fg)
 }
 .i
 
-.card-header { background-color: var(--color-canvas-subtle);}
-.card { border-right:0;}
-.card-body { background-color: var(--color-canvas-subtle);}
-#root, body, .Layout, .Content, .GridLayout { overflow:hidden; }
+/* .card-header { background-color: var(--color-canvas-subtle);} */
+.card { border:0; border-right: 1px solid var(--color-border-muted);}
+/* .card-body { background-color: var(--color-canvas-subtle);} */
+#root, body, .Layout, .Content, .GridLayout { overflow:hidden; background-color: var(--color-canvas-default);}
 
 .card-body { overflow: auto;}
+.card-footer, .card, .card-header, .accordion-header, .accordion-body, .accordion-item { background-color: var(--color-canvas-default); color: var(--color-fg-default)}
+.accordion-button { color: var(--color-fg-default)}
 
 .accordion-body {
   padding:0;
 }
+
+ .progress { background-color: var(--color-border-muted);}

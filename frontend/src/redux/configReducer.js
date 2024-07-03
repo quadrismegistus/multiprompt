@@ -53,7 +53,11 @@ const configReducer = (state = initialState, action) => {
 
     case 'TOGGLE_THEME':
       return { ...state, isDarkMode: !state.isDarkMode };
-
+    case 'UPDATE_GITHUB_URL':  // Add this case for updating GitHub URL
+      return {
+        ...state,
+        githubUrl: action.payload,
+      };
     default:
       return state;
   }
