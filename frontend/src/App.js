@@ -3,6 +3,7 @@ import { AgentProvider } from './contexts/AgentContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { ConfigProvider } from './contexts/ConfigContext';
 import { LLMProvider } from './contexts/LLMProvider';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { DirectoryReaderProvider } from './contexts/DirectoryReaderContext';
 import ModalManager from './components/ModalManager';
 import Layout from './components/Layout';
@@ -12,16 +13,18 @@ import './styles/index.css';
 function App() {
   return (
     <ConfigProvider>
-      <SocketProvider>
-        <DirectoryReaderProvider>
-          <AgentProvider>
-            <LLMProvider>
-              <Layout />
-              <ModalManager />
-            </LLMProvider>
-          </AgentProvider>
-        </DirectoryReaderProvider>
+      <ThemeProvider>
+        <SocketProvider>
+          <DirectoryReaderProvider>
+            <AgentProvider>
+              <LLMProvider>
+                <Layout />
+                <ModalManager />
+              </LLMProvider>
+            </AgentProvider>
+          </DirectoryReaderProvider>
       </SocketProvider>
+      </ThemeProvider>
     </ConfigProvider>
   );
 }

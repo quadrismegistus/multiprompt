@@ -16,7 +16,7 @@
   --height-navbar: 0;
 }
 
-.dark {
+[data-theme="dark"],  .dark {
   --color-canvas-default: #0d1117;
   --color-canvas-subtle: #161b22;
   --color-border-default: #30363d;
@@ -33,7 +33,10 @@
 }
 
 body {
-  @apply bg-[color:var(--color-canvas-default)] text-[color:var(--color-fg-default)] transition-colors duration-300;
+  /* @apply bg-[color:var(--color-canvas-default)] text-[color:var(--color-fg-default)] transition-colors duration-300; */
+  background-color: var(--color-canvas-default);
+  color: var(--color-fg-default);
+  transition: background-color 0.3s ease, color 0.3s ease;
   overflow:hidden;
 }
 
