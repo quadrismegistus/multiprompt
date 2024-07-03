@@ -39,3 +39,9 @@ export const makeAsciiSection = (title, content, level = 1) => {
 // console.log(makeAsciiSection("Example Title", "This is some content.\nIt can span multiple lines.", 1));
 // console.log(makeAsciiSection("Another Example", "More content here.\nWith another line.", 2));
 
+
+export const extractTLDR = (text) => {
+  const regex = /^(?:\s*)(?:\*\*|\*|_)?(?:TLDR|TL;DR|TL;DR|TL DR|TLDR|Summary):?(?:\*\*|\*|_)?[\s:]*(.*)/im;
+  const match = text.match(regex);
+  return match ? match[1].trim() : null;
+};

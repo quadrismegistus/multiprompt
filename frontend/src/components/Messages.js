@@ -2,12 +2,14 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
 import './Messages.css';
+import { extractTLDR } from '../utils/promptUtils';
 
 export const Message = ({ text, sender, position }) => {
+  const tldrContent = extractTLDR(text);
   return (
     <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'} agentpos-${position}`}>
       <Card.Body>
-        <Card.Text>{sender}: {text ? text.slice(0,100) : "?"}</Card.Text>
+        <Card.Text>{sender}: {tldrContent || (text ? text.slice(0, 100) : "?")}</Card.Text>
       </Card.Body>
     </Card>
   );
