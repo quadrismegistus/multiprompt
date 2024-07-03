@@ -26,13 +26,14 @@ function ConfigModal({ show, onHide }) {
           <Col>
           <Form.Group>
             <Form.Label>System Message Preface</Form.Label>
-            <Form.Control
-              type="text"
+            <div><textarea
+              // type="text"
               name="systemMessagePreface"
               value={config.systemMessagePreface || ''}
-              // onChange={handleSystemConfigChange}
+              onChange={handleConfigChange}
               placeholder="Enter System Message Preface"
-            />
+              className='w-100'
+            /></div>
           </Form.Group>
           </Col>
           </Row>

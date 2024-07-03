@@ -31,13 +31,14 @@ export const LLMProvider = ({ children }) => {
         }
 
         const { id, model, systemPrompt, temperature } = agent;
-        systemPrompt = `${config.finalSystemPrompt}\n\n${systemPrompt}`.trim()
-        console.log('final system prompt: ',systemPrompt);
+        const finalSystemPrompt = `${config.systemMessagePreface ? config.systemMessagePreface : ""}\n\n${systemPrompt}`.trim()
+        
+        console.log('final system prompt: ',finalSystemPrompt);
         return new Promise((resolve, reject) => {
             let fullResponse = '';
 
 
-            socket.emit('generate', { userPrompt, model, systemPrompt, temperature, agentId: id });
+            socket.emit('generate', { userPrompt, model, temperature, agentId: id, systemPrompt: finalSystemPrompt });
 
             const handleResponse = (data) => {
                 if (data.agentId === id && data.text) {

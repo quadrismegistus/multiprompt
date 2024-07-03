@@ -12,6 +12,8 @@ client_tasks = defaultdict(dict)
 async def generate(sid, data):
     logger.debug(f'Generate event for client {sid}')
     try:
+        print('GENERATE')
+        pprint(data)
         user_prompt = data.get("userPrompt", "")
         model = data.get("model", DEFAULT_MODEL)
         system_prompt = data.get("systemPrompt", DEFAULT_SYSTEM_PROMPT)
@@ -40,9 +42,12 @@ async def generate(sid, data):
 
 async def stream_response(sid, agent_id, query_d):
     model_output = ''
+    print("\n\n\n\n\n\nSTREAM_RESPONSE")
+    pprint(query_d)
     try:
         async for response in stream_llm_response(**query_d):
             model_output += response
+            print(response, end='', flush=True)
             await sio.emit('response', {'model': query_d['model'], 'text': response, 'agentId': agent_id}, to=sid)
     except Exception as e:
         logger.error(f"Error in stream_response: {str(e)}")
