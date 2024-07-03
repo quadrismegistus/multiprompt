@@ -53,7 +53,7 @@ const PromptAppendix = () => {
 
   return (
     <Form.Group>
-      <Form.Label style={{fontSize: "1.1em"}}>Prompt appendix (reference code or docs to send to LLM)</Form.Label>
+      {/* <Form.Label style={{fontSize: "1.1em"}}>Prompt appendix (reference code or docs to send to LLM)</Form.Label> */}
       <Form.Control
         as="textarea"
         rows={5}
