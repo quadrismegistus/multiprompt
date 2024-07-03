@@ -132,15 +132,11 @@ export const LLMProvider = ({ children }) => {
     if (!isConnected) return;
 
     const {
-      startNewConversation,
       addUserMessage,
       addAgentResponse,
       currentConversationId
     } = useStore.getState();
 
-    if (!currentConversationId) {
-      startNewConversation();
-    }
     addUserMessage(userPrompt);
 
     const aiAgents = agents.filter(agent => agent.type === 'ai');

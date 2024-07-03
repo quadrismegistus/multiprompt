@@ -5,6 +5,7 @@ import MarkdownRenderer from "./MarkdownRenderer";
 import { useLLM } from "../contexts/LLMProvider";
 import PromptAppendix from "./PromptAppendix";
 import useStore from "../store/useStore";
+import { MessageList } from './Messages';
 
 function UserCard() {
   const {
@@ -60,17 +61,7 @@ function UserCard() {
           onChange={handlePromptChange}
           placeholder="Enter your prompt here..."
         />
-        <div className="conversation-history">
-          {currentConversation.map((message, index) => (
-            <div key={index} className={`message ${message.isUser ? 'user' : 'agent'}`}>
-              {message.isUser ? (
-                <MarkdownRenderer content={`User: ${message.content}`} />
-              ) : (
-                <MarkdownRenderer content={`${message.agentName}: ${message.content}`} />
-              )}
-            </div>
-          ))}
-        </div>
+        <MessageList messages={currentConversation} />
       </Card.Body>
       <Card.Footer>
         <Accordion className="agentconfig">

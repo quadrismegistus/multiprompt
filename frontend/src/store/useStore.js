@@ -31,7 +31,7 @@ const useStore = create(
       addUserMessage: (userPrompt) => set(state => ({
         currentConversation: [
           ...state.currentConversation,
-          { content: userPrompt, isUser: true }
+          { content: userPrompt, isUser: true, sender: "User" }
         ]
       })),
 
@@ -43,6 +43,7 @@ const useStore = create(
             {
               content: response,
               isUser: false,
+              sender: agent.name,
               agentId: agent.id,
               agentName: agent.name,
               agentModel: agent.model,
