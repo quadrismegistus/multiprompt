@@ -130,8 +130,9 @@ body {
   
   /* @apply text-lg bg-[color:var(--color-canvas-subtle)] text-[color:var(--color-fg-default)] border border-[color:var(--color-border-muted)] rounded-md; */
 }
-.card-header .accordion-header .accordion-button, .user-col .card-title { font-size:1.2rem;
+.card-header .accordion-header .accordion-button, .card-footer .accordion-button, .user-col .card-title { font-size:1.2rem;
 }
+
 /* .useragent-col .card-header { height: 66px;} */
 
 .agentconfig-buttons {
@@ -439,3 +440,5 @@ textarea { border:none;}
 
 
 .prompt-config .promptarea { font-size: 1.2rem; line-height:1.5rem; font-family: inherit;}
+
+.accordion-header, .accordion-item, .accordion-button { background:none;}

@@ -92,17 +92,17 @@ export const initialAgents = [
     position: 2,
     progress: 0
   },
-  {
-    id: "Implementer",
-    name: "Implementer",
-    type: "ai",
-    model: MODEL_DICT["CodeLlama"],
-    systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
-    output: "",
-    temperature: 0.7,
-    position: 3,
-    progress: 0
-  },
+  // {
+  //   id: "Implementer",
+  //   name: "Implementer",
+  //   type: "ai",
+  //   model: MODEL_DICT["CodeLlama"],
+  //   systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
+  //   output: "",
+  //   temperature: 0.7,
+  //   position: 3,
+  //   progress: 0
+  // },
 ];
 
 export const initialAgentTypes = initialAgents.reduce((acc, agent) => {
@@ -116,3 +116,5 @@ export const initialAgentTypes = initialAgents.reduce((acc, agent) => {
 }, {});
 
 export const MAX_CONVO_HISTORY_MSG_LEN = 50; // Example value, set this to your required length
+
+export const DEFAULT_SYSTEM_MESSAGE_PREFACE = "BEGIN ALL YOUR MESSAGES WITH:\n__tl;dr:__\nFOLLOWED BY A 1-2 SENTENCE PARAGRAPH SUMMARIZING YOUR RESPONSE."

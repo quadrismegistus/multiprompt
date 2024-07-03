@@ -33,6 +33,7 @@ function ConfigModal({ show, onHide }) {
               onChange={handleConfigChange}
               placeholder="Enter System Message Preface"
               className='w-100'
+              rows={10}
             /></div>
           </Form.Group>
           </Col>

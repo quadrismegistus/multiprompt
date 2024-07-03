@@ -41,7 +41,7 @@ export const makeAsciiSection = (title, content, level = 1) => {
 
 
 export const extractTLDR = (text) => {
-  const regex = /^(?:\s*)(?:\*\*|\*|_)?(?:TLDR|TL;DR|TL;DR|TL DR|TLDR|Summary):?(?:\*\*|\*|_)?[\s:]*(.*)/im;
+  const regex = /^(?:\s*)(?:\*\*|\*|_)?(?:TLDR|TL;DR|TL;DR|TL DR|tldr|tl;dr|tl;dr|tl dr|Tldr|Tl;dr|Summary)(?:\*\*|\*|_)?:?(?:\s*)(.*)/m;
   const match = text.match(regex);
   return match ? match[1].trim() : null;
 };

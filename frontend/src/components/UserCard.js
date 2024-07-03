@@ -86,7 +86,7 @@ function UserCard() {
           </Accordion.Item>
         </Accordion>
       
-        <Accordion className="prompt-appendix">
+        <Accordion className="prompt-appendix" defaultActiveKey="2">
           <Accordion.Item eventKey="2">
             <Accordion.Header>Prompt appendix</Accordion.Header>
             <Accordion.Body>

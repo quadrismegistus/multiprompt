@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { DEFAULT_MODEL, MODEL_DICT, initialAgentTypes, initialAgents } from '../constants';
+import { DEFAULT_MODEL, DEFAULT_SYSTEM_MESSAGE_PREFACE, initialAgentTypes, initialAgents } from '../constants';
 import { normalizePositions } from '../utils/agentUtils';
 
 
@@ -21,8 +21,8 @@ const useStore = create(
         claudeApiKey: '',
         savedGlobalConfigurations: {},
         conversationHistory: [],
-        githubUrl: '',
-        systemMessagePreface: "",
+        githubUrl: 'quadrismegistus/multiprompt',
+        systemMessagePreface: DEFAULT_SYSTEM_MESSAGE_PREFACE,
       },
 
       savedAgentConfigurations: initialAgentTypes,
