@@ -40,7 +40,7 @@ function UserCard() {
 
   const handleSend = useCallback(() => {
     handleSendPrompt(userPrompt, referenceCodePrompt);
-    // updateUserPrompt(''); 
+    updateUserPrompt(''); 
     // Clear the textarea
     if (textareaRef.current) {
       textareaRef.current.value = '';

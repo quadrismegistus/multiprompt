@@ -13,8 +13,9 @@ async def generate(sid, data):
     logger.debug(f'Generate event for client {sid}')
     try:
         print('GENERATE')
-        pprint(data)
         user_prompt = data.get("userPrompt", "")
+        print(user_prompt)
+        print()
         model = data.get("model", DEFAULT_MODEL)
         system_prompt = data.get("systemPrompt", DEFAULT_SYSTEM_PROMPT)
         temperature = data.get("temperature", DEFAULT_TEMP)
@@ -42,8 +43,8 @@ async def generate(sid, data):
 
 async def stream_response(sid, agent_id, query_d):
     model_output = ''
-    print("\n\n\n\n\n\nSTREAM_RESPONSE")
-    pprint(query_d)
+    # print("\n\n\n\n\n\nSTREAM_RESPONSE")
+    # pprint(query_d)
     try:
         async for response in stream_llm_response(**query_d):
             model_output += response

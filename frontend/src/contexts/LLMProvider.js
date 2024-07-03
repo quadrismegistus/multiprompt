@@ -16,12 +16,10 @@ export const LLMProvider = ({ children }) => {
         config,
         agents,
         updateAgent,
-        addConversationHistory,
     } = useStore(state => ({
         config: state.config,
         agents: state.agents,
         updateAgent: state.updateAgent,
-        addConversationHistory: state.addConversationHistory
     }));
 
     // const memoizedConfig = useMemo(() => config, [config]);
@@ -39,7 +37,7 @@ export const LLMProvider = ({ children }) => {
         return new Promise((resolve, reject) => {
             let fullResponse = '';
 
-            console.log(userPrompt);
+            // console.log(userPrompt);
             socket.emit('generate', { userPrompt, model, temperature, agentId: id, systemPrompt: finalSystemPrompt });
 
             const handleResponse = (data) => {
@@ -73,65 +71,6 @@ export const LLMProvider = ({ children }) => {
         });
     }, [isConnected, socket, config]);
 
-    // const handleSendPrompt = useCallback(async (userPrompt, referenceCodePrompt) => {
-    //     if (!isConnected) {
-    //         return;
-    //     }
-
-    //     const aiAgents = agents.filter(agent => agent.type === 'ai');
-    //     const agentsByPosition = aiAgents.reduce((acc, agent) => {
-    //         if (!acc[agent.position]) {
-    //             acc[agent.position] = [];
-    //         }
-    //         acc[agent.position].push(agent);
-    //         return acc;
-    //     }, {});
-
-    //     let userPromptSoFar = makeAsciiSection("User Prompt", userPrompt, 1);
-    //     if (referenceCodePrompt) {
-    //         userPromptSoFar += makeAsciiSection("Appendix to user prompt with reference material", referenceCodePrompt, 2);
-    //     }
-    //     const conversation = [];
-
-    //     for (const position of Object.keys(agentsByPosition).sort((a, b) => a - b)) {
-    //         const agentsAtPosition = agentsByPosition[position];
-    //         const agentsPromises = agentsAtPosition.map(async agent => {
-    //             try {
-    //                 let responseContent = '';
-    //                 const maxTokens = 4096;
-
-    //                 const handleChunk = (chunk) => {
-    //                     responseContent += chunk;
-    //                     const progressPercentage = Math.min((responseContent.length / maxTokens) * 100, 100);
-    //                     setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
-    //                     if(chunk.includes("\n")) {
-    //                         updateAgent(agent.id, { output: responseContent + '█' });
-    //                     }
-    //                 };
-
-    //                 const fullResponse = await query(userPromptSoFar, agent, handleChunk);
-
-    //                 updateAgent(agent.id, { output: fullResponse });
-    //                 setAgentProgress(prev => ({ ...prev, [agent.id]: 100 }));
-    //                 return { agent, output: fullResponse };
-    //             } catch (error) {
-    //                 const errorMessage = `Error: ${error.message}`;
-    //                 updateAgent(agent.id, { output: errorMessage });
-    //                 return { agent, output: errorMessage };
-    //             }
-    //         });
-
-    //         const positionOutputs = await Promise.all(agentsPromises);
-
-    //         for (const { agent, output } of positionOutputs) {
-    //             userPromptSoFar += makeAsciiSection(`Response from agent ${agent.name}`, output, 1);
-    //             conversation.push({ agent, output });
-    //         }
-    //     }
-
-    //     addConversationHistory(conversation);
-    // }, [agents, query, isConnected, updateAgent, addConversationHistory]);
-
 
     const handleSendPrompt = useCallback(async (userPrompt, referenceCodePrompt, targetAgentId = null) => {
       if (!isConnected) return;
@@ -157,11 +96,13 @@ export const LLMProvider = ({ children }) => {
       if (referenceCodePrompt) {
         userPromptSoFar += makeAsciiSection("Appendix to user prompt with reference material", referenceCodePrompt, 2);
       }
-    
+
+      console.log('currentConversation',currentConversation); 
       // Integrate previous conversation history into userPromptSoFar
-      currentConversation.forEach(msg => {
+      currentConversation.forEach((msg,msgI) => {
         userPromptSoFar += makeAsciiSection(`${msg.sender === "User" ? "User Prompt" : `Response from ${getAgentById(msg.agentId).name}`}`, msg.content, 1);
       });
+      
     
       for (const position of Object.keys(agentsByPosition).sort((a, b) => a - b)) {
         const agentsAtPosition = agentsByPosition[position];
