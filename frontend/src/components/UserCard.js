@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { Send } from "lucide-react";
 import { Card, Button, Accordion } from "react-bootstrap";
 import MarkdownRenderer from "./MarkdownRenderer";
@@ -24,6 +24,14 @@ function UserCard() {
 
   const textareaRef = useRef(null);
   const { handleSendPrompt } = useLLM();
+
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.selectionStart = textareaRef.current.selectionEnd = textareaRef.current.value.length;
+    }
+  }, []);
 
   const handlePromptChange = (e) => {
     const newValue = e.target.value;
