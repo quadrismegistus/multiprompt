@@ -134,7 +134,6 @@ export const LLMProvider = ({ children }) => {
     const {
       addUserMessage,
       addAgentResponse,
-      currentConversationId
     } = useStore.getState();
 
     addUserMessage(userPrompt);
@@ -168,7 +167,7 @@ export const LLMProvider = ({ children }) => {
             responseContent += chunk;
             const progressPercentage = Math.min((responseContent.length / maxTokens) * 100, 100);
             setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
-            updateAgent(agent.id, { output: responseContent + '█' });
+            if(chunk.includes('\n')) { updateAgent(agent.id, { output: responseContent + '█' }); }
           };
 
           const fullResponse = await query(userPromptSoFar, agent, handleChunk);
