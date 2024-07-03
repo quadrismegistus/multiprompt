@@ -22,6 +22,16 @@
   --agent-color-5: #ffff33;
   --agent-color-6: #a65628;
   --agent-color-5: #f781bf;
+
+  --agent-color-4-rgb: 228, 26, 28;   /* #e41a1c */
+  --agent-color-0-rgb: 55, 126, 184;  /* #377eb8 */
+  --agent-color-1-rgb: 77, 175, 74;   /* #4daf4a */
+  --agent-color-3-rgb: 152, 78, 163;  /* #984ea3 */
+  --agent-color-2-rgb: 255, 127, 0;   /* #ff7f00 */
+  --agent-color-5-rgb: 255, 255, 51;  /* #ffff33 */
+  --agent-color-6-rgb: 166, 86, 40;   /* #a65628 */
+  --agent-color-5-rgb: 247, 129, 191; /* #f781bf */
+  --agent-opacity: 0.5
 }
 
 [data-theme="dark"],  .dark {
@@ -359,7 +369,15 @@ textarea { border:none;}
  .agentpos-0 {
   border-color: var(--agent-color-0);
 }
- 
+
+.message-list .agentpos-0 .card-body { background: rgba(var(--agent-color-0-rgb), var(--agent-opacity)); }
+.message-list .agentpos-1 .card-body { background: rgba(var(--agent-color-1-rgb), var(--agent-opacity)); }
+.message-list .agentpos-2 .card-body { background: rgba(var(--agent-color-2-rgb), var(--agent-opacity)); }
+.message-list .agentpos-3 .card-body { background: rgba(var(--agent-color-3-rgb), var(--agent-opacity)); }
+.message-list .agentpos-4 .card-body { background: rgba(var(--agent-color-4-rgb), var(--agent-opacity)); }
+.message-list .agentpos-5 .card-body { background: rgba(var(--agent-color-5-rgb), var(--agent-opacity)); }
+.message-list .agentpos-6 .card-body { background: rgba(var(--agent-color-6-rgb), var(--agent-opacity)); }
+
 .agentpos-1 {
   border-color: var(--agent-color-1);
 }

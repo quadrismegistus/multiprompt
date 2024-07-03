@@ -23,13 +23,13 @@ export const Message = ({ text, sender, position }) => {
   };
   const msgtextstr = text || "?"
   const msgtext = tldrContent || msgtextstr.slice(0, 100);
-  const msg = `${sender}: ${msgtext}`.trim()
 
   return (
     <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'} agentpos-${position}`} onClick={handleCopy}>
       <Card.Body >
+        <Card.Title>{sender}</Card.Title>
         <Card.Text>
-          <ReactMarkdown>{msg}</ReactMarkdown>
+          <ReactMarkdown>{msgtext}</ReactMarkdown>
         </Card.Text>
       </Card.Body>
     </Card>
