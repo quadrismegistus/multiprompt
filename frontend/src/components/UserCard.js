@@ -53,6 +53,13 @@ function UserCard() {
     }
   };
 
+  const listRef = useRef(null);
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+  }, [currentConversation]);
+
   return (
     <Card>
       <Card.Header className="d-flex justify-content-between align-items-start">
@@ -75,7 +82,7 @@ function UserCard() {
           <Send size={24} color="royalblue" />
         </Button>
       </Card.Header>
-      <Card.Body className="promptarea-card-body" onClick={handleCardClick}>
+      <Card.Body className="promptarea-card-body" onClick={handleCardClick} ref={listRef}>
         <MessageList messages={currentConversation} />
       </Card.Body>
       <Card.Footer>

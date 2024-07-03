@@ -39,11 +39,11 @@ export const Message = ({ text, sender, position }) => {
 export const MessageList = ({ messages }) => {
   const listRef = useRef(null);
 
-  useEffect(() => {
-    if (listRef.current) {
-      listRef.current.scrollTop = listRef.current.scrollHeight;
-    }
-  }, [messages]);
+  // useEffect(() => {
+  //   if (listRef.current) {
+  //     listRef.current.scrollTop = listRef.current.scrollHeight;
+  //   }
+  // }, [messages]);
 
   return (
     <div className="message-list" ref={listRef}>
