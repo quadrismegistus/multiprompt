@@ -1,6 +1,7 @@
 import React from 'react';
-import { Modal, Button, Form } from 'react-bootstrap';
+import { Modal, Button, Form, Col, Container,Row } from 'react-bootstrap';
 import useStore from '../store/useStore';
+import './ConfigModal.css'
 
 function ConfigModal({ show, onHide }) {
   const { config, updateConfig } = useStore(state => ({
@@ -14,13 +15,33 @@ function ConfigModal({ show, onHide }) {
   };
 
   return (
-    <Modal show={show} onHide={onHide}>
+    <Modal show={show} onHide={onHide} className='config-modal'>
       <Modal.Header closeButton>
-        <Modal.Title>Configuration</Modal.Title>
+        <Modal.Title>Settings</Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <Form>
-          <Form.Group className="mb-3">
+        <Container>
+        <Row>
+          <Col>
+          <Form.Group>
+            <Form.Label>System Message Preface</Form.Label>
+            <Form.Control
+              type="text"
+              name="systemMessagePreface"
+              value={config.systemMessagePreface || ''}
+              // onChange={handleSystemConfigChange}
+              placeholder="Enter System Message Preface"
+            />
+          </Form.Group>
+          </Col>
+          </Row>
+          
+          
+        <Row>
+            
+            <Col className='w-50'>
+            <Form.Group className="mb-3">
             <Form.Label>OpenAI API Key</Form.Label>
             <Form.Control
               type="password"
@@ -29,8 +50,10 @@ function ConfigModal({ show, onHide }) {
               onChange={handleConfigChange}
               placeholder="Enter OpenAI API Key"
             />
-          </Form.Group>
-          <Form.Group className="mb-3">
+            </Form.Group>
+            </Col>
+            <Col className='w-50'>
+            <Form.Group>
             <Form.Label>Claude API Key</Form.Label>
             <Form.Control
               type="password"
@@ -39,7 +62,12 @@ function ConfigModal({ show, onHide }) {
               onChange={handleConfigChange}
               placeholder="Enter Claude API Key"
             />
-          </Form.Group>
+            </Form.Group>
+            </Col>
+
+            </Row>
+            
+            </Container>
         </Form>
       </Modal.Body>
       <Modal.Footer>

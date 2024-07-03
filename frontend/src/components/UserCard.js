@@ -71,10 +71,10 @@ function UserCard() {
         <MessageList messages={currentConversation} />
       </Card.Body>
       <Card.Footer>
-        {/* <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}} defaultActiveKey="0">
+        <Accordion className="prompt-config w-100" defaultActiveKey="0">
           <Accordion.Item eventKey="0">
             <Accordion.Header>Prompt</Accordion.Header>
-            <Accordion.Body> */}
+            <Accordion.Body>
             <textarea
                 ref={textareaRef}
                 className="promptarea w-100"
@@ -82,9 +82,9 @@ function UserCard() {
                 onChange={handlePromptChange}
                 placeholder="Enter your prompt here..."
               />      
-            {/* </Accordion.Body>
+            </Accordion.Body>
           </Accordion.Item>
-        </Accordion> */}
+        </Accordion>
       
         <Accordion className="prompt-appendix">
           <Accordion.Item eventKey="2">

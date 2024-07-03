@@ -22,6 +22,7 @@ const useStore = create(
         savedGlobalConfigurations: {},
         conversationHistory: [],
         githubUrl: '',
+        systemMessagePreface: "",
       },
 
       savedAgentConfigurations: initialAgentTypes,

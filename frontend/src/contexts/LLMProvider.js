@@ -15,7 +15,7 @@ export const LLMProvider = ({ children }) => {
         config,
         agents,
         updateAgent,
-        addConversationHistory
+        addConversationHistory,
     } = useStore(state => ({
         config: state.config,
         agents: state.agents,
@@ -23,7 +23,7 @@ export const LLMProvider = ({ children }) => {
         addConversationHistory: state.addConversationHistory
     }));
 
-    const memoizedConfig = useMemo(() => config, [config]);
+    // const memoizedConfig = useMemo(() => config, [config]);
 
     const query = useCallback((userPrompt, agent, onChunk) => {
         if (!socket || !isConnected) {
@@ -31,9 +31,11 @@ export const LLMProvider = ({ children }) => {
         }
 
         const { id, model, systemPrompt, temperature } = agent;
-
+        systemPrompt = `${config.finalSystemPrompt}\n\n${systemPrompt}`.trim()
+        console.log('final system prompt: ',systemPrompt);
         return new Promise((resolve, reject) => {
             let fullResponse = '';
+
 
             socket.emit('generate', { userPrompt, model, systemPrompt, temperature, agentId: id });
 
