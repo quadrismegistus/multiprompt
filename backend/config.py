@@ -58,6 +58,7 @@ IGNORE_PATHS = {
     'README.md',
     'requirements.txt',
     'venv',
+    # 'data',
     '.vscode',
     '.idea',
     '_version.py',
@@ -152,7 +153,7 @@ PATH_LLM_CACHE=os.path.join(PATH_DATA,'cache.multiprompt_llm_cache.sqlitedict')
 os.makedirs(PATH_DATA,exist_ok=True)
 
 
-REPO2LLM_EXTENSIONS = [".py", ".js", ".html", ".css", ".md", ".txt", ".json", ".yaml", ".yml", ".toml", ".rs"]
+REPO2LLM_EXTENSIONS = [".py", ".js", ".html", ".css", ".md", ".txt", ".json", ".yaml", ".yml", ".toml", ".rs", ".ipynb"]
 
 
 

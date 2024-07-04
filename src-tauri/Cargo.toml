@@ -34,7 +34,7 @@ distDir = "../build"
 [[package.metadata.tauri.embedded-server]]
 name = "python-backend"
 command = "python"
-args = ["backend/app.py"]
+args = ["../backend/app.py"]
 
 [package.metadata.tauri.security]
 csp = "default-src 'self' http://localhost:8989; connect-src 'self' http://localhost:8989 ws://localhost:8989"

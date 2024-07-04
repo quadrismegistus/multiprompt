@@ -9,7 +9,7 @@ def remove_comments(code_contents_str, code_file_extension):
         pattern = re.compile(r'#.*?$|\'\'\'.*?\'\'\'|\"\"\".*?\"\"\"', re.DOTALL | re.MULTILINE)
     elif code_file_extension == 'html':
         pattern = re.compile(r'<!--.*?-->', re.DOTALL | re.MULTILINE)
-    elif code_file_extension in {'md','txt','json','toml'}:
+    elif code_file_extension in {'md','txt','json','toml','ipynb'}:
         return code_contents_str
     else:
         logger.warning(f"Unsupported file extension: {code_file_extension}")

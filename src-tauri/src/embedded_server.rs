@@ -8,7 +8,7 @@ pub fn start_embedded_server() -> mpsc::Receiver<String> {
 
     thread::spawn(move || {
         let mut command = Command::new("python")
-            .arg("backend/app.py")
+            .arg("../backend/app.py")
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
@@ -17,22 +17,24 @@ pub fn start_embedded_server() -> mpsc::Receiver<String> {
         let stdout = command.stdout.take().expect("Failed to capture stdout");
         let stderr = command.stderr.take().expect("Failed to capture stderr");
 
+        let tx_clone = tx.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stdout);
             for line in reader.lines() {
                 if let Ok(line) = line {
                     println!("Python backend stdout: {}", line);
-                    tx.send(format!("stdout: {}", line)).unwrap();
+                    tx_clone.send(format!("stdout: {}", line)).unwrap();
                 }
             }
         });
 
+        let tx_clone = tx.clone();
         thread::spawn(move || {
             let reader = BufReader::new(stderr);
             for line in reader.lines() {
                 if let Ok(line) = line {
                     eprintln!("Python backend stderr: {}", line);
-                    tx.send(format!("stderr: {}", line)).unwrap();
+                    tx_clone.send(format!("stderr: {}", line)).unwrap();
                 }
             }
         });
