@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useCallback, useState } from "react";
 import { Send } from "lucide-react";
 import { Card, Button, Accordion } from "react-bootstrap";
 import MarkdownRenderer from "./MarkdownRenderer";
@@ -24,7 +24,7 @@ function UserCard() {
 
   const textareaRef = useRef(null);
   const { handleSendPrompt } = useLLM();
-
+  const [accordionOpen, setAccordionOpen] = useState(true);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -41,6 +41,7 @@ function UserCard() {
   const handleSend = useCallback(() => {
     handleSendPrompt(userPrompt, referenceCodePrompt);
     updateUserPrompt(''); 
+    setAccordionOpen(false); // Close the Accordion when sending
     // // Clear the textarea
     // if (textareaRef.current) {
     //   textareaRef.current.value = '';
@@ -51,6 +52,9 @@ function UserCard() {
     // if (textareaRef.current) {
       // textareaRef.current.focus();
     // }
+  };
+  const toggleAccordion = () => {
+    setAccordionOpen(!accordionOpen);
   };
 
   const listRef = useRef(null);
@@ -64,9 +68,9 @@ function UserCard() {
     <Card>
       <Card.Header className="d-flex justify-content-between align-items-start">
         {/* <Card.Title className="mt-1">multiprompt</Card.Title> */}
-        <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}} defaultActiveKey="0">
+        <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}} activeKey={accordionOpen ? "0" : null}>
           <Accordion.Item eventKey="0">
-            <Accordion.Header>multiprompt</Accordion.Header>
+            <Accordion.Header onClick={toggleAccordion}>multiprompt</Accordion.Header>
             <Accordion.Body>
 
             <textarea

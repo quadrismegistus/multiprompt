@@ -49,3 +49,20 @@ export const extractTLDR = (text) => {
   }
   return null;
 };
+
+// export const extractTLDR = (text) => {
+//   // Updated regex to handle both asterisks and underscores
+//   const tldrRegex = /^(?:[*_]{0,2}(?:tl;?dr)[*_]{0,2}:?[ \t]*\n?)(.*?)(?:\n\n|$)/im;
+
+//   // Try to match the regex
+//   const match = text.match(tldrRegex);
+
+//   if (match) {
+//     // If there's a match, return the captured group (the actual TL;DR content)
+//     // Remove any leading/trailing asterisks or underscores
+//     return match[1].replace(/^[*_]+|[*_]+$/g, '').trim();
+//   }
+
+//   // If no match is found, return null
+//   return null;
+// }
