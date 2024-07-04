@@ -41,7 +41,11 @@ export const makeAsciiSection = (title, content, level = 1) => {
 
 
 export const extractTLDR = (text) => {
-  const regex = /^(?:\s*)(?:\*\*|\*|_)?(?:TLDR|TL;DR|TL;DR|TL DR|tldr|tl;dr|tl;dr|tl dr|Tldr|Tl;dr|Summary)(?:\*\*|\*|_)?:?(?:\s*)(.*)/m;
+  const regex = /^(?:\s*)(?:\*\*|\*|_|__)?(?:TLDR|TL;DR|TL;DR|TL DR|tldr|tl;dr|tl;dr|tl dr|Tldr|Tl;dr|Summary)(?:\*\*|\*|_|__)?(?:\s*:?)(?:\s*)(.*)/m;
   const match = text.match(regex);
-  return match ? match[1].trim() : null;
+  if (match) {
+    // Remove leading and trailing underscores, asterisks, and colons from the result
+    return match[1].replace(/^[_*:]+|[_*:]+$/g, '').trim();
+  }
+  return null;
 };

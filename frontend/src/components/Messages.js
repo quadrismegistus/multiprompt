@@ -17,12 +17,13 @@ const copyToClipboard = (text) => {
 
 export const Message = ({ text, sender, position }) => {
   const tldrContent = extractTLDR(text);
+  console.log('tldrContent',tldrContent)
 
   const handleCopy = () => {
     copyToClipboard(text);
   };
   const msgtextstr = text || "?"
-  const msgtext = tldrContent || (msgtextstr.slice(0, 100));
+  const msgtext = tldrContent ? tldrContent : msgtextstr.slice(0, 100);
 
   return (
     <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'} agentpos-${position}`} onClick={handleCopy}>

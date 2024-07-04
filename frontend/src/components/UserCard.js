@@ -63,16 +63,33 @@ function UserCard() {
   return (
     <Card>
       <Card.Header className="d-flex justify-content-between align-items-start">
-        <Card.Title className="mt-1">multiprompt</Card.Title>
-        {/* <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}} defaultActiveKey="0">
+        {/* <Card.Title className="mt-1">multiprompt</Card.Title> */}
+        <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}} defaultActiveKey="0">
           <Accordion.Item eventKey="0">
             <Accordion.Header>multiprompt</Accordion.Header>
             <Accordion.Body>
+
+            <textarea
+                ref={textareaRef}
+                className="promptarea w-100"
+                value={userPrompt}
+                onChange={handlePromptChange}
+                placeholder="Enter your prompt here..."
+              />      
+
+{/* <Accordion className="prompt-appendix" defaultActiveKey="2">
+          <Accordion.Item eventKey="2">
+            <Accordion.Header>Prompt appendix</Accordion.Header>
+            <Accordion.Body> */}
+              <PromptAppendix />
+            {/* </Accordion.Body> */}
+          {/* </Accordion.Item> */}
+        {/* </Accordion> */}
             
 
             </Accordion.Body>
           </Accordion.Item>
-        </Accordion> */}
+        </Accordion>
         <Button
           variant="link"
           onClick={handleSend}
@@ -85,7 +102,7 @@ function UserCard() {
       <Card.Body className="promptarea-card-body" onClick={handleCardClick} ref={listRef}>
         <MessageList messages={currentConversation} />
       </Card.Body>
-      <Card.Footer>
+      {/* <Card.Footer>
         <Accordion className="prompt-config w-100" defaultActiveKey="0">
           <Accordion.Item eventKey="0">
             <Accordion.Header>Prompt</Accordion.Header>
@@ -101,15 +118,8 @@ function UserCard() {
           </Accordion.Item>
         </Accordion>
       
-        <Accordion className="prompt-appendix" defaultActiveKey="2">
-          <Accordion.Item eventKey="2">
-            <Accordion.Header>Prompt appendix</Accordion.Header>
-            <Accordion.Body>
-              <PromptAppendix />
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      </Card.Footer>
+        
+      </Card.Footer> */}
     </Card>
   );
 }
