@@ -1,5 +1,6 @@
 # app.py
 from config import *
+import time
 
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins='*')
 app = web.Application()
@@ -12,7 +13,10 @@ client_tasks = defaultdict(dict)
 async def generate(sid, data):
     logger.debug(f'Generate event for client {sid}')
     try:
+        print('GENERATE')
         user_prompt = data.get("userPrompt", "")
+        print(user_prompt)
+        print()
         model = data.get("model", DEFAULT_MODEL)
         system_prompt = data.get("systemPrompt", DEFAULT_SYSTEM_PROMPT)
         temperature = data.get("temperature", DEFAULT_TEMP)
@@ -40,10 +44,14 @@ async def generate(sid, data):
 
 async def stream_response(sid, agent_id, query_d):
     model_output = ''
+    # print("\n\n\n\n\n\nSTREAM_RESPONSE")
+    # pprint(query_d)
     try:
         async for response in stream_llm_response(**query_d):
             model_output += response
+            print(response, end='', flush=True)
             await sio.emit('response', {'model': query_d['model'], 'text': response, 'agentId': agent_id}, to=sid)
+            # time.sleep(random.random())
     except Exception as e:
         logger.error(f"Error in stream_response: {str(e)}")
     finally:

@@ -28,7 +28,6 @@ import logging
 import hashlib
 import sqlitedict
 from celery import Celery
-from tasks import fetch_repo_content, celery_app  # Import the Celery task and app
 
 import os
 import logging
@@ -59,10 +58,11 @@ IGNORE_PATHS = {
     'README.md',
     'requirements.txt',
     'venv',
+    # 'data',
     '.vscode',
     '.idea',
     '_version.py',
-    'package.json',
+    # 'package.json',
     'public',
     '*.config.js',
     '*.pyc',
@@ -153,7 +153,7 @@ PATH_LLM_CACHE=os.path.join(PATH_DATA,'cache.multiprompt_llm_cache.sqlitedict')
 os.makedirs(PATH_DATA,exist_ok=True)
 
 
-
+REPO2LLM_EXTENSIONS = [".py", ".js", ".html", ".css", ".md", ".txt", ".json", ".yaml", ".yml", ".toml", ".rs", ".ipynb"]
 
 
 

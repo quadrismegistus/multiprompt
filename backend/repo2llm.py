@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from config import *
 
+
 def remove_comments(code_contents_str, code_file_extension):
     if code_file_extension in ['js', 'css']:
         pattern = re.compile(r'//.*?$|/\*.*?\*/', re.DOTALL | re.MULTILINE)
@@ -8,7 +9,7 @@ def remove_comments(code_contents_str, code_file_extension):
         pattern = re.compile(r'#.*?$|\'\'\'.*?\'\'\'|\"\"\".*?\"\"\"', re.DOTALL | re.MULTILINE)
     elif code_file_extension == 'html':
         pattern = re.compile(r'<!--.*?-->', re.DOTALL | re.MULTILINE)
-    elif code_file_extension in {'md','txt'}:
+    elif code_file_extension in {'md','txt','json','toml','ipynb'}:
         return code_contents_str
     else:
         logger.warning(f"Unsupported file extension: {code_file_extension}")
@@ -17,7 +18,7 @@ def remove_comments(code_contents_str, code_file_extension):
 
 class BaseRepoReader(ABC):
     def __init__(self, extensions=None):
-        self.extensions = extensions or [".py", ".js", ".html", ".css", ".md", ".txt", ".json", ".yaml", ".yml", ".toml"]
+        self.extensions = extensions or REPO2LLM_EXTENSIONS
 
     @abstractmethod
     def get_files(self):
@@ -38,7 +39,7 @@ class BaseRepoReader(ABC):
     @cached_property
     def file_contents(self):
         contents = {}
-        for file_path in tqdm(self.get_files()):
+        for file_path in self.get_files():
             if not self.should_ignore(file_path):
                 content = self.read_file(file_path)
                 if content is not None:
@@ -75,6 +76,13 @@ class BaseRepoReader(ABC):
         with open(output_file, "w") as out:
             out.write(self.markdown)
         print(f"Repository contents written to {output_file}")
+        try:
+            import pyperclip
+            pyperclip.copy(self.markdown)
+            print(f"Contents copied to clipboard")
+        except Exception as e:
+            print(f"!! COULD NOT COPY TO CLIPBOARD: {e}")
+            pass
 
 class LocalRepoReader(BaseRepoReader):
     def __init__(self, directory=".", extensions=None):
@@ -98,7 +106,9 @@ class LocalRepoReader(BaseRepoReader):
                 file_path = Path(root) / filename
                 relative_path = file_path.relative_to(self.base_path)
                 if not self.should_ignore(relative_path) and file_path.suffix in self.extensions:
+                    print(relative_path)
                     yield relative_path
+
 
     def read_file(self, file_path):
         full_path = self.base_path / file_path
@@ -220,8 +230,8 @@ def main():
         "--extensions",
         "-e",
         nargs="+",
-        default=[".py", ".js", ".html", ".css"],
-        help='File extensions to include (default: .py, .js, .html, .css)',
+        default=REPO2LLM_EXTENSIONS,
+        help=f'File extensions to include (default: {", ".join(REPO2LLM_EXTENSIONS)})',
     )
     parser.add_argument(
         "--output",

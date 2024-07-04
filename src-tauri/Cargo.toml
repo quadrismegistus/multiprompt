@@ -1,0 +1,41 @@
+[package]
+name = "multiprompt"
+version = "0.1.0"
+description = "A Tauri App with React frontend and Python backend"
+authors = ["you"]
+license = ""
+repository = ""
+default-run = "multiprompt"
+edition = "2021"
+rust-version = "1.57"
+
+[build-dependencies]
+tauri-build = { version = "1.2.1", features = [] }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tauri = { version = "1.2.4", features = ["shell-open"] }
+colored = "2.0"
+
+[features]
+default = [ "custom-protocol" ]
+custom-protocol = [ "tauri/custom-protocol" ]
+
+[package.metadata.tauri]
+bundle.identifier = "com.yourdomain.multiprompt"
+bundle.active = true
+
+[package.metadata.tauri.build]
+beforeBuildCommand = "npm run build"
+beforeDevCommand = "npm run start"
+devPath = "http://localhost:3000"
+distDir = "../build"
+
+[[package.metadata.tauri.embedded-server]]
+name = "python-backend"
+command = "python"
+args = ["../backend/app.py"]
+
+[package.metadata.tauri.security]
+csp = "default-src 'self' http://localhost:8989; connect-src 'self' http://localhost:8989 ws://localhost:8989"

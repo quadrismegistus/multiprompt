@@ -1,0 +1,30 @@
+/* frontend/src/components/Message.css */
+
+.message {
+  max-width: 75%;
+  margin: 10px;
+}
+.message p {margin:0;}
+
+.message .card-body { padding:.5em;
+  margin:0;}
+
+.message-user {
+  align-self: flex-end;
+  background-color: #dcf8c6;
+}
+
+.message-agent {
+  align-self: flex-start;
+  background-color: #fff;
+}
+
+.message-list {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  overflow-y: auto;
+  height:100
+}
+
+.message .card-title { font-size:1.1rem; margin-bottom:.25rem;}
