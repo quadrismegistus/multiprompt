@@ -28,7 +28,6 @@ import logging
 import hashlib
 import sqlitedict
 from celery import Celery
-from tasks import fetch_repo_content, celery_app  # Import the Celery task and app
 
 import os
 import logging
