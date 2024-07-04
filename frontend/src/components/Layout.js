@@ -25,7 +25,7 @@ function Layout() {
   return (
     <Container className={`Layout ${isDarkMode ? 'dark' : ''}`}>
       <IconSidebar />
-      <Col key={0} style={{ maxWidth: `calc(100vw / ${numCols})` }}>
+      <Col key={0} style={{ maxWidth: `calc(100vw / ${numCols})` }} className='last-in-position agentpos-0'>
         <UserCard />
       </Col>
       {Object.entries(agentsByPosition).map(([position, agentsInPosition]) => (

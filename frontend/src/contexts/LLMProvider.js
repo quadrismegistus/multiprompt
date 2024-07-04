@@ -145,9 +145,9 @@ export const LLMProvider = ({ children }) => {
                 100
               );
               // setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
-              if (chunk.includes("\n")) {
+              // if (chunk.includes("\n")) {
                 updateAgent(agent.id, { output: responseContent + "█", progress:progressPercentage });
-              }
+              // }
             };
 
             const fullResponse = await query(

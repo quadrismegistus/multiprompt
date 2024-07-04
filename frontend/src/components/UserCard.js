@@ -65,7 +65,7 @@ function UserCard() {
   }, [currentConversation]);
 
   return (
-    <Card>
+    <Card className='useragent-card user-card'>
       <Card.Header className="d-flex justify-content-between align-items-start">
         {/* <Card.Title className="mt-1">multiprompt</Card.Title> */}
         <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}} activeKey={accordionOpen ? "0" : null}>

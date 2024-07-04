@@ -75,7 +75,7 @@ body {
   /* @apply overflow-y-hidden overflow-x-scroll; */
 }
 
-.useragent-col {
+.useragent-card {
   /* @apply flex-1 min-w-[400px] h-full overflow-y-auto overflow-hidden max-h-[100dvh]; */
   margin-top:var(--height-navbar);;
   /* height:100dvh; */
@@ -83,9 +83,8 @@ body {
   min-width:400px;
   overflow:hidden;
 }
-.useragent-col .card-title { margin: 0; padding:0;}
-.useragent-col .card-header { }
-.useragent-col .card-body { overflow-y:auto; }
+.useragent-card .card-title { margin: 0; padding:0;}
+.useragent-card .card-body { overflow-y:auto; }
 
 .card {
   /* @apply h-full bg-[color:var(--color-canvas-subtle)] border border-[color:var(--color-border-default)] rounded-md shadow-sm; */
@@ -126,9 +125,9 @@ body {
   width:100%;
 }
 
-.useragent-col .card-title {line-height: 2rem;}
+.useragent-card .card-title {line-height: 2rem;}
 
-.agentconfig .accordion-header, .agentconfig .accordion-button, .agentconfig .accordion-item {
+.agentconfig .accordion-header, .agentconfig .accordion-button, .prompt-config .accordion-button, .prompt-config .accordion-header, .prompt-config .accordion-item, .agentconfig .accordion-item {
   background-color:rgba(0,0,0,0);
   border:none;
   padding:0;
@@ -140,7 +139,7 @@ body {
   
   /* @apply text-lg bg-[color:var(--color-canvas-subtle)] text-[color:var(--color-fg-default)] border border-[color:var(--color-border-muted)] rounded-md; */
 }
-.card-header .accordion-header .accordion-button, .card-footer .accordion-button, .user-col .card-title { font-size:1.2rem;
+.card-header .accordion-header .accordion-button, .card-footer .accordion-button, .user-card .card-title { font-size:1.2rem;
 }
 
 /* .useragent-col .card-header { height: 66px;} */
@@ -250,9 +249,9 @@ body {
 
 .userconfig textarea {height:5rem;}
 
-.useragent-col .card-footer { height:150px; }
+.useragent-card .card-footer { height:150px; }
 /* .useragent-col .card-footer .row { height:100px;} */
-.useragent-col .card-footer textarea, .accordion textarea {
+.useragent-card .card-footer textarea, .accordion textarea {
   font-family: 'Courier New', Courier, monospace;
   /* font-size: 14px; */
   font-size:0.8rem;
@@ -503,3 +502,23 @@ body, input, textarea, select {
   border-color: var(--color-border-default);
   color: var(--color-fg-default);
 }
+
+.useragent-card .card-header .accordion-button { 
+  /* border:5px solid green;  */
+  height: 3rem; 
+  max-height: 3rem;
+  /* padding:0; */
+  /* margin:0; */
+  line-height:1;
+}
+
+.useragent-card .card-body { height:100%; }
+
+.agent-card .card-footer { 
+  height:fit-content;
+  background-color: var(--color-canvas-subtle);
+  border-color: var(--color-border-muted);
+  margin:0;
+  padding:0 5px;
+}
+.agent-card .card-footer .progress { margin:0; padding:0; height:1em;}
