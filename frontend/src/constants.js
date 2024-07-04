@@ -54,7 +54,7 @@ export const DEFAULT_OPENAI_MODEL = DEFAULT_MODELS.find(model => MODEL_CATEGORIE
 export const DEFAULT_ANTHROPIC_MODEL = DEFAULT_MODELS.find(model => MODEL_CATEGORIES["Claude"].includes(model)) || MODEL_CATEGORIES["Claude"][0];
 export const DEFAULT_GEMINI_MODEL = DEFAULT_MODELS.find(model => MODEL_CATEGORIES["Gemini"].includes(model)) || MODEL_CATEGORIES["Gemini"][0];
 export const DEFAULT_SUMMARY_MODEL = MODEL_DICT['GPT-4o'];
-export const DEFAULT_TEMP = 0.0;
+export const DEFAULT_TEMP = 0.7;
 export const DEFAULT_SYSTEM_PROMPT = "With reference to any code or documentation provided, answer the following questions by the user. Show only those lines or functions that were changed, and explain the changes.";
 export const DEFAULT_SUMMARY_SYSTEM_PROMPT = "You are a senior developer reviewing parallel solutions provided by junior developers. Synthesize their output into an elegant, modular, clean, documented solution. Then, display in markdown relevant functions, classes and portions of files which your solution alters from the existing repository.";
 export const DEFAULT_SUMMARY_USER_PROMPT = "Synthesize and summarize these suggested changes, and return a markdown representation of a directory structure of files necessary to change, along with the full functions or code snippets changed under a markdown heading for the filepath under which they appear.";
@@ -67,6 +67,7 @@ export const SOCKET_SERVER_URL = "http://localhost:8989";
 
 export const SYSTEM_PROMPT_ANALYST = "With reference to any provided code, analyze the user's query, outline the problem described, and suggest efficient and elegant solutions. Do NOT return the full contents of files; return only lines and functions changed.";
 export const SYSTEM_PROMPT_IMPLEMENTER = "With reference to any provided code, implement the suggestions by the previous AI, returning:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.";
+export const SYSTEM_PROMPT_IMPLEMENTER_SR = "Multiple solutions to the user's original query have been given by previous AI agents. Your task is to review these solutions against any original codebase provided and decide the most practical approach. Then return:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.";
 export const SYSTEM_PROMPT_SECONDDRAFTER = "You are an expert analyst and you have been given a query from a user followed by a first analyst's first attempt at responding to it. You may see code provided by the user as reference to their query, as well as code suggested by the first analyst. Your task is to give a second opinion and examine what the first analyst may have left out or got wrong, and what they definitely got right.";
 
 export const initialAgents = [
@@ -74,38 +75,50 @@ export const initialAgents = [
     id: "Analyst",
     name: "Analyst",
     type: "ai",
-    model: MODEL_DICT["GPT-4o"],
+    model: MODEL_DICT["Claude 3.5 Sonnet"],
     systemPrompt: SYSTEM_PROMPT_ANALYST,
     output: "",
-    temperature: 0.7,
+    temperature: DEFAULT_TEMP,
     position: 1,
     progress: 0,
     progressTokens: 0
   },
   {
-    id: "Second Passer",
-    name: "Second Passer",
+    id: "Analyst2",
+    name: "Analyst 2",
     type: "ai",
-    model: "claude-3-5-sonnet-20240620",
-    systemPrompt: SYSTEM_PROMPT_SECONDDRAFTER,
+    model: MODEL_DICT["Gemini 1.5 Pro"],
+    systemPrompt: SYSTEM_PROMPT_ANALYST,
+    output: "",
+    temperature: DEFAULT_TEMP,
+    position: 1,
+    progress: 0,
+    progressTokens: 0
+  },
+  // {
+  //   id: "Second Passer",
+  //   name: "Second Passer",
+  //   type: "ai",
+  //   model: "claude-3-5-sonnet-20240620",
+  //   systemPrompt: SYSTEM_PROMPT_SECONDDRAFTER,
+  //   output: "",
+  //   temperature: 0.7,
+  //   position: 2,
+  //   progress: 0,
+  //   progressTokens: 0
+  // },
+  {
+    id: "Implementer",
+    name: "Implementer",
+    type: "ai",
+    model: MODEL_DICT["GPT-4o"],
+    systemPrompt: SYSTEM_PROMPT_IMPLEMENTER_SR,
     output: "",
     temperature: 0.7,
     position: 2,
     progress: 0,
     progressTokens: 0
   },
-  // {
-  //   id: "Implementer",
-  //   name: "Implementer",
-  //   type: "ai",
-  //   model: MODEL_DICT["CodeLlama"],
-  //   systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
-  //   output: "",
-  //   temperature: 0.7,
-  //   position: 3,
-  //   progress: 0,
-    // progressTokens: 0
-  // },
 ];
 
 export const initialAgentTypes = initialAgents.reduce((acc, agent) => {
