@@ -10,3 +10,4 @@ python-socketio
 aiohttp
 sqlitedict
 gitpython
+pyperclip

@@ -2,7 +2,6 @@
 from config import *
 
 
-
 def remove_comments(code_contents_str, code_file_extension):
     if code_file_extension in ['js', 'css']:
         pattern = re.compile(r'//.*?$|/\*.*?\*/', re.DOTALL | re.MULTILINE)
@@ -40,7 +39,7 @@ class BaseRepoReader(ABC):
     @cached_property
     def file_contents(self):
         contents = {}
-        for file_path in tqdm(self.get_files()):
+        for file_path in self.get_files():
             if not self.should_ignore(file_path):
                 content = self.read_file(file_path)
                 if content is not None:
@@ -77,6 +76,13 @@ class BaseRepoReader(ABC):
         with open(output_file, "w") as out:
             out.write(self.markdown)
         print(f"Repository contents written to {output_file}")
+        try:
+            import pyperclip
+            pyperclip.copy(self.markdown)
+            print(f"Contents copied to clipboard")
+        except Exception as e:
+            print(f"!! COULD NOT COPY TO CLIPBOARD: {e}")
+            pass
 
 class LocalRepoReader(BaseRepoReader):
     def __init__(self, directory=".", extensions=None):
