@@ -41,10 +41,10 @@ function UserCard() {
   const handleSend = useCallback(() => {
     handleSendPrompt(userPrompt, referenceCodePrompt);
     updateUserPrompt(''); 
-    // Clear the textarea
-    if (textareaRef.current) {
-      textareaRef.current.value = '';
-    }
+    // // Clear the textarea
+    // if (textareaRef.current) {
+    //   textareaRef.current.value = '';
+    // }
   }, [handleSendPrompt, userPrompt, referenceCodePrompt, updateUserPrompt]);
 
   const handleCardClick = () => {
