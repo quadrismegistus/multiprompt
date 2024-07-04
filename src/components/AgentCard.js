@@ -16,7 +16,7 @@ function AgentCard({ agent }) {
   const agents = useStore((state) => state.agents);
   const agentProgress = useStore((state) => state.agents.find(a => a.id === agent.id)?.progress || 0);
   const agentProgressTokens = useStore((state) => state.agents.find(a => a.id === agent.id)?.progressTokens || 0);
-  const costByAgent = useStore((state) => state.costByAgent);
+  const totalTokensByAgent = useStore((state) => state.totalTokensByAgent);
 
   const isOnlyColumn = agents.filter(a => a.type === 'ai').length === 1;
 
@@ -104,7 +104,7 @@ function AgentCard({ agent }) {
         {/* {agentProgress < 100 &&  */}
           <ProgressBar 
             now={agentProgress} 
-            label={`${agentProgressTokens} tokens | $${(agentProgressTokens * getCostPerToken(agent.model)).toFixed(4)} now | $${costByAgent[agent.id]?.toFixed(4) ?? "0.0000"} total`}
+            label={`${agentProgressTokens} tokens | $${(agentProgressTokens * getCostPerToken(agent.model)).toFixed(4)} now | $${totalTokensByAgent[agent.id] ? (totalTokensByAgent[agent.id] * getCostPerToken(agent.model).toFixed(4)) : "0.0000"} total`}
           />
 
         {/* } */}

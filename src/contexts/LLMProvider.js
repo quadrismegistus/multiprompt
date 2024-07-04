@@ -90,7 +90,7 @@ export const LLMProvider = ({ children }) => {
     async (userPrompt, referenceCodePrompt, targetAgentId = null) => {
       if (!isConnected) return;
 
-      const { addUserMessage, addAgentResponse, currentConversation } =
+      const { addUserMessage, addAgentResponse, currentConversation, addAgentToken, resetAgentProgress } =
         useStore.getState();
 
       addUserMessage(userPrompt);
@@ -142,6 +142,8 @@ export const LLMProvider = ({ children }) => {
         const agentsPromises = agentsToProcess.map(async (agent) => {
           try {
             let responseContent = "";
+            resetAgentProgress(agent.id);
+
             const handleToken = (token) => {
               responseContent += token;
               addAgentToken(agent.id, token);
