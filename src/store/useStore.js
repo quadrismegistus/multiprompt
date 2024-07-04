@@ -153,13 +153,6 @@ const useStore = create(
             const costPerToken = getCostPerToken(agent.model);
             state.totalCost += costPerToken;
     
-            // Update total cost by agent
-            if (agent.id in state.totalCostByAgent) {
-                state.totalCostByAgent[agent.id] += costPerToken;
-            } else {
-                state.totalCostByAgent[agent.id] = costPerToken;
-            }
-    
             // Return updated state
             return {
                 agents: state.agents.map((a) =>
@@ -168,7 +161,6 @@ const useStore = create(
                 totalCost: state.totalCost,
                 totalTokens: state.totalTokens,
                 totalTokensByAgent: { ...state.totalTokensByAgent },
-                totalCostByAgent: { ...state.totalCostByAgent }
             };
         });
     },    
