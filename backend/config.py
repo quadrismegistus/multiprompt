@@ -61,7 +61,7 @@ IGNORE_PATHS = {
     '.vscode',
     '.idea',
     '_version.py',
-    'package.json',
+    # 'package.json',
     'public',
     '*.config.js',
     '*.pyc',
