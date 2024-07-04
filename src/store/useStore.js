@@ -1,60 +1,67 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { v4 as uuidv4 } from 'uuid';
-import { DEFAULT_MODEL, DEFAULT_SYSTEM_MESSAGE_PREFACE, initialAgentTypes, initialAgents } from '../constants';
-import { normalizePositions } from '../utils/agentUtils';
-import { getCostPerToken } from '../utils/promptUtils';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { v4 as uuidv4 } from "uuid";
+import {
+  DEFAULT_MODEL,
+  DEFAULT_SYSTEM_MESSAGE_PREFACE,
+  initialAgentTypes,
+  initialAgents,
+} from "../constants";
+import { normalizePositions } from "../utils/agentUtils";
+import { getCostPerToken } from "../utils/promptUtils";
 
 const useStore = create(
   persist(
     (set, get) => ({
       // Frequently updated items at top level
       agents: initialAgents,
-      userPrompt: '',
-      referenceCodePrompt: '',
+      userPrompt: "",
+      referenceCodePrompt: "",
       activeModal: null,
       isDarkMode: false,
 
       // Less frequently updated items in config
       config: {
-        openaiApiKey: '',
-        claudeApiKey: '',
+        openaiApiKey: "",
+        claudeApiKey: "",
         savedGlobalConfigurations: {},
         conversationHistory: [],
-        githubUrl: '',
+        githubUrl: "",
         systemMessagePreface: DEFAULT_SYSTEM_MESSAGE_PREFACE,
       },
 
       savedAgentConfigurations: initialAgentTypes,
-      
+
       currentConversation: [], // List to store all messages in the current conversation
 
-      addUserMessage: (userPrompt) => set(state => ({
-        currentConversation: [
-          ...state.currentConversation,
-          { content: userPrompt, isUser: true, sender: "User" }
-        ]
-      })),
-
-      addAgentResponse: (agentId, response) => set(state => {
-        const agent = get().agents.find(agent => agent.id === agentId);
-        return {
+      addUserMessage: (userPrompt) =>
+        set((state) => ({
           currentConversation: [
             ...state.currentConversation,
-            {
-              content: response,
-              isUser: false,
-              sender: agent.name,
-              agentId: agent.id,
-              agentName: agent.name,
-              agentModel: agent.model,
-              agentPosition: agent.position,
-              agentSystemPrompt: agent.systemPrompt,
-              agentTemperature: agent.temperature
-            }
-          ]
-        };
-      }),
+            { content: userPrompt, isUser: true, sender: "User" },
+          ],
+        })),
+
+      addAgentResponse: (agentId, response) =>
+        set((state) => {
+          const agent = get().agents.find((agent) => agent.id === agentId);
+          return {
+            currentConversation: [
+              ...state.currentConversation,
+              {
+                content: response,
+                isUser: false,
+                sender: agent.name,
+                agentId: agent.id,
+                agentName: agent.name,
+                agentModel: agent.model,
+                agentPosition: agent.position,
+                agentSystemPrompt: agent.systemPrompt,
+                agentTemperature: agent.temperature,
+              },
+            ],
+          };
+        }),
 
       // Update functions for top-level items
       updateUserPrompt: (prompt) => {
@@ -86,6 +93,7 @@ const useStore = create(
 
       // ...Other state
       totalCost: 0, // Add totalCost to the state
+      costByAgent: {},
 
       updateAgent: (id, updates) => {
         set((state) => {
@@ -96,6 +104,12 @@ const useStore = create(
               const newTokens = updates.progressTokens || 0;
               const newCost = newTokens * costPerToken;
               state.totalCost += newCost; // Update total cost
+              if (agent.id in state.costByAgent) {
+                state.costByAgent[agent.id] =
+                  state.costByAgent[agent.id] + newCost;
+              } else {
+                state.costByAgent[agent.id] = newCost;
+              }
               return updatedAgent;
             }
             return agent;
@@ -103,24 +117,24 @@ const useStore = create(
           return { agents };
         });
       },
-      
+
       addAgent: (clickedAgentPosition) => {
         console.log("addAgent", clickedAgentPosition);
         set((state) => {
           const newAgent = {
             id: uuidv4(),
             name: `Agent ${state.agents.length + 1}`,
-            type: 'ai',
+            type: "ai",
             model: DEFAULT_MODEL,
             position: clickedAgentPosition + 1,
-            systemPrompt: '',
-            output: '',
+            systemPrompt: "",
+            output: "",
             temperature: 0.7,
             progress: 0,
-            progressTokens:0
+            progressTokens: 0,
           };
           return {
-            agents: normalizePositions([...state.agents, newAgent])
+            agents: normalizePositions([...state.agents, newAgent]),
           };
         });
       },
@@ -128,47 +142,47 @@ const useStore = create(
       removeAgent: (id) => {
         console.log("removeAgent", id);
         set((state) => ({
-          agents: normalizePositions(state.agents.filter((agent) => agent.id !== id))
+          agents: normalizePositions(
+            state.agents.filter((agent) => agent.id !== id)
+          ),
         }));
       },
 
-          
       moveAgentTo: (id, newPosition) => {
         console.log("moveAgentTo called", id, newPosition);
         if (newPosition > 0) {
           set((state) => {
             const agents = [...state.agents];
-            const agentIndex = agents.findIndex(agent => agent.id === id);
+            const agentIndex = agents.findIndex((agent) => agent.id === id);
             if (agentIndex === -1) {
               console.log("Agent not found", id);
               return state;
             }
-      
+
             const agent = { ...agents[agentIndex], position: newPosition };
             agents[agentIndex] = agent;
             console.log("Agent position updated", agent);
-      
+
             const normalizedAgents = normalizePositions(agents);
             console.log("Agents after normalization", normalizedAgents);
-      
+
             return {
               ...state,
-              agents: normalizedAgents
+              agents: normalizedAgents,
             };
           });
         } else {
           console.log("Invalid newPosition", newPosition);
-          return get();  // return the current state if the position is not valid
+          return get(); // return the current state if the position is not valid
         }
       },
-      
 
       // moveAgentTo: (id, newPosition) => {
       //   console.log("moveAgentTo", id, newPosition);
       //   set((state) => {
       //     const originalPosition = state.agents.find(a => a.id === id).position;
       //     console.log("originalPosition", originalPosition);
-          
+
       //     const updatedAgents = state.agents.map(agent => {
       //       if (agent.id === id) {
       //         console.log("Updating agent position", agent.id, "from", agent.position, "to", newPosition);
@@ -182,32 +196,33 @@ const useStore = create(
       //       }
       //       return agent;
       //     });
-          
+
       //     console.log("Updated agents", updatedAgents);
       //     const normalizedAgents = normalizePositions(updatedAgents);
       //     console.log("Normalized agents", normalizedAgents);
-          
+
       //     return { agents: normalizedAgents };
       //   });
       // },
 
       getCurrentConversation: () => {
         const state = get();
-        return state.conversations.find(c => c.id === state.currentConversationId);
+        return state.conversations.find(
+          (c) => c.id === state.currentConversationId
+        );
       },
 
       getAgentById: (agentId) => {
         const state = get();
-        console.log('agents now',state.agents);
-        return state.agents.find(a => a.id === agentId);
+        console.log("agents now", state.agents);
+        return state.agents.find((a) => a.id === agentId);
       },
-      
 
       // Update function for config object
       updateConfig: (updates) => {
         console.log("updateConfig", updates);
         set((state) => ({
-          config: { ...state.config, ...updates }
+          config: { ...state.config, ...updates },
         }));
       },
 
@@ -216,7 +231,7 @@ const useStore = create(
         console.log("clearAgentCache");
         set((state) => ({
           agents: initialAgents,
-          currentConversation: []
+          currentConversation: [],
         }));
       },
 
@@ -225,17 +240,21 @@ const useStore = create(
         set((state) => ({
           savedAgentConfigurations: {
             ...state.savedAgentConfigurations,
-            [name]: configuration
-          }
+            [name]: configuration,
+          },
         }));
       },
 
       loadAgentConfiguration: (agentId, name) => {
         console.log("loadAgentConfiguration", agentId, name);
         set((state) => ({
-          agents: normalizePositions(state.agents.map((agent) =>
-            agent.id === agentId ? { ...agent, ...state.savedAgentConfigurations[name] } : agent
-          ))
+          agents: normalizePositions(
+            state.agents.map((agent) =>
+              agent.id === agentId
+                ? { ...agent, ...state.savedAgentConfigurations[name] }
+                : agent
+            )
+          ),
         }));
       },
 
@@ -244,8 +263,11 @@ const useStore = create(
         set((state) => ({
           config: {
             ...state.config,
-            conversationHistory: [...state.config.conversationHistory, conversation]
-          }
+            conversationHistory: [
+              ...state.config.conversationHistory,
+              conversation,
+            ],
+          },
         }));
       },
 
@@ -259,8 +281,8 @@ const useStore = create(
       },
     }),
     {
-      name: 'multiprompt-state',
-      storage: createJSONStorage(() => sessionStorage)
+      name: "multiprompt-state",
+      storage: createJSONStorage(() => sessionStorage),
     }
   )
 );
