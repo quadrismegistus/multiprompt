@@ -65,9 +65,6 @@
         "title": "multiprompt",
         "width": 800
       }
-    ],
-    "embeddedServer": {
-      "active": true
-    }
+    ]
   }
 }
