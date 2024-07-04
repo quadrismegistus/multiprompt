@@ -101,7 +101,11 @@ function AgentCard({ agent }) {
       </Card.Body>
       <Card.Footer>
         {/* {agentProgress < 100 &&  */}
-        <ProgressBar now={agentProgress} label={`${agentProgressTokens} tokens returned`} />
+          <ProgressBar 
+            now={agentProgress} 
+            label={`$${(agentProgressTokens * getCostPerToken(agent.model)).toFixed(4)} | ${agentProgressTokens} tokens`} 
+          />
+
         {/* } */}
       </Card.Footer>
     </Card>
