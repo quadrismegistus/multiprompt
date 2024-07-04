@@ -79,7 +79,8 @@ export const initialAgents = [
     output: "",
     temperature: 0.7,
     position: 1,
-    progress: 0
+    progress: 0,
+    progressTokens: 0
   },
   {
     id: "Second Passer",
@@ -90,7 +91,8 @@ export const initialAgents = [
     output: "",
     temperature: 0.7,
     position: 2,
-    progress: 0
+    progress: 0,
+    progressTokens: 0
   },
   // {
   //   id: "Implementer",
@@ -101,7 +103,8 @@ export const initialAgents = [
   //   output: "",
   //   temperature: 0.7,
   //   position: 3,
-  //   progress: 0
+  //   progress: 0,
+    // progressTokens: 0
   // },
 ];
 
@@ -116,5 +119,6 @@ export const initialAgentTypes = initialAgents.reduce((acc, agent) => {
 }, {});
 
 export const MAX_CONVO_HISTORY_MSG_LEN = 50; // Example value, set this to your required length
+export const MAX_TOKENS = 4096;
 
 export const DEFAULT_SYSTEM_MESSAGE_PREFACE = "BEGIN ALL YOUR MESSAGES WITH:\n__tl;dr:__\nFOLLOWED BY A 1-2 SENTENCE PARAGRAPH SUMMARIZING YOUR RESPONSE."

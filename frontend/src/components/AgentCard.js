@@ -15,6 +15,7 @@ function AgentCard({ agent }) {
   const moveAgentTo = useStore((state) => state.moveAgentTo);
   const agents = useStore((state) => state.agents);
   const agentProgress = useStore((state) => state.agents.find(a => a.id === agent.id)?.progress || 0);
+  const agentProgressTokens = useStore((state) => state.agents.find(a => a.id === agent.id)?.progressTokens || 0);
 
   const isOnlyColumn = agents.filter(a => a.type === 'ai').length === 1;
 
@@ -99,7 +100,9 @@ function AgentCard({ agent }) {
         <MarkdownRenderer content={agent.output} />
       </Card.Body>
       <Card.Footer>
-        {agentProgress < 100 && <ProgressBar now={agentProgress} label={`${Math.round(agentProgress)}%`} />}
+        {/* {agentProgress < 100 &&  */}
+        <ProgressBar now={agentProgress} label={`${agentProgressTokens} tokens returned`} />
+        {/* } */}
       </Card.Footer>
     </Card>
   );

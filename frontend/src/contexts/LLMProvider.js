@@ -8,6 +8,7 @@ import React, {
 import { makeAsciiSection } from "../utils/promptUtils";
 import { useSocket } from "./SocketContext";
 import useStore from "../store/useStore";
+import { MAX_TOKENS } from "../constants";
 
 console.log("Initializing LLMContext");
 
@@ -93,7 +94,11 @@ export const LLMProvider = ({ children }) => {
 
       addUserMessage(userPrompt);
 
-      const aiAgents = agents.filter((agent) => agent.type === "ai");
+      const aiAgents = agents.filter(agent => agent.type === 'ai');
+      aiAgents.forEach(agent => {
+          updateAgent(agent.id, { progress: 0, progressTokens:0 });
+      });
+
       const agentsByPosition = aiAgents.reduce((acc, agent) => {
         if (!acc[agent.position]) {
           acc[agent.position] = [];
@@ -136,17 +141,18 @@ export const LLMProvider = ({ children }) => {
         const agentsPromises = agentsToProcess.map(async (agent) => {
           try {
             let responseContent = "";
-            const maxTokens = 4096;
+            let numTokens = 0;
 
             const handleChunk = (chunk) => {
+              numTokens += 1;
               responseContent += chunk;
               const progressPercentage = Math.min(
-                (responseContent.length / maxTokens) * 100,
+                (numTokens / MAX_TOKENS) * 100,
                 100
               );
               // setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
               // if (chunk.includes("\n")) {
-                updateAgent(agent.id, { output: responseContent + "█", progress:progressPercentage });
+                updateAgent(agent.id, { output: responseContent + "█", progress:progressPercentage, progressTokens:numTokens });
               // }
             };
 
@@ -156,7 +162,7 @@ export const LLMProvider = ({ children }) => {
               handleChunk
             );
 
-            updateAgent(agent.id, { output: fullResponse, progress:100 });
+            updateAgent(agent.id, { output: fullResponse });
             // setAgentProgress((prev) => ({ ...prev, [agent.id]: 100 }));
             addAgentResponse(agent.id, fullResponse);
 

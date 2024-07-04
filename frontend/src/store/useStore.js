@@ -96,7 +96,8 @@ const useStore = create(
             systemPrompt: '',
             output: '',
             temperature: 0.7,
-            progress: 0
+            progress: 0,
+            progressTokens:0
           };
           return {
             agents: normalizePositions([...state.agents, newAgent])

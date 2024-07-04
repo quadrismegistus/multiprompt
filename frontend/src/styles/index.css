@@ -518,7 +518,20 @@ body, input, textarea, select {
   height:fit-content;
   background-color: var(--color-canvas-subtle);
   border-color: var(--color-border-muted);
-  margin:0;
+  margin:3px 0;
   padding:0 5px;
 }
-.agent-card .card-footer .progress { margin:0; padding:0; height:1em;}
+.agent-card .card-footer .progress { 
+  margin:0; 
+  padding:0; 
+  /* height:1em;  */
+  background-color: var(--color-canvas-subtle);
+}
+
+.progress-bar {
+  max-width: 100%;
+  overflow:visible;
+  color: var(--color-accent-fg);
+  background-color: var(--color-border-default);
+  padding:5px;
+}
