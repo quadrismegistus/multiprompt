@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import { Send } from "lucide-react";
-import { Card, Button, Accordion } from "react-bootstrap";
+import { Card, Button, Accordion, Spinner, Form } from "react-bootstrap";
 import MarkdownRenderer from "./MarkdownRenderer";
 import { useLLM } from "../contexts/LLMProvider";
 import PromptAppendix from "./PromptAppendix";
@@ -25,6 +25,7 @@ function UserCard() {
   const textareaRef = useRef(null);
   const { handleSendPrompt } = useLLM();
   const [accordionOpen, setAccordionOpen] = useState(true);
+  const [isSending, setIsSending] = useState(false);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -37,16 +38,17 @@ function UserCard() {
     const newValue = e.target.value;
     updateUserPrompt(newValue);
   };
-
-  const handleSend = useCallback(() => {
-    handleSendPrompt(userPrompt, referenceCodePrompt);
+  
+  const handleSend = useCallback(async () => {
+    setIsSending(true);
+    setAccordionOpen(false);
     updateUserPrompt(''); 
-    setAccordionOpen(false); // Close the Accordion when sending
-    // // Clear the textarea
-    // if (textareaRef.current) {
-    //   textareaRef.current.value = '';
-    // }
-  }, [handleSendPrompt, userPrompt, referenceCodePrompt, updateUserPrompt]);
+    try {
+      await handleSendPrompt(userPrompt, referenceCodePrompt);
+    } finally {
+      setIsSending(false);
+    }
+  }, [handleSendPrompt, userPrompt, referenceCodePrompt]);
 
   const handleCardClick = () => {
     // if (textareaRef.current) {
@@ -72,7 +74,6 @@ function UserCard() {
           <Accordion.Item eventKey="0">
             <Accordion.Header onClick={toggleAccordion}>multiprompt</Accordion.Header>
             <Accordion.Body>
-
             <textarea
                 ref={textareaRef}
                 className="promptarea w-100"
@@ -80,6 +81,23 @@ function UserCard() {
                 onChange={handlePromptChange}
                 placeholder="Enter your prompt here..."
               />      
+
+<Button 
+            variant="primary" 
+            onClick={handleSend} 
+            disabled={isSending || !userPrompt.trim()}
+            className="px-4 py-2" 
+            style={{float:'right'}}
+          >
+            {isSending ? (
+              <>
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                <span className="visually-hidden">Sending...</span>
+              </>
+            ) : (
+              <>Send <Send size={16} className="ms-2" /></>
+            )}
+          </Button>
 
 {/* <Accordion className="prompt-appendix" defaultActiveKey="2">
           <Accordion.Item eventKey="2">
@@ -94,36 +112,18 @@ function UserCard() {
             </Accordion.Body>
           </Accordion.Item>
         </Accordion>
-        <Button
+        {/* <Button
           variant="link"
           onClick={handleSend}
           className="p-0"
           title="Send Prompt"
         >
           <Send size={24} color="royalblue" />
-        </Button>
+        </Button> */}
       </Card.Header>
       <Card.Body className="promptarea-card-body" onClick={handleCardClick} ref={listRef}>
         <MessageList messages={currentConversation} />
       </Card.Body>
-      {/* <Card.Footer>
-        <Accordion className="prompt-config w-100" defaultActiveKey="0">
-          <Accordion.Item eventKey="0">
-            <Accordion.Header>Prompt</Accordion.Header>
-            <Accordion.Body>
-            <textarea
-                ref={textareaRef}
-                className="promptarea w-100"
-                value={userPrompt}
-                onChange={handlePromptChange}
-                placeholder="Enter your prompt here..."
-              />      
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      
-        
-      </Card.Footer> */}
     </Card>
   );
 }

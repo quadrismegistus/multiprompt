@@ -21,7 +21,7 @@ const useStore = create(
         claudeApiKey: '',
         savedGlobalConfigurations: {},
         conversationHistory: [],
-        githubUrl: 'quadrismegistus/multiprompt',
+        githubUrl: '',
         systemMessagePreface: DEFAULT_SYSTEM_MESSAGE_PREFACE,
       },
 

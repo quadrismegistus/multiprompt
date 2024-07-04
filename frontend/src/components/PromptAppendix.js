@@ -57,13 +57,14 @@ const PromptAppendix = () => {
   };
 
   return (
-    <Form.Group>
+    <Form.Group style={{clear:'both'}}>
+      <Form.Label>Prompt appendix</Form.Label>
       <Form.Control
         as="textarea"
         rows={5}
         value={referenceCodePrompt}
         onChange={handleReferenceCodePromptChange}
-        placeholder="Enter reference code prompt here..."
+        placeholder="Enter code or documents to reference"
         className="mb-2"
         style={{fontFamily: "monospace", fontSize: "0.9em"}}
       />
@@ -74,7 +75,7 @@ const PromptAppendix = () => {
               type="text"
               value={selectedPath}
               readOnly
-              placeholder="No file selected"
+              placeholder="Get from files"
             />
             <Button
               variant="primary"
@@ -99,7 +100,7 @@ const PromptAppendix = () => {
           <InputGroup>
             <Form.Control
               type="text"
-              placeholder="Enter GitHub URL"
+              placeholder="Get from GitHub"
               value={config.githubUrl}
               onChange={handleGithubUrlChange}
             />
