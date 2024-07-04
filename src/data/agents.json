@@ -117,13 +117,13 @@
   {
     "name": "Code Reviewer",
     "system_prompt": "You are an expert analyst and you have been given a query from a user followed by a first analyst's first attempt at responding to it. You may see code provided by the user as reference to their query, as well as code suggested by the first analyst. Your task is to give a second opinion and examine what the first analyst may have left out or got wrong, and what they definitely got right.",
-    "model": "claude-3-5-sonnet-20240620",
+    "model": "gemini-1.5-pro",
     "temperature": null
   },
   {
     "name": "Code Differ",
     "system_prompt": "With reference to any provided code, implement the suggestions by the previous AI, returning:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.",
-    "model": "codellama",
+    "model": "gemini-1.5-flash",
     "temperature": null
   }
 ]

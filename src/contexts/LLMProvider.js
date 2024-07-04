@@ -94,9 +94,9 @@ export const LLMProvider = ({ children }) => {
 
       addUserMessage(userPrompt);
 
-      const aiAgents = agents.filter(agent => agent.type === 'ai');
-      aiAgents.forEach(agent => {
-          updateAgent(agent.id, { progress: 0, progressTokens:0 });
+      const aiAgents = agents.filter((agent) => agent.type === "ai");
+      aiAgents.forEach((agent) => {
+        updateAgent(agent.id, { progress: 0, progressTokens: 0 });
       });
 
       const agentsByPosition = aiAgents.reduce((acc, agent) => {
@@ -142,9 +142,11 @@ export const LLMProvider = ({ children }) => {
           try {
             let responseContent = "";
             let numTokens = 0;
+            let totalTokens = agent.totalTokens ? agent.totalTokens : 0;
 
             const handleChunk = (chunk) => {
               numTokens += 1;
+              totalTokens += 1;
               responseContent += chunk;
               const progressPercentage = Math.min(
                 (numTokens / MAX_TOKENS) * 100,
@@ -152,7 +154,12 @@ export const LLMProvider = ({ children }) => {
               );
               // setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
               if (chunk.includes("\n")) {
-                updateAgent(agent.id, { output: responseContent + "█", progress:progressPercentage, progressTokens:numTokens });
+                updateAgent(agent.id, {
+                  output: responseContent + "█",
+                  progress: progressPercentage,
+                  progressTokens: numTokens,
+                  totalTokens: totalTokens
+                });
               }
             };
 
@@ -162,8 +169,7 @@ export const LLMProvider = ({ children }) => {
               handleChunk
             );
 
-            updateAgent(agent.id, { output: fullResponse });
-            // setAgentProgress((prev) => ({ ...prev, [agent.id]: 100 }));
+            updateAgent(agent.id, { output: fullResponse, totalTokens: totalTokens });
             addAgentResponse(agent.id, fullResponse);
 
             return { agent, output: fullResponse };

@@ -62,7 +62,8 @@ const processAgents = (agents) => {
     temperature: agent.temperature || DEFAULT_TEMP,
     position: index + 1,
     progress: 0,
-    progressTokens: 0
+    progressTokens: 0,
+    totalTokens:0
   }));
 };
 
