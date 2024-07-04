@@ -460,3 +460,46 @@ textarea { border:none;}
 .prompt-config .promptarea { font-size: 1.2rem; line-height:1.5rem; font-family: inherit;}
 
 .accordion-header, .accordion-item, .accordion-button { background:none;}
+
+
+/* Add or adjust the following lines */
+
+/* Global placeholder text color */
+::placeholder {
+  color: var(--color-fg-muted);
+}
+
+[data-theme="dark"] ::placeholder {
+  color: var(--color-fg-muted);
+}
+
+/* Component-specific placeholder text color */
+.promptarea::placeholder,
+.form-control::placeholder {
+  color: var(--color-fg-subtle);
+}
+
+[data-theme="dark"] .promptarea::placeholder,
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--color-fg-subtle);
+}
+
+/* Smooth transition for color and background-color changes */
+body, input, textarea, select {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Ensure other elements adapt well to dark mode */
+[data-theme="dark"] .card,
+[data-theme="dark"] .card-header,
+[data-theme="dark"] .card-body,
+[data-theme="dark"] .card-footer {
+  background-color: var(--color-canvas-subtle);
+  border-color: var(--color-border-muted);
+}
+
+[data-theme="dark"] .btn-secondary {
+  background-color: var(--color-canvas-subtle);
+  border-color: var(--color-border-default);
+  color: var(--color-fg-default);
+}

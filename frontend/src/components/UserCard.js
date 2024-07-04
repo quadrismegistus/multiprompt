@@ -48,9 +48,9 @@ function UserCard() {
   }, [handleSendPrompt, userPrompt, referenceCodePrompt, updateUserPrompt]);
 
   const handleCardClick = () => {
-    if (textareaRef.current) {
-      textareaRef.current.focus();
-    }
+    // if (textareaRef.current) {
+      // textareaRef.current.focus();
+    // }
   };
 
   const listRef = useRef(null);

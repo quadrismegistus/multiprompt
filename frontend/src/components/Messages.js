@@ -26,7 +26,7 @@ export const Message = ({ text, sender, position }) => {
   const msgtext = tldrContent ? tldrContent : msgtextstr.slice(0, 100);
 
   return (
-    <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'} agentpos-${position}`} onClick={handleCopy}>
+    <Card className={`message ${sender === 'User' ? 'message-user' : 'message-agent'} agentpos-${position}`}>
       <Card.Body >
         <Card.Title>{sender}</Card.Title>
         <Card.Text>
