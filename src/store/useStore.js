@@ -3,9 +3,11 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import {
   DEFAULT_MODEL,
+  DEFAULT_AGENT,
   DEFAULT_SYSTEM_MESSAGE_PREFACE,
   initialAgentTypes,
   initialAgents,
+  MAX_TOKENS,
 } from "../constants";
 import { normalizePositions } from "../utils/agentUtils";
 import { getCostPerToken } from "../utils/promptUtils";
@@ -19,6 +21,9 @@ const useStore = create(
       referenceCodePrompt: "",
       activeModal: null,
       isDarkMode: false,
+      totalCost: 0, // Add totalCost to the state
+      totalTokens: 0,
+      totalTokensByAgent: {},
 
       // Less frequently updated items in config
       config: {
@@ -91,26 +96,25 @@ const useStore = create(
       //   }));
       // },
 
-      // ...Other state
-      totalCost: 0, // Add totalCost to the state
-      costByAgent: {},
 
       updateAgent: (id, updates) => {
         set((state) => {
           const agents = state.agents.map((agent) => {
             if (agent.id === id) {
               const updatedAgent = { ...agent, ...updates };
-              const costPerToken = getCostPerToken(updatedAgent.model);
-              const newTokens = updates.progressTokens || 0;
-              const newCost = newTokens * costPerToken;
-              state.totalCost += newCost; // Update total cost
-              if (agent.id in state.costByAgent) {
-                state.costByAgent[agent.id] =
-                  state.costByAgent[agent.id] + newCost;
-              } else {
-                state.costByAgent[agent.id] = newCost;
-              }
               return updatedAgent;
+            }
+            return agent;
+          });
+          return { agents };
+        });
+      },
+
+      resetAgentProgress: (id) => {
+        set((state) => {
+          const agents = state.agents.map((agent) => {
+            if (agent.id === id) {
+              return { ...agent, progress: 0, progressTokens: 0, output: "" };
             }
             return agent;
           });
@@ -121,23 +125,53 @@ const useStore = create(
       addAgent: (clickedAgentPosition) => {
         console.log("addAgent", clickedAgentPosition);
         set((state) => {
-          const newAgent = {
-            id: uuidv4(),
-            name: `Agent ${state.agents.length + 1}`,
-            type: "ai",
-            model: DEFAULT_MODEL,
-            position: clickedAgentPosition + 1,
-            systemPrompt: "",
-            output: "",
-            temperature: 0.7,
-            progress: 0,
-            progressTokens: 0,
-          };
           return {
-            agents: normalizePositions([...state.agents, newAgent]),
+            agents: normalizePositions([...state.agents, DEFAULT_AGENT]),
           };
         });
       },
+
+      addAgentToken: (agentId, token) => {
+        set((state) => {
+            const agent = state.agents.find((agent) => agent.id === agentId);
+            if (!agent) return state;
+    
+            // Update agent's attributes
+            agent.output += token;
+            agent.totalTokens += 1;
+            agent.progressTokens += 1;
+    
+            // Update state totals
+            state.totalTokens += 1;
+            if (agent.id in state.totalTokensByAgent) {
+                state.totalTokensByAgent[agent.id] += 1;
+            } else {
+                state.totalTokensByAgent[agent.id] = 1;
+            }
+    
+            // Calculate cost per token
+            const costPerToken = getCostPerToken(agent.model);
+            state.totalCost += costPerToken;
+    
+            // Update total cost by agent
+            if (agent.id in state.totalCostByAgent) {
+                state.totalCostByAgent[agent.id] += costPerToken;
+            } else {
+                state.totalCostByAgent[agent.id] = costPerToken;
+            }
+    
+            // Return updated state
+            return {
+                agents: state.agents.map((a) =>
+                    a.id === agentId ? { ...a, output: agent.output, totalTokens: agent.totalTokens, progressTokens: agent.progressTokens } : a
+                ),
+                totalCost: state.totalCost,
+                totalTokens: state.totalTokens,
+                totalTokensByAgent: { ...state.totalTokensByAgent },
+                totalCostByAgent: { ...state.totalCostByAgent }
+            };
+        });
+    },    
 
       removeAgent: (id) => {
         console.log("removeAgent", id);

@@ -19,10 +19,11 @@ export const LLMProvider = ({ children }) => {
   const [agentProgress, setAgentProgress] = useState({});
   const { getAgentById } = useStore();
 
-  const { config, agents, updateAgent } = useStore((state) => ({
+  const { config, agents, updateAgent, addAgentToken } = useStore((state) => ({
     config: state.config,
     agents: state.agents,
     updateAgent: state.updateAgent,
+    addAgentToken: state.addAgentToken
   }));
 
   // const memoizedConfig = useMemo(() => config, [config]);
@@ -141,37 +142,17 @@ export const LLMProvider = ({ children }) => {
         const agentsPromises = agentsToProcess.map(async (agent) => {
           try {
             let responseContent = "";
-            let numTokens = 0;
-            let totalTokens = agent.totalTokens ? agent.totalTokens : 0;
-
-            const handleChunk = (chunk) => {
-              numTokens += 1;
-              totalTokens += 1;
-              responseContent += chunk;
-              const progressPercentage = Math.min(
-                (numTokens / MAX_TOKENS) * 100,
-                100
-              );
-              // setAgentProgress(prev => ({ ...prev, [agent.id]: progressPercentage }));
-              if (chunk.includes("\n")) {
-                updateAgent(agent.id, {
-                  output: responseContent + "█",
-                  progress: progressPercentage,
-                  progressTokens: numTokens,
-                  totalTokens: totalTokens
-                });
-              }
+            const handleToken = (token) => {
+              responseContent += token;
+              addAgentToken(agent.id, token);
             };
 
             const fullResponse = await query(
               userPromptSoFar,
               agent,
-              handleChunk
+              handleToken
             );
-
-            updateAgent(agent.id, { output: fullResponse, totalTokens: totalTokens });
             addAgentResponse(agent.id, fullResponse);
-
             return { agent, output: fullResponse };
           } catch (error) {
             const errorMessage = `Error: ${error.message}`;
