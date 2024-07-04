@@ -62,7 +62,9 @@ export const DEFAULT_INCL_REPO = true;
 
 export const ANTHROPIC_BASE_URL = "https://super-custard-978c1f.netlify.app/api/anthropic"
 export const SOCKET_SERVER_URL = "http://localhost:8989";
-
+// export const SOCKET_SERVER_URL = process.env.ELECTRON_START_URL
+//   ? "http://localhost:8989"
+//   : `http://localhost:${window.electron.port}`;
 
 
 export const SYSTEM_PROMPT_ANALYST = "With reference to any provided code, analyze the user's query, outline the problem described, and suggest efficient and elegant solutions. Do NOT return the full contents of files; return only lines and functions changed.";
