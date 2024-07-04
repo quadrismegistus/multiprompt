@@ -6,7 +6,7 @@ import useStore from '../store/useStore';
 import { Row, Container, Col, Accordion } from 'react-bootstrap';
 import AgentConfigForm from './AgentConfigForm';
 import { MODEL_DICT_r } from '../constants';
-
+import { getCostPerToken } from '../utils/promptUtils';
 
 function AgentCard({ agent }) {
   const updateAgent = useStore((state) => state.updateAgent);

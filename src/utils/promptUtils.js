@@ -1,4 +1,5 @@
 // src/utils/promptUtils.js
+import modelsData from '../data/models.json'; // Import model data
 
 export const formatPromptMessages = (promptText, referenceCodePrompt, prevOutput) => {
   let formattedPrompt = promptText;
@@ -66,3 +67,12 @@ export const extractTLDR = (text) => {
 //   // If no match is found, return null
 //   return null;
 // }
+
+
+
+
+// Function to get the cost per token for a model
+export const getCostPerToken = (model) => {
+  const modelData = modelsData.find(m => m.model === model);
+  return modelData ? modelData.cost_per_1M_tokens / 1e6 : 0;
+};

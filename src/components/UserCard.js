@@ -13,13 +13,14 @@ function UserCard() {
     userPrompt,
     updateUserPrompt,
     currentConversation,
-    getAgentById,
+    totalCost
   } = useStore((state) => ({
     referenceCodePrompt: state.referenceCodePrompt,
     userPrompt: state.userPrompt,
     updateUserPrompt: state.updateUserPrompt,
     currentConversation: state.currentConversation,
     getAgentById: state.getAgentById,
+    totalCost: state.totalCost
   }));
 
   const textareaRef = useRef(null);
@@ -123,6 +124,10 @@ function UserCard() {
       </Card.Header>
       <Card.Body className="promptarea-card-body" onClick={handleCardClick} ref={listRef}>
         <MessageList messages={currentConversation} />
+        
+        <div style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
+          Total Cost: ${totalCost.toFixed(4)}
+        </div>
       </Card.Body>
     </Card>
   );

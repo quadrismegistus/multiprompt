@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { DEFAULT_MODEL, DEFAULT_SYSTEM_MESSAGE_PREFACE, initialAgentTypes, initialAgents } from '../constants';
 import { normalizePositions } from '../utils/agentUtils';
-
+import { getCostPerToken } from '../utils/promptUtils';
 
 const useStore = create(
   persist(
@@ -74,16 +74,36 @@ const useStore = create(
         set((state) => ({ isDarkMode: !state.isDarkMode }));
       },
 
-      // Update functions for agents
-      updateAgent: (id, updates) => {
-        // console.log("updateAgent", id, updates);
-        set((state) => ({
-          agents: normalizePositions(state.agents.map((agent) =>
-            agent.id === id ? { ...agent, ...updates } : agent
-          ))
-        }));
-      },
+      // // Update functions for agents
+      // updateAgent: (id, updates) => {
+      //   // console.log("updateAgent", id, updates);
+      //   set((state) => ({
+      //     agents: normalizePositions(state.agents.map((agent) =>
+      //       agent.id === id ? { ...agent, ...updates } : agent
+      //     ))
+      //   }));
+      // },
 
+      // ...Other state
+      totalCost: 0, // Add totalCost to the state
+
+      updateAgent: (id, updates) => {
+        set((state) => {
+          const agents = state.agents.map((agent) => {
+            if (agent.id === id) {
+              const updatedAgent = { ...agent, ...updates };
+              const costPerToken = getCostPerToken(updatedAgent.model);
+              const newTokens = updates.progressTokens || 0;
+              const newCost = newTokens * costPerToken;
+              state.totalCost += newCost; // Update total cost
+              return updatedAgent;
+            }
+            return agent;
+          });
+          return { agents };
+        });
+      },
+      
       addAgent: (clickedAgentPosition) => {
         console.log("addAgent", clickedAgentPosition);
         set((state) => {

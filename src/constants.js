@@ -1,30 +1,9 @@
 // src/constants.js
 import { v4 as uuidv4 } from 'uuid';
 import agentsData from './data/agents.json';
+import modelsData from './data/models.json';
 
-class LLMModel {
-    constructor(model, name, category) {
-        this.model = model;
-        this.name = name;
-        this.category = category;
-    }
-}
-
-export const MODEL_LIST = [
-    new LLMModel("gpt-3.5-turbo", "GPT-3.5", "GPT"),
-    new LLMModel("gpt-4o", "GPT-4o", "GPT"),
-    new LLMModel("gpt-4", "GPT-4", "GPT"),
-    new LLMModel("gpt-4-turbo-preview", "GPT-4-Turbo", "GPT"),
-    new LLMModel("claude-3-5-sonnet-20240620", "Claude 3.5 Sonnet", "Claude"),
-    new LLMModel("claude-3-opus-20240229", "Claude 3 Opus", "Claude"),
-    new LLMModel("claude-3-sonnet-20240229", "Claude 3 Sonnet", "Claude"),
-    new LLMModel("claude-3-haiku-20240307", "Claude 3 Haiku", "Claude"),
-    new LLMModel("gemini-1.5-pro", "Gemini 1.5 Pro", "Gemini"),
-    new LLMModel("gemini-1.5-flash", "Gemini 1.5 Flash", "Gemini"),
-    new LLMModel("gemini-1.0-pro", "Gemini 1.0 Pro", "Gemini"),
-    new LLMModel("codellama", "CodeLlama", "Local"),
-    new LLMModel("tinyllama", "TinyLlama", "Local"),
-];
+export const MODEL_LIST = modelsData;
 
 export const MODEL_CATEGORIES = MODEL_LIST.reduce((acc, model) => {
     if (!acc[model.category]) {
