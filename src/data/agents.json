@@ -1,6 +1,11 @@
-Here is a list of the LLM prompts I found in the repository, extracted as JSON dictionaries:
-
 [
+  {
+    "name": "Agent",
+    "system_prompt":"",
+    "user_prompt": null,
+    "model": null,
+    "temperature": null
+  },
   {
     "name": "ArticleNationalityLLM",
     "system_prompt": "You are an expert at identifying nationalities and official roles from text.",
@@ -72,27 +77,30 @@ Here is a list of the LLM prompts I found in the repository, extracted as JSON d
     "temperature": null
   },
   {
-    "name": "xml_researcher",
-    "system_prompt": "You work at a research center dedicated to examining fairness and transparency in media. Annotate the entire following news article in pseudo-XML for the following tags:\n\n1. Enclose people mentioned or named as\n    \n    <person id=\"Unique ID for person (e.g. PER1, PER2)\" name=\"Name of person\" gender=\"Gender of person\" nationality=\"Nationality of person\" title=\"Professional title of person\" desc=\"Short description of person\">\n    ...\n    </person>\n\n[Additional tag instructions omitted for brevity]\n\nYou MUST return the entire article in your output! If no annotations apply to particular paragraphs, return the paragraph unannotated.\n\n## NEWS ARTICLE:  \n\n[Article text here]",
-    "model": "gpt-4o",
-    "temperature": null
-  },
-  {
     "name": "entity_researcher",
     "system_prompt": "You work at a research center dedicated to examining fairness and transparency in media. Read the following annotated XML and return JSON information in the form:\n  \n  { \n    \"summary\":\"\", # A short summary of the article\n    \"countries\": [\"\", \"\"], # A list of names of countries involved in the article\n    \"events\": [, # A list of events in the article given names with dates\n        {\n            \"name\": \"\", # Name of the event\n            \"date\": \"\", # Approximate date of the event\n            \"desc\": \"\" # Short description of the event\n        }\n    ],\n    \"entities\": [   # A list of entities in the article\n        {\n            \"type\": \"\", # \"PER\" for person; \"ORG\" for organization; \"GOV\" for governmental entity (countries, etc); \"PLA\" for places\n            \"id\": \"\",  # The unique ID for the entity (e.g. PER1, GOV2, etc)\n            \"name\":\"\", # Name of entity\n            \"nationality\": \"\", # Nationality or origin of entity; \"NA\" if not applicable\n            \"title\": \"\", # Professional title of entity; \"NA\" if not applicable\n            \"gender\": \"\", # If a person, gender of person (\"M\" for male, \"F\" for female, \"NB\" for nonbinary, \"U\" for unknown); \"NA\" for not applicable\n            \"desc\": \"\", # Short description of entity from article\n            \"sentences\": [\"\", \"\"]  # A list of strings (XML removed) from the article mentioning or referring to this entity; capitalize entity's name\n        },\n    ],\n    \"actions\": [ # A list of the top 3-5 actions reported on in the article\n        {\n            \"text\": \"\", # Copy any sentences describing this action\n            \"agent_id\": \"\", # If inferrable, the ID of the entity performing this action\n            \"recipient_id\": \"\", # If inferrable, the ID of the entity that is object or recipient of this action\n            \"action\": \"\", # Description of the action\n            \"is_passive\": false # [or true] Is action described in passive voice?\n        },\n    ]\n}",
     "model": "gpt-4o",
     "temperature": null
 },
+
+
+  {
+    "name": "xml_researcher",
+    "system_prompt": "You work at a research center dedicated to examining fairness and transparency in media. Annotate the entire following news article in pseudo-XML for the following tags:\n\n1. Enclose people mentioned or named as\n    \n    <person id=\"Unique ID for person (e.g. PER1, PER2)\" name=\"Name of person\" gender=\"Gender of person\" nationality=\"Nationality of person\" title=\"Professional title of person\" desc=\"Short description of person\">\n    ...\n    </person>\n\n[Additional tag instructions omitted for brevity]\n\nYou MUST return the entire article in your output! If no annotations apply to particular paragraphs, return the paragraph unannotated.\n\n## NEWS ARTICLE:  \n\n[Article text here]",
+    "model": "gpt-4o",
+    "temperature": null
+  },
+  
 {
     "name": "redacter",
-    "system_prompt": "You work at a research center dedicated to examining fairness and transparency in media. Redact all identifying mentions of people, countries, governments, and places from this XML-annotated news article. \n    \nStart by running a redacting function of the XML – redact_xml_string – on the XML string. \n\nThen continue redacting to ensure no identifying information is preserved.\n\nFor example:\n\nInput: \"<person id=\"PER1\">President Biden</person> of the <org id=\"GOV1\">United States</org> and his American aides met with Prime Minister <person id=\"PER2\">Justin Trudeau</person> of <org id=\"GOV2>Canada</org>\", redact first by running that string through `redact_xml_\n\nStep 1: Run `redact_xml_string` function on XML string\nOutput: \"PER1 of the GOV1 and his American aides met with Prime Minister PER2 of GOV2.\"\n\nStep 2: Further redact (e.g. redacting \"American\"):\nOutput: \"PER1 of the GOV1 and his GOV1-ian aides met with Prime Minister PER2 of GOV2.\"",
-    "model": "gpt-4o",
+    "system_prompt": "You work at a research center dedicated to examining fairness and transparency in media. Redact all identifying mentions of people, countries, governments, and places from this XML-annotated news article.\n\nFor example:\n\nInput: \"<person id=\"PER1\">President Biden</person> of the <org id=\"GOV1\">United States</org> and his American aides met with Prime Minister <person id=\"PER2\">Justin Trudeau</person> of <org id=\"GOV2>Canada</org>\",\n\nOutput: \"PER1 of the GOV1 and his GOV1-ian aides met with Prime Minister PER2 of GOV2.\"",
+    "model": "gpt-3.5-turbo",
     "temperature": null
 },
 {
     "name": "lawyer_agent",
-    "system_prompt": "You work at a research center dedicated to examining fairness and transparency in media. You read redacted news articles and assess whether the entities in them performed war crimes or other illegal acts. Return a list of JSON dictionaries like:\n\n[\n    {\n        \"id\": \"PER1\",\n        \"war_cimes\": false,\n        \"violent_crimes\": false,\n        \"crimes\": true\n    },\n\n]",
-    "model": "gpt-4o",
+    "system_prompt": "Examine ONLY the You work at a research center dedicated to examining fairness and transparency in media. You read redacted news articles and assess whether the entities in them performed war crimes or other illegal acts. Return a list of JSON dictionaries like:\n\n[\n    {\n        \"id\": \"PER1\",\n        \"war_cimes\": false,\n        \"violent_crimes\": false,\n        \"crimes\": true\n    },\n\n]",
+    "model": "claude-3-5-sonnet-20240620",
     "temperature": null
 }
 ]

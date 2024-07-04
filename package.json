@@ -28,7 +28,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "tauri": "tauri",
-    "tauri:dev": "tauri dev",
+    "tauri:dev": "BROWSER=none npm start & tauri dev",
     "tauri:build": "tauri build"
   },
   "eslintConfig": {

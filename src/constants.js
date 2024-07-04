@@ -1,5 +1,6 @@
 // src/constants.js
 import { v4 as uuidv4 } from 'uuid';
+import agentsData from './data/agents.json';
 
 class LLMModel {
     constructor(model, name, category) {
@@ -70,58 +71,28 @@ export const SYSTEM_PROMPT_IMPLEMENTER = "With reference to any provided code, i
 export const SYSTEM_PROMPT_IMPLEMENTER_SR = "Multiple solutions to the user's original query have been given by previous AI agents. Your task is to review these solutions against any original codebase provided and decide the most practical approach. Then return:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.";
 export const SYSTEM_PROMPT_SECONDDRAFTER = "You are an expert analyst and you have been given a query from a user followed by a first analyst's first attempt at responding to it. You may see code provided by the user as reference to their query, as well as code suggested by the first analyst. Your task is to give a second opinion and examine what the first analyst may have left out or got wrong, and what they definitely got right.";
 
-export const initialAgents = [
-  {
-    id: "Analyst",
-    name: "Analyst",
-    type: "ai",
-    model: MODEL_DICT["GPT-4o"],
-    systemPrompt: SYSTEM_PROMPT_ANALYST,
-    output: "",
-    temperature: DEFAULT_TEMP,
-    position: 1,
-    progress: 0,
-    progressTokens: 0
-  },
-  // {
-  //   id: "Analyst2",
-  //   name: "Analyst 2",
-  //   type: "ai",
-  //   model: MODEL_DICT["Gemini 1.5 Pro"],
-  //   systemPrompt: SYSTEM_PROMPT_ANALYST,
-  //   output: "",
-  //   temperature: DEFAULT_TEMP,
-  //   position: 1,
-  //   progress: 0,
-  //   progressTokens: 0
-  // },
-  {
-    id: "Second Passer",
-    name: "Second Passer",
-    type: "ai",
-    model: MODEL_DICT['Claude 3.5 Sonnet'],
-    systemPrompt: SYSTEM_PROMPT_SECONDDRAFTER,
-    output: "",
-    temperature: 0.7,
-    position: 2,
-    progress: 0,
-    progressTokens: 0
-  },
-  {
-    id: "Implementer",
-    name: "Implementer",
-    type: "ai",
-    model: MODEL_DICT["Gemini 1.5 Flash"],
-    systemPrompt: SYSTEM_PROMPT_IMPLEMENTER,
-    output: "",
-    temperature: 0.7,
-    position: 3,
-    progress: 0,
-    progressTokens: 0
-  },
-];
 
-export const initialAgentTypes = initialAgents.reduce((acc, agent) => {
+const processAgents = (agents) => {
+  return agents.map((agent, index) => ({
+    id: uuidv4(),
+    name: agent.name,
+    type: 'ai',
+    model: agent.model || DEFAULT_MODEL,
+    systemPrompt: agent.system_prompt,
+    output: "",
+    temperature: agent.temperature || DEFAULT_TEMP,
+    position: index + 1,
+    progress: 0,
+    progressTokens: 0
+  }));
+};
+
+
+export const availableAgents = processAgents(agentsData);
+export const DEFAULT_AGENT = availableAgents[0];
+export const initialAgents = processAgents(agentsData.slice(-3));
+
+export const initialAgentTypes = availableAgents.reduce((acc, agent) => {
   acc[agent.name] = {
     name: agent.name,
     model: agent.model,

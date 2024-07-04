@@ -6,18 +6,19 @@
 mod embedded_server;
 
 use embedded_server::start_embedded_server;
+use tauri::Manager;
 
 fn main() {
     let backend_rx = start_embedded_server();
 
     tauri::Builder::default()
         .setup(|app| {
-            let _app_handle = app.handle();
+            let window = app.get_window("main").unwrap();
             tauri::async_runtime::spawn(async move {
                 while let Ok(message) = backend_rx.recv() {
                     println!("Received from Python backend: {}", message);
-                    // You can emit this message to your frontend if needed
-                    // app_handle.emit_all("backend-log", message).unwrap();
+                    // Send the message to the frontend
+                    window.emit("python-output", message).unwrap();
                 }
             });
             Ok(())

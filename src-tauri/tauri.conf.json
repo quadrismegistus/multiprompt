@@ -59,11 +59,12 @@
     },
     "windows": [
       {
-        "fullscreen": true,
-        "height": 800,
+        "fullscreen": false,
+        "height": 1080,
+        "width": 1920,
         "resizable": true,
         "title": "multiprompt",
-        "width": 1200
+        "maximized": true
       }
     ]
   }

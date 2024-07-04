@@ -39,8 +39,18 @@ pub fn start_embedded_server() -> mpsc::Receiver<String> {
             }
         });
 
-        let status = command.wait().expect("Failed to wait for Python backend");
-        println!("Python backend exited with status: {:?}", status);
+        match command.wait() {
+            Ok(status) => {
+                let msg = format!("Python backend exited with status: {:?}", status);
+                println!("{}", msg);
+                tx.send(msg).unwrap();
+            },
+            Err(e) => {
+                let msg = format!("Failed to wait for Python backend: {}", e);
+                eprintln!("{}", msg);
+                tx.send(msg).unwrap();
+            },
+        }
     });
 
     rx
