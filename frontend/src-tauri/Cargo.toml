@@ -1,26 +1,40 @@
 [package]
-name = "app"
+name = "multiprompt"
 version = "0.1.0"
-description = "A Tauri App"
+description = "A Tauri App with React frontend and Python backend"
 authors = ["you"]
 license = ""
 repository = ""
-default-run = "app"
+default-run = "multiprompt"
 edition = "2021"
-rust-version = "1.60"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+rust-version = "1.57"
 
 [build-dependencies]
-tauri-build = { version = "1.5.3", features = [] }
+tauri-build = { version = "1.2.1", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.7.0", features = [] }
+tauri = { version = "1.2.4", features = ["shell-open"] }
 
 [features]
-# this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
-# If you use cargo directly instead of tauri's cli you can use this feature flag to switch between tauri's `dev` and `build` modes.
-# DO NOT REMOVE!!
+default = [ "custom-protocol" ]
 custom-protocol = [ "tauri/custom-protocol" ]
+
+[package.metadata.tauri]
+bundle.identifier = "com.yourdomain.multiprompt"
+bundle.active = true
+
+[package.metadata.tauri.build]
+beforeBuildCommand = "npm run build"
+beforeDevCommand = "npm run start"
+devPath = "http://localhost:3000"
+distDir = "../build"
+
+[[package.metadata.tauri.embedded-server]]
+name = "python-backend"
+command = "python"
+args = ["backend/app.py"]
+
+[package.metadata.tauri.security]
+csp = "default-src 'self' http://localhost:8989; connect-src 'self' http://localhost:8989 ws://localhost:8989"
