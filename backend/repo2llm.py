@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from config import *
 
+
+
 def remove_comments(code_contents_str, code_file_extension):
     if code_file_extension in ['js', 'css']:
         pattern = re.compile(r'//.*?$|/\*.*?\*/', re.DOTALL | re.MULTILINE)
@@ -8,7 +10,7 @@ def remove_comments(code_contents_str, code_file_extension):
         pattern = re.compile(r'#.*?$|\'\'\'.*?\'\'\'|\"\"\".*?\"\"\"', re.DOTALL | re.MULTILINE)
     elif code_file_extension == 'html':
         pattern = re.compile(r'<!--.*?-->', re.DOTALL | re.MULTILINE)
-    elif code_file_extension in {'md','txt'}:
+    elif code_file_extension in {'md','txt','json','toml'}:
         return code_contents_str
     else:
         logger.warning(f"Unsupported file extension: {code_file_extension}")
@@ -17,7 +19,7 @@ def remove_comments(code_contents_str, code_file_extension):
 
 class BaseRepoReader(ABC):
     def __init__(self, extensions=None):
-        self.extensions = extensions or [".py", ".js", ".html", ".css", ".md", ".txt", ".json", ".yaml", ".yml", ".toml"]
+        self.extensions = extensions or REPO2LLM_EXTENSIONS
 
     @abstractmethod
     def get_files(self):
@@ -98,7 +100,9 @@ class LocalRepoReader(BaseRepoReader):
                 file_path = Path(root) / filename
                 relative_path = file_path.relative_to(self.base_path)
                 if not self.should_ignore(relative_path) and file_path.suffix in self.extensions:
+                    print(relative_path)
                     yield relative_path
+
 
     def read_file(self, file_path):
         full_path = self.base_path / file_path
@@ -220,8 +224,8 @@ def main():
         "--extensions",
         "-e",
         nargs="+",
-        default=[".py", ".js", ".html", ".css"],
-        help='File extensions to include (default: .py, .js, .html, .css)',
+        default=REPO2LLM_EXTENSIONS,
+        help=f'File extensions to include (default: {", ".join(REPO2LLM_EXTENSIONS)})',
     )
     parser.add_argument(
         "--output",
