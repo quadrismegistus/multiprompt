@@ -39,7 +39,7 @@ const useStore = create(
 
       currentConversation: [], // List to store all messages in the current conversation
 
-      addUserMessage: (userPrompt) =>
+      addUserMessageToCurrentConversation: (userPrompt) =>
         set((state) => ({
           currentConversation: [
             ...state.currentConversation,

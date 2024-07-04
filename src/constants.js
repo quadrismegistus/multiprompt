@@ -63,7 +63,8 @@ const processAgents = (agents) => {
     position: index + 1,
     progress: 0,
     progressTokens: 0,
-    totalTokens:0
+    totalTokens:0,
+    numLastMessagesWanted:agent.numLastMessagesWanted || 0
   }));
 };
 
@@ -77,7 +78,8 @@ export const initialAgentTypes = availableAgents.reduce((acc, agent) => {
     name: agent.name,
     model: agent.model,
     systemPrompt: agent.systemPrompt,
-    temperature: agent.temperature
+    temperature: agent.temperature,
+    numLastMessagesWanted:agent.numLastMessagesWanted
   };
   return acc;
 }, {});

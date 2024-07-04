@@ -101,6 +101,18 @@ function AgentConfigForm({ agent }) {
       </Row>
       <Row className="mb-3">
         <Col>
+        <Form.Group>
+        <Form.Label>Number of Previous Messages to Include</Form.Label>
+        <Form.Control
+          type="number"
+          min="0"
+          value={agent.numLastMessagesWanted}
+          onChange={(e) => updateAgent(agent.id, { numLastMessagesWanted: parseInt(e.target.value) })}
+        />
+      </Form.Group>
+
+        </Col>
+        <Col>
           <Form.Group>
             <Form.Label>System Prompt</Form.Label>
             <Form.Control

@@ -76,3 +76,44 @@ export const getCostPerToken = (model) => {
   const modelData = modelsData.find(m => m.model === model);
   return modelData ? modelData.cost_per_1M_tokens / 1e6 : 0;
 };
+
+
+
+export const getLastNMessagesAsString = (currentConversation, N) => {
+  let messagesToInclude;
+  if (!N || N === 0) {
+    messagesToInclude = currentConversation;
+  } else {
+    messagesToInclude = currentConversation.slice(-N);
+  }
+
+  let userPromptSoFar = "";
+  messagesToInclude.forEach((msg) => {
+    userPromptSoFar += makeAsciiSection(
+      `${
+        msg.sender === "User"
+          ? "User Prompt"
+          : `Response from ${msg.agentName}`
+      }`,
+      msg.content,
+      1
+    );
+  });
+
+  return userPromptSoFar;
+};
+
+
+
+export const getUserPromptWithReferencePrompt = (userPrompt, referenceCodePrompt) => {
+  // let userPromptSoFar = makeAsciiSection("User Prompt", userPrompt, 1);
+  let userPromptSoFar = userPrompt+'\n\n';
+  if (referenceCodePrompt) {
+    userPromptSoFar += makeAsciiSection(
+      "Appendix to user prompt with reference material",
+      referenceCodePrompt,
+      2
+    );
+  }
+  return userPromptSoFar
+};
