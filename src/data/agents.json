@@ -117,7 +117,7 @@
   {
     "name": "Code Reviewer",
     "system_prompt": "You are an expert analyst and you have been given a query from a user followed by a first analyst's first attempt at responding to it. You may see code provided by the user as reference to their query, as well as code suggested by the first analyst. Your task is to give a second opinion and examine what the first analyst may have left out or got wrong, and what they definitely got right.",
-    "model": "gemini-1.5-pro",
+    "model": "claude-3-5-sonnet-20240620",
     "temperature": null
   },
   {

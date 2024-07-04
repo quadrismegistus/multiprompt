@@ -12,12 +12,14 @@ function UserCard() {
     referenceCodePrompt,
     userPrompt,
     updateUserPrompt,
+    updateReferenceCodePrompt,
     currentConversation,
     totalCost
   } = useStore((state) => ({
     referenceCodePrompt: state.referenceCodePrompt,
     userPrompt: state.userPrompt,
     updateUserPrompt: state.updateUserPrompt,
+    updateReferenceCodePrompt: state.updateReferenceCodePrompt,
     currentConversation: state.currentConversation,
     getAgentById: state.getAgentById,
     totalCost: state.totalCost
@@ -44,6 +46,7 @@ function UserCard() {
     setIsSending(true);
     setAccordionOpen(false);
     updateUserPrompt(''); 
+    updateReferenceCodePrompt("");
     try {
       await handleSendPrompt(userPrompt, referenceCodePrompt);
     } finally {

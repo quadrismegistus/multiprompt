@@ -104,7 +104,7 @@ function AgentCard({ agent }) {
         {/* {agentProgress < 100 &&  */}
           <ProgressBar 
             now={agentProgress} 
-            label={`${agentProgressTokens} tokens | $${(agentProgressTokens * getCostPerToken(agent.model)).toFixed(4)} now | $${totalTokensByAgent[agent.id] ? (totalTokensByAgent[agent.id] * getCostPerToken(agent.model).toFixed(4)) : "0.0000"} total`}
+            label={`${agentProgressTokens} tokens | $${(agentProgressTokens * getCostPerToken(agent.model)).toFixed(4)} now | $${totalTokensByAgent[agent.id] ? (totalTokensByAgent[agent.id] * getCostPerToken(agent.model)).toFixed(4) : "0.0000"} total`}
           />
 
         {/* } */}
