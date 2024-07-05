@@ -308,7 +308,7 @@ const useStore = create(
     }),
     {
       name: "multiprompt-state",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
