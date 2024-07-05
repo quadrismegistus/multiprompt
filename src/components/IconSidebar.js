@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings, History, Trash2, Sun, Moon } from 'lucide-react';
+import { Settings, History, Trash2, Sun, Moon, Users } from 'lucide-react';
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
 import useStore from '../store/useStore';
 
@@ -69,6 +69,16 @@ function IconSidebar() {
           aria-label="Show conversation history"
         >
           <History size={iconSize} color={iconColor} />
+        </button>
+      </OverlayTrigger>
+
+      <OverlayTrigger placement="right" overlay={renderTooltip("Save Workflow")}>
+        <button 
+          className="icon-btn" 
+          onClick={() => handleShowModal('workflow')}
+          aria-label="Save workflow"
+        >
+          <Users size={iconSize} color={iconColor} />
         </button>
       </OverlayTrigger>
     </div>

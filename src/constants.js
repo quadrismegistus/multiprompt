@@ -53,7 +53,7 @@ export const SYSTEM_PROMPT_SECONDDRAFTER = "You are an expert analyst and you ha
 
 const processAgents = (agents) => {
   return agents.map((agent, index) => ({
-    id: uuidv4(),
+    id: agent.name,
     name: agent.name,
     type: 'ai',
     model: agent.model || DEFAULT_MODEL,

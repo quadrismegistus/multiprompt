@@ -1,13 +1,11 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { v4 as uuidv4 } from "uuid";
 import {
   DEFAULT_MODEL,
   DEFAULT_AGENT,
   DEFAULT_SYSTEM_MESSAGE_PREFACE,
   initialAgentTypes,
   initialAgents,
-  MAX_TOKENS,
 } from "../constants";
 import { normalizePositions } from "../utils/agentUtils";
 import { getCostPerToken } from "../utils/promptUtils";
@@ -15,17 +13,15 @@ import { getCostPerToken } from "../utils/promptUtils";
 const useStore = create(
   persist(
     (set, get) => ({
-      // Frequently updated items at top level
       agents: initialAgents,
       userPrompt: "",
       referenceCodePrompt: "",
       activeModal: null,
       isDarkMode: false,
-      totalCost: 0, // Add totalCost to the state
+      totalCost: 0,
       totalTokens: 0,
       totalTokensByAgent: {},
 
-      // Less frequently updated items in config
       config: {
         openaiApiKey: "",
         claudeApiKey: "",
@@ -37,7 +33,7 @@ const useStore = create(
 
       savedAgentConfigurations: initialAgentTypes,
 
-      currentConversation: [], // List to store all messages in the current conversation
+      currentConversation: [],
 
       addUserMessageToCurrentConversation: (userPrompt) =>
         set((state) => ({
@@ -68,7 +64,6 @@ const useStore = create(
           };
         }),
 
-      // Update functions for top-level items
       updateUserPrompt: (prompt) => {
         console.log("updateUserPrompt", prompt);
         set({ userPrompt: prompt });
@@ -115,44 +110,50 @@ const useStore = create(
         console.log("addAgent", clickedAgentPosition);
         set((state) => {
           return {
-            agents: normalizePositions([...state.agents, DEFAULT_AGENT]),
+            agents: normalizePositions([
+              ...state.agents,
+              { ...DEFAULT_AGENT, position: clickedAgentPosition + 1 },
+            ]),
           };
         });
       },
 
       addAgentToken: (agentId, token) => {
         set((state) => {
-            const agent = state.agents.find((agent) => agent.id === agentId);
-            if (!agent) return state;
-    
-            // Update agent's attributes
-            agent.output += token;
-            agent.totalTokens += 1;
-            agent.progressTokens += 1;
-    
-            // Update state totals
-            state.totalTokens += 1;
-            if (agent.id in state.totalTokensByAgent) {
-                state.totalTokensByAgent[agent.id] += 1;
-            } else {
-                state.totalTokensByAgent[agent.id] = 1;
-            }
-    
-            // Calculate cost per token
-            const costPerToken = getCostPerToken(agent.model);
-            state.totalCost += costPerToken;
-    
-            // Return updated state
-            return {
-                agents: state.agents.map((a) =>
-                    a.id === agentId ? { ...a, output: agent.output, totalTokens: agent.totalTokens, progressTokens: agent.progressTokens } : a
-                ),
-                totalCost: state.totalCost,
-                totalTokens: state.totalTokens,
-                totalTokensByAgent: { ...state.totalTokensByAgent },
-            };
+          const agent = state.agents.find((agent) => agent.id === agentId);
+          if (!agent) return state;
+
+          agent.output += token;
+          agent.totalTokens += 1;
+          agent.progressTokens += 1;
+
+          state.totalTokens += 1;
+          if (agent.id in state.totalTokensByAgent) {
+            state.totalTokensByAgent[agent.id] += 1;
+          } else {
+            state.totalTokensByAgent[agent.id] = 1;
+          }
+
+          const costPerToken = getCostPerToken(agent.model);
+          state.totalCost += costPerToken;
+
+          return {
+            agents: state.agents.map((a) =>
+              a.id === agentId
+                ? {
+                    ...a,
+                    output: agent.output,
+                    totalTokens: agent.totalTokens,
+                    progressTokens: agent.progressTokens,
+                  }
+                : a
+            ),
+            totalCost: state.totalCost,
+            totalTokens: state.totalTokens,
+            totalTokensByAgent: { ...state.totalTokensByAgent },
+          };
         });
-    },    
+      },
 
       removeAgent: (id) => {
         console.log("removeAgent", id);
@@ -188,7 +189,7 @@ const useStore = create(
           });
         } else {
           console.log("Invalid newPosition", newPosition);
-          return get(); // return the current state if the position is not valid
+          return get();
         }
       },
 
@@ -205,7 +206,6 @@ const useStore = create(
         return state.agents.find((a) => a.id === agentId);
       },
 
-      // Update function for config object
       updateConfig: (updates) => {
         console.log("updateConfig", updates);
         set((state) => ({
@@ -213,7 +213,6 @@ const useStore = create(
         }));
       },
 
-      // Other functions
       clearAgentCache: () => {
         console.log("clearAgentCache");
         set((state) => ({
@@ -266,10 +265,40 @@ const useStore = create(
         console.log("hideModal");
         set({ activeModal: null });
       },
+
+      savedWorkflows: {},
+
+      saveWorkflow: (name, workflow) => {
+        console.log('saveWorkflow',name,workflow);
+        set(state => ({
+          savedWorkflows: {
+            ...state.savedWorkflows,
+            [name]: workflow
+          }
+        }));
+      },
+
+      loadWorkflow: (workflow) => {
+        console.log('loadWorkflow',workflow);
+        const state = get();
+        const newAgents = workflow.agents.map(agentData => {
+          const existingAgent = initialAgents.find(agent => agent.id === agentData.id);
+          if (existingAgent) {
+            return { ...existingAgent, position: agentData.position };
+          }
+          return null;
+        }).filter(agent => agent !== null);
+        
+        console.log('newAgents',newAgents);
+        set({
+          agents: normalizePositions(newAgents),
+        });
+      },
+
     }),
     {
       name: "multiprompt-state",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => sessionStorage),
     }
   )
 );
