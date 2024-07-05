@@ -247,28 +247,9 @@ def LLM(model):
 
 async def stream_llm_response(
     model=DEFAULT_MODEL,
-    max_tokens=DEFAULT_MAX_TOKENS,
-    temperature=DEFAULT_TEMP,
     **kwargs,
 ):
-    messages = format_prompt(model=model, **kwargs)
-
-    for d in messages:
-        print(d["role"])
-        print(d["content"][:500])
-        print()
-
-    async for response in generate(
-        model=model, messages=messages, max_tokens=max_tokens, temperature=temperature
-    ):
+    llm = LLM(model)
+    streamer = llm.generate_async(**kwargs)
+    async for response in streamer: 
         yield response
-
-
-def convert_prompt_messages_to_str(openai_messages):
-    l = []
-    for msg in openai_messages:
-        role, content = msg["role"], msg["content"]
-        o = f"<{role.upper()}>{content}</{role.upper()}>"
-        l.append(o)
-    out = "\n\n".join(l)
-    return out

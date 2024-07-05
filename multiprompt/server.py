@@ -1,14 +1,12 @@
-from .config import *
-from .conversation import Agent, Conversation, ConversationRound
+from .imports import *
+from .conversations import Conversation, ConversationRound
 from .llms import stream_llm_response
-from .repo2llm import GitHubRepoReader
-import asyncio
 
+
+## start server
 sio = socketio.AsyncServer(async_mode='aiohttp', cors_allowed_origins='*')
 app = web.Application()
 sio.attach(app)
-
-conversations: Dict[str, Conversation] = {}
 
 @sio.event
 async def connect(sid, environ):

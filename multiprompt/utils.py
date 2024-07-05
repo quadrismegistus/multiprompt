@@ -19,3 +19,13 @@ def make_ascii_section(title, content, level=1):
     
     # Combine header box with content
     return f"\n{header_box}\n\n{content}\n\n"
+
+
+def convert_prompt_messages_to_str(openai_messages):
+    l = []
+    for msg in openai_messages:
+        role, content = msg["role"], msg["content"]
+        o = f"<{role.upper()}>{content}</{role.upper()}>"
+        l.append(o)
+    out = "\n\n".join(l)
+    return out

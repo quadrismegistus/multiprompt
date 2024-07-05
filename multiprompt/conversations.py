@@ -1,11 +1,30 @@
 from .imports import *
+from .agents import *
+
+conversations: Dict[str, "Conversation"] = {}
+
 
 class ConversationRound:
-    def __init__(self, user_prompt: str, reference_prompt: str, agents: List[Agent]):
-        self.user_prompt = user_prompt
-        self.reference_prompt = reference_prompt
-        self.agents = agents
-        self.agent_responses: Dict[str, str] = {}
+    def __init__(self, agents: List[Dict], **prompt_kwargs):
+        self.agents = []
+        for i,agent in enumerate(agents):
+            if type(agent) is list:
+                for agent2 in agent:
+                    if type(agent2) is str:
+                        agent2 = {'name':agent2}
+                    if not 'position' in agent2:
+                        agent2['position']=i+1
+
+                    self.agents.append(Agent(**agent2))
+            else:
+                if type(agent) is str:
+                    agent = {'name':agent}
+                if not 'position' in agent:
+                    agent['position']=i+1
+
+                self.agents.append(Agent(**agent))
+        self.prompt_kwargs = prompt_kwargs
+        self.responses: Dict[str, str] = {}
 
     def add_agent_response(self, agent_id: str, response: str):
         self.agent_responses[agent_id] = response
@@ -15,10 +34,9 @@ class ConversationRound:
 
     def to_dict(self) -> Dict[str, Any]:
         return {
-            "user_prompt": self.user_prompt,
-            "reference_prompt": self.reference_prompt,
             "agents": [agent.to_dict() for agent in self.agents],
-            "agent_responses": self.agent_responses
+            "responses": self.responses,
+            **self.prompt_kwargs
         }
 
     @classmethod

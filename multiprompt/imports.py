@@ -1,3 +1,5 @@
+from typing import *
+import uuid
 import logging
 import json
 import asyncio
@@ -153,6 +155,11 @@ PATH_DATA = os.path.join(PATH_HOMEDIR,'data')
 PATH_LLM_CACHE=os.path.join(PATH_DATA,'cache.multiprompt_llm_cache.sqlitedict')
 os.makedirs(PATH_DATA,exist_ok=True)
 
+PATH_REPO = os.path.dirname(os.path.dirname(__file__))
+PATH_SRC = os.path.join(PATH_REPO, 'src')
+PATH_SRC_DATA = os.path.join(PATH_SRC, 'data')
+PATH_AGENTS_JSON = os.path.join(PATH_SRC_DATA, 'agents.json')
+PATH_MODELS_JSON = os.path.join(PATH_SRC_DATA, 'models.json')
 
 REPO2LLM_EXTENSIONS = [".py", ".js", ".html", ".css", ".md", ".txt", ".json", ".yaml", ".yml", ".toml", ".rs", ".ipynb"]
 
