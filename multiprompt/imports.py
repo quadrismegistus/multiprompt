@@ -6,6 +6,7 @@ from collections import defaultdict
 import socketio
 from aiohttp import web
 logging.getLogger('aiohttp.access').setLevel(logging.WARNING)
+logging.getLogger('httpx').setLevel(logging.WARNING)
 import os
 import random
 from dotenv import load_dotenv

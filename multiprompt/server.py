@@ -1,6 +1,6 @@
 from .config import *
 from .conversation import Agent, Conversation, ConversationRound
-from .llm_service import stream_llm_response
+from .llms import stream_llm_response
 from .repo2llm import GitHubRepoReader
 import asyncio
 

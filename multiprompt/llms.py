@@ -1,6 +1,7 @@
 from .imports import *
 from .db import *
-
+import threading
+import queue
 
 def get_cache_db():
     return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
@@ -37,30 +38,44 @@ class BaseLLM(ABC):
                 example_prompts=example_prompts,
             )
         )
-        async for msg in self.stream(messages, max_tokens=max_tokens, temperature=temperature):
-            yield msg
+        async for x in self.stream(messages, max_tokens=max_tokens, temperature=temperature):
+            yield x
 
     def generate(self, *args, **kwargs):
         """
         A synchronous generator wrapper for the async generate method.
         """
+        q = queue.Queue()
 
-        async def async_generator():
-            async for item in self.generate_async(*args, **kwargs):
-                yield item
+        def run_async_gen():
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            
+            async def async_generator():
+                async for item in self.generate_async(*args, **kwargs):
+                    q.put(item)
+                q.put(StopIteration)
 
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-        gen = async_generator()
-        while True:
             try:
-                yield loop.run_until_complete(gen.__anext__())
-            except StopAsyncIteration:
+                new_loop.run_until_complete(async_generator())
+            finally:
+                new_loop.close()
+
+        # Start the async code in a separate thread
+        thread = threading.Thread(target=run_async_gen)
+        thread.start()
+
+        # Yield values from the queue
+        while True:
+            item = q.get()
+            if item is StopIteration:
                 break
+            yield item
+
+        thread.join()
+
+    def generate_txt(self, *args, **kwargs):
+        return ''.join(list(self.generate(*args, **kwargs)))
 
     @classmethod
     @abstractmethod
@@ -203,16 +218,17 @@ class LlamaLLM(BaseLLM):
         self, messages, max_tokens=DEFAULT_MAX_TOKENS, temperature=DEFAULT_TEMP
     ):
         client = self.get_client()
-        formatted_prompt = "\n\n".join(
-            [f"{m['role']}: {m['content']}" for m in messages]
-        )
         response = await client.generate(
             model=self.model,
-            prompt=formatted_prompt,
+            prompt=messages,
             stream=True,
         )
         async for part in response:
             yield part["response"]
+
+    @classmethod
+    def format_prompt(cls, *args, **kwargs):
+        return convert_prompt_messages_to_str(super().format_prompt(*args, **kwargs))
 
 
 @cache
@@ -227,33 +243,6 @@ def LLM(model):
         return LlamaLLM(model)
 
 
-# async def stream(
-#     model, messages, max_tokens=DEFAULT_MAX_TOKENS, temperature=DEFAULT_TEMP
-# ):
-#     params = dict(
-#         model=model, messages=messages, max_tokens=max_tokens, temperature=temperature
-#     )
-#     cache_key = generate_cache_key(params)
-#     logger.info(f"looking for {cache_key}")
-#     with get_cache_db() as cache_db:
-#         if cache_key in cache_db:
-#             logger.info(f"Cache hit for key: {cache_key}")
-#             cached_response = cache_db[cache_key]
-#             for chunk in cached_response:
-#                 yield chunk
-#                 await asyncio.sleep(random.uniform(0, 0.01))
-#         else:
-#             try:
-#                 llm = get_llm_instance(model)
-#                 llm.model = model  # Set the model for the LLM instance
-#                 alltext = []
-#                 async for text in llm.generate(messages, max_tokens, temperature):
-#                     yield text
-#                     alltext.append(text)
-#                 cache_db[cache_key] = alltext
-#             except Exception as e:
-#                 logger.error(f"Error in generate function for model {model}: {e}")
-#                 yield f"Error: {str(e)}"
 
 
 async def stream_llm_response(
