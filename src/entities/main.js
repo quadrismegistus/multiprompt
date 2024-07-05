@@ -1,4 +1,5 @@
 import { entity, persistence } from 'simpler-state';
+import { remoteStorage } from '../utils/remoteStorage';
 import {
   DEFAULT_MODEL,
   DEFAULT_AGENT,
@@ -9,14 +10,20 @@ import {
 import { normalizePositions } from "../utils/agentUtils";
 import { getCostPerToken } from "../utils/promptUtils";
 
-export const agents = entity(initialAgents);
-export const userPrompt = entity("");
-export const referenceCodePrompt = entity("");
+const createRemotePersistence = (key) => persistence(key, {
+  storage: remoteStorage,
+  serializeFn: JSON.stringify,
+  deserializeFn: JSON.parse
+});
+
+export const agents = entity(initialAgents, [createRemotePersistence('agents')]);
+export const userPrompt = entity("", [createRemotePersistence('userPrompt')]);
+export const referenceCodePrompt = entity("", [createRemotePersistence('referenceCodePrompt')]);
 export const activeModal = entity(null);
-export const isDarkMode = entity(false);
-export const totalCost = entity(0);
-export const totalTokens = entity(0);
-export const totalTokensByAgent = entity({});
+export const isDarkMode = entity(false, [createRemotePersistence('isDarkMode')]);
+export const totalCost = entity(0, [createRemotePersistence('totalCost')]);
+export const totalTokens = entity(0, [createRemotePersistence('totalTokens')]);
+export const totalTokensByAgent = entity({}, [createRemotePersistence('totalTokensByAgent')]);
 
 export const config = entity({
   openaiApiKey: "",
@@ -25,11 +32,12 @@ export const config = entity({
   conversationHistory: [],
   githubUrl: "",
   systemMessagePreface: DEFAULT_SYSTEM_MESSAGE_PREFACE,
-}, [persistence('config')]);
+}, [createRemotePersistence('config')]);
 
-export const savedAgentConfigurations = entity(initialAgentTypes, [persistence('savedAgentConfigurations')]);
+export const savedAgentConfigurations = entity(initialAgentTypes, [createRemotePersistence('savedAgentConfigurations')]);
 
-export const currentConversation = entity([]);
+export const currentConversation = entity([], [createRemotePersistence('currentConversation')]);
+
 
 // Actions
 export const updateUserPrompt = (prompt) => {

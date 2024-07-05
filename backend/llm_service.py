@@ -182,10 +182,10 @@ async def generate(model, messages, max_tokens=DEFAULT_MAX_TOKENS, temperature=D
         temperature=temperature
     )
     cache_key = generate_cache_key(params)
-    logger.info(f"looking for {cache_key}")
+    logger.debug(f"looking for {cache_key}")
     with get_cache_db() as cache_db:
         if cache_key in cache_db:
-            logger.info(f"Cache hit for key: {cache_key}")
+            logger.debug(f"Cache hit for key: {cache_key}")
             cached_response = cache_db[cache_key]
             for chunk in cached_response:
                 yield chunk

@@ -16,13 +16,18 @@ export const SocketProvider = ({ children }) => {
     });
 
     socketRef.current.on('connect', () => {
-      console.log('Connected to LLM server');
+      console.log('Connected to server');
       setIsConnected(true);
     });
 
     socketRef.current.on('disconnect', () => {
-      console.log('Disconnected from LLM server');
+      console.log('Disconnected from server');
       setIsConnected(false);
+    });
+
+    // Add handlers for storage-related events
+    socketRef.current.on('storageResponse', (response) => {
+      console.log('Received storage response:', response);
     });
 
     return () => {

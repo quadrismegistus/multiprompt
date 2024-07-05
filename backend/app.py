@@ -8,6 +8,28 @@ sio.attach(app)
 
 # Store active tasks for each client
 client_tasks = defaultdict(dict)
+# In-memory storage (replace with a database in production)
+storage = {}
+
+@sio.event
+async def getItem(sid, data):
+    print('getting',data)
+    key = data['key']
+    request_id = data['requestId']
+    value = storage.get(key)
+    await sio.emit('storageResponse', {'requestId': request_id, 'data': value})
+
+@sio.event
+async def setItem(sid, data):
+    # print('setting',data)
+    key = data['key']
+    value = data['value']
+    request_id = data['requestId']
+    storage[key] = value
+    await sio.emit('storageResponse', {'requestId': request_id, 'data': True})
+
+
+
 
 @sio.event
 async def generate(sid, data):
@@ -49,7 +71,7 @@ async def stream_response(sid, agent_id, query_d):
     try:
         async for response in stream_llm_response(**query_d):
             model_output += response
-            print(response, end='', flush=True)
+            # print(response, end='', flush=True)
             await sio.emit('response', {'model': query_d['model'], 'text': response, 'agentId': agent_id}, to=sid)
             # time.sleep(random.random())
     except Exception as e:

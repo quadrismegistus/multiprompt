@@ -70,7 +70,8 @@ IGNORE_PATHS = {
     '*.tmp',
     '*.temp',
     '*.bak',
-    'static'
+    'static',
+    '.robots.md'
 }
 
 
