@@ -9,14 +9,17 @@ import {
 import { normalizePositions } from "../utils/agentUtils";
 import { getCostPerToken } from "../utils/promptUtils";
 
-export const agents = entity(initialAgents);
-export const userPrompt = entity("");
-export const referenceCodePrompt = entity("");
-export const activeModal = entity(null);
-export const isDarkMode = entity(false);
-export const totalCost = entity(0);
-export const totalTokens = entity(0);
-export const totalTokensByAgent = entity({});
+// Use persistence with localStorage for all entities
+const localStoragePersistence = [persistence('multiprompt')];
+
+export const agents = entity(initialAgents, localStoragePersistence);
+export const userPrompt = entity("", localStoragePersistence);
+export const referenceCodePrompt = entity("", localStoragePersistence);
+export const activeModal = entity(null, localStoragePersistence);
+export const isDarkMode = entity(false, localStoragePersistence);
+export const totalCost = entity(0, localStoragePersistence);
+export const totalTokens = entity(0, localStoragePersistence);
+export const totalTokensByAgent = entity({}, localStoragePersistence);
 
 export const config = entity({
   openaiApiKey: "",
@@ -25,11 +28,11 @@ export const config = entity({
   conversationHistory: [],
   githubUrl: "",
   systemMessagePreface: DEFAULT_SYSTEM_MESSAGE_PREFACE,
-}, [persistence('config')]);
+}, localStoragePersistence);
 
-export const savedAgentConfigurations = entity(initialAgentTypes, [persistence('savedAgentConfigurations')]);
+export const savedAgentConfigurations = entity(initialAgentTypes, localStoragePersistence);
 
-export const currentConversation = entity([]);
+export const currentConversation = entity([], localStoragePersistence);
 
 // Actions
 export const updateUserPrompt = (prompt) => {
@@ -199,4 +202,14 @@ export const loadConfiguration = (configName) => {
   } else {
     console.error(`Configuration "${configName}" not found`);
   }
+};
+
+
+export const clearAllData = () => {
+  localStorage.removeItem('multiprompt');
+  // Optionally, reset all entities to their initial state
+  agents.set(initialAgents);
+  userPrompt.set("");
+  referenceCodePrompt.set("");
+  // ... reset other entities as needed
 };

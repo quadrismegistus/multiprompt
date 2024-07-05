@@ -205,7 +205,7 @@ async def generate(model, messages, max_tokens=DEFAULT_MAX_TOKENS, temperature=D
 
 async def stream_llm_response(model=DEFAULT_MODEL,  max_tokens=DEFAULT_MAX_TOKENS, temperature=DEFAULT_TEMP, **kwargs):
     messages = format_prompt(model=model, **kwargs)
-    pprint([(d['role'], d['content'][:100]) for d in messages])
+    # pprint([(d['role'], d['content'][:100]) for d in messages])
     async for response in generate(model=model, messages=messages, max_tokens=max_tokens, temperature=temperature):
         yield response
 
