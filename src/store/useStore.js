@@ -86,17 +86,6 @@ const useStore = create(
         set((state) => ({ isDarkMode: !state.isDarkMode }));
       },
 
-      // // Update functions for agents
-      // updateAgent: (id, updates) => {
-      //   // console.log("updateAgent", id, updates);
-      //   set((state) => ({
-      //     agents: normalizePositions(state.agents.map((agent) =>
-      //       agent.id === id ? { ...agent, ...updates } : agent
-      //     ))
-      //   }));
-      // },
-
-
       updateAgent: (id, updates) => {
         set((state) => {
           const agents = state.agents.map((agent) => {
@@ -202,34 +191,6 @@ const useStore = create(
           return get(); // return the current state if the position is not valid
         }
       },
-
-      // moveAgentTo: (id, newPosition) => {
-      //   console.log("moveAgentTo", id, newPosition);
-      //   set((state) => {
-      //     const originalPosition = state.agents.find(a => a.id === id).position;
-      //     console.log("originalPosition", originalPosition);
-
-      //     const updatedAgents = state.agents.map(agent => {
-      //       if (agent.id === id) {
-      //         console.log("Updating agent position", agent.id, "from", agent.position, "to", newPosition);
-      //         return { ...agent, position: newPosition };
-      //       } else if (agent.position >= newPosition && agent.position < originalPosition) {
-      //         console.log("Incrementing agent position", agent.id, "from", agent.position, "to", agent.position + 1);
-      //         return { ...agent, position: agent.position + 1 };
-      //       } else if (agent.position <= newPosition && agent.position > originalPosition) {
-      //         console.log("Decrementing agent position", agent.id, "from", agent.position, "to", agent.position - 1);
-      //         return { ...agent, position: agent.position - 1 };
-      //       }
-      //       return agent;
-      //     });
-
-      //     console.log("Updated agents", updatedAgents);
-      //     const normalizedAgents = normalizePositions(updatedAgents);
-      //     console.log("Normalized agents", normalizedAgents);
-
-      //     return { agents: normalizedAgents };
-      //   });
-      // },
 
       getCurrentConversation: () => {
         const state = get();
