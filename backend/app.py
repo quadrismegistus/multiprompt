@@ -15,8 +15,6 @@ async def generate(sid, data):
     try:
         print('GENERATE')
         user_prompt = data.get("userPrompt", "")
-        print(user_prompt)
-        print()
         model = data.get("model", DEFAULT_MODEL)
         system_prompt = data.get("systemPrompt", DEFAULT_SYSTEM_PROMPT)
         temperature = data.get("temperature", DEFAULT_TEMP)

@@ -114,6 +114,7 @@ body {
 
   padding-left:60px;
 
+  position:relative;
 }
 
 
@@ -534,4 +535,13 @@ body, input, textarea, select {
   color: var(--color-accent-fg);
   background-color: var(--color-border-default);
   padding:5px;
+}
+
+.totalCost {
+  position: 'absolute';
+  bottom: 10; 
+  right: 10;
+  font-size:.8rem;
+  color:red;
+  z-index:100;
 }
