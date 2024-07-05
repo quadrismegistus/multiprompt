@@ -29,3 +29,34 @@ def convert_prompt_messages_to_str(openai_messages):
         l.append(o)
     out = "\n\n".join(l)
     return out
+
+
+def iter_async_generator(async_generator_func, *args, **kwargs):
+    q = queue.Queue()
+
+    def run_async_gen():
+        new_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(new_loop)
+        
+        async def async_generator():
+            async for item in async_generator_func(*args, **kwargs):
+                q.put(item)
+            q.put(StopIteration)
+
+        try:
+            new_loop.run_until_complete(async_generator())
+        finally:
+            new_loop.close()
+
+    # Start the async code in a separate thread
+    thread = threading.Thread(target=run_async_gen)
+    thread.start()
+
+    # Yield values from the queue
+    while True:
+        item = q.get()
+        if item is StopIteration:
+            break
+        yield item
+
+    thread.join()

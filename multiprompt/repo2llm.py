@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from config import *
+from imports import *
 
 
 def remove_comments(code_contents_str, code_file_extension):

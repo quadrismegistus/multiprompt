@@ -4,6 +4,8 @@ import logging
 import json
 import asyncio
 from collections import defaultdict
+import threading
+import queue
 
 import socketio
 from aiohttp import web
@@ -66,6 +68,7 @@ IGNORE_PATHS = {
     '.idea',
     '_version.py',
     # 'package.json',
+    '.robots.md',
     'public',
     '*.config.js',
     '*.pyc',
@@ -144,7 +147,7 @@ DEFAULT_OPENAI_MODEL = next((model for model in DEFAULT_MODELS if model in MODEL
 DEFAULT_ANTHROPIC_MODEL = next((model for model in DEFAULT_MODELS if model in MODEL_CATEGORIES["Claude"]), MODEL_CATEGORIES["Claude"][0])
 DEFAULT_GEMINI_MODEL = next((model for model in DEFAULT_MODELS if model in MODEL_CATEGORIES["Gemini"]), MODEL_CATEGORIES["Gemini"][0])
 DEFAULT_SUMMARY_MODEL = MODEL_DICT['GPT-4o']
-DEFAULT_TEMP = 0.0
+DEFAULT_TEMP = 0.7
 DEFAULT_SYSTEM_PROMPT = "With reference to any code or documentation provided, answer the following questions by the user. Show only those lines or functions that were changed, and explain the changes."
 DEFAULT_SUMMARY_SYSTEM_PROMPT = "You are a senior developer reviewing parallel solutions provided by junior developers. Synthesize their output into an elegant, modular, clean, documented solution. Then, display in markdown relevant functions, classes and portions of files which your solution alters from the existing repository."
 DEFAULT_SUMMARY_USER_PROMPT = "Synthesize and summarize these suggested changes, and return a markdown representation of a directory structure of files necessary to change, along with the full functions or code snippets changed under a markdown heading for the filepath under which they appear."
@@ -165,5 +168,3 @@ REPO2LLM_EXTENSIONS = [".py", ".js", ".html", ".css", ".md", ".txt", ".json", ".
 
 
 
-
-from .utils import *

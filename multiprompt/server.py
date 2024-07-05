@@ -1,6 +1,6 @@
 from .imports import *
-from .conversations import Conversation, ConversationRound
-from .llms import stream_llm_response
+from .utils import *
+from .conversations import *
 
 
 ## start server
@@ -17,54 +17,26 @@ async def disconnect(sid):
     logger.debug(f'Client disconnected: {sid}')
 
 @sio.event
-async def start_conversation(sid, data):
+async def converse(sid, data):
     logger.debug(f'Start conversation event for client {sid}')
     try:
         user_prompt = data.get("userPrompt", "")
         reference_prompt = data.get("referenceCodePrompt", "")
+        system_prompt = data.get("systemPrompt", "")
         agents_data = data.get("agents", [])
-
-        agents = [Agent.from_dict(agent) for agent in agents_data]
-
-        conversation = Conversation()
-        round = ConversationRound(user_prompt, reference_prompt, agents)
-        conversation.add_round(round)
-        conversations[conversation.id] = conversation
-
-        await handle_conversation(sid, conversation.id)
-
-    except Exception as e:
-        logger.error(f"Error in start_conversation event: {str(e)}")
-        await sio.emit('error', {'message': str(e)}, to=sid)
-
-async def handle_conversation(sid, conversation_id):
-    conversation = conversations[conversation_id]
-    current_round = conversation.get_latest_round()
-
-    try:
-        combined_prompt = current_round.get_combined_prompt()
-
-        for agent in current_round.agents:
-            response = ""
-            async for chunk in stream_llm_response(agent, combined_prompt):
-                response += chunk
-                await sio.emit('response', {
-                    'model': agent.model,
-                    'text': chunk,
-                    'agentId': agent.id
-                }, to=sid)
-
-            current_round.add_agent_response(agent.id, response)
-
-            await sio.emit('response_complete', {
-                'model': agent.model,
-                'agentId': agent.id
-            }, to=sid)
-
+        conversation_id = data.get("conversationId")
+        
+        conversation = Conversation(conversation_id)
+        conversation_round = conversation.add_round(agents_data)
+        
+        async for response_d in conversation_round.run_async(user_prompt, reference_prompt, system_prompt):
+            await sio.emit('response', response_d, to=sid)
+        
+        # Emit a 'conversation_complete' event when all agents have finished
         await sio.emit('conversation_complete', {'conversationId': conversation.id}, to=sid)
-
+    
     except Exception as e:
-        logger.error(f"Error in handle_conversation: {str(e)}")
+        logger.error(f"Error in converse event: {str(e)}")
         await sio.emit('error', {'message': str(e)}, to=sid)
 
 @sio.event
