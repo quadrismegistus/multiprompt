@@ -15,10 +15,10 @@ class BaseLLM(ABC):
             self.api_key = api_key
 
     @abstractmethod
-    async def stream(self, messages, max_tokens, temperature):
+    def stream(self, messages, max_tokens, temperature):
         pass
 
-    async def generate_async(
+    def generate(
         self,
         user_prompt_or_messages,
         reference_prompt="",
@@ -37,44 +37,8 @@ class BaseLLM(ABC):
                 example_prompts=example_prompts,
             )
         )
-        async for x in self.stream(messages, max_tokens=max_tokens, temperature=temperature):
-            yield x
-
-    def generate(self, *args, **kwargs):
-        """
-        A synchronous generator wrapper for the async generate method.
-        """
-        q = queue.Queue()
-
-        def run_async_gen():
-            new_loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(new_loop)
-            
-            async def async_generator():
-                async for item in self.generate_async(*args, **kwargs):
-                    q.put(item)
-                q.put(StopIteration)
-
-            try:
-                new_loop.run_until_complete(async_generator())
-            finally:
-                new_loop.close()
-
-        # Start the async code in a separate thread
-        thread = threading.Thread(target=run_async_gen)
-        thread.start()
-
-        # Yield values from the queue
-        while True:
-            item = q.get()
-            if item is StopIteration:
-                break
-            yield item
-
-        thread.join()
-
-    def generate_txt(self, *args, **kwargs):
-        return ''.join(list(self.generate(*args, **kwargs)))
+        return iter_async_generator(self.stream, messages, max_tokens=max_tokens, temperature=temperature)
+        # return self.stream(messages, max_tokens=max_tokens, temperature=temperature)
 
     @classmethod
     @abstractmethod

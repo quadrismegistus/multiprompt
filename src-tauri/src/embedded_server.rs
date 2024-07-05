@@ -8,7 +8,7 @@ pub fn start_embedded_server() -> (mpsc::Receiver<String>, Arc<Mutex<Child>>) {
     let (tx, rx) = mpsc::channel();
 
     let mut command = Command::new("python")
-        .arg("../backend/app.py")
+        .arg("../run_server.py")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()

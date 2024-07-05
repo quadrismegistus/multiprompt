@@ -20,22 +20,6 @@ function AgentCard({ agent }) {
 
   const isOnlyColumn = agents.filter(a => a.type === 'ai').length === 1;
 
-  const handleNameChange = (e) => {
-    updateAgent(agent.id, { name: e.target.value });
-  };
-
-  const handleModelChange = (model) => {
-    updateAgent(agent.id, { model });
-  };
-
-  const handleSystemPromptChange = (e) => {
-    updateAgent(agent.id, { systemPrompt: e.target.value });
-  };
-
-  const handleTemperatureChange = (temperature) => {
-    updateAgent(agent.id, { temperature });
-  };
-
   const handleMoveAgentLeft = () => {
     moveAgentTo(agent.id, agent.position - 1);
   };
@@ -63,24 +47,24 @@ function AgentCard({ agent }) {
     <Card className={`agent-card useragent-card flex-grow`}>
       <Card.Header className="d-flex justify-content-between align-items-start">
         <Accordion className='agentconfig'>
-            <Accordion.Item eventKey="0">
-              <Accordion.Header>
-               [{agent.position}] {agent.name}
-                <span style={{
-                  fontFamily: "monospace", 
-                  fontSize: ".8em", 
-                  lineHeight: 'normal',
-                  fontStyle: "italic",
-                  marginLeft: ".5em",
-                }}>
-                  ({MODEL_DICT_r[agent.model]})
-                </span>
-              </Accordion.Header>
-              <Accordion.Body>
-                <AgentConfigForm agent={agent} />
-              </Accordion.Body>
-            </Accordion.Item>
-          </Accordion>
+          <Accordion.Item eventKey="0">
+            <Accordion.Header>
+              [{agent.position}] {agent.name}
+              <span style={{
+                fontFamily: "monospace", 
+                fontSize: ".8em", 
+                lineHeight: 'normal',
+                fontStyle: "italic",
+                marginLeft: ".5em",
+              }}>
+                ({MODEL_DICT_r[agent.model]})
+              </span>
+            </Accordion.Header>
+            <Accordion.Body>
+              <AgentConfigForm agent={agent} />
+            </Accordion.Body>
+          </Accordion.Item>
+        </Accordion>
 
         <ButtonGroup>
           <Button variant="link" onClick={handleMoveAgentLeft} className="p-0 mx-1" title="Move Left">
@@ -101,13 +85,10 @@ function AgentCard({ agent }) {
         <MarkdownRenderer content={agent.output} />
       </Card.Body>
       <Card.Footer>
-        {/* {agentProgress < 100 &&  */}
-          <ProgressBar 
-            now={agentProgress} 
-            label={`${agentProgressTokens} tokens | $${(agentProgressTokens * getCostPerToken(agent.model)).toFixed(4)} now | $${totalTokensByAgent[agent.id] ? (totalTokensByAgent[agent.id] * getCostPerToken(agent.model)).toFixed(4) : "0.0000"} total`}
-          />
-
-        {/* } */}
+        <ProgressBar 
+          now={agentProgress} 
+          label={`${agentProgressTokens} tokens | $${(agentProgressTokens * getCostPerToken(agent.model)).toFixed(4)} now | $${totalTokensByAgent[agent.id] ? (totalTokensByAgent[agent.id] * getCostPerToken(agent.model)).toFixed(4) : "0.0000"} total`}
+        />
       </Card.Footer>
     </Card>
   );
