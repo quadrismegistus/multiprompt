@@ -213,3 +213,5 @@ export const clearAllData = () => {
   referenceCodePrompt.set("");
   // ... reset other entities as needed
 };
+
+// clearAllData();

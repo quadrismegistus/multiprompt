@@ -71,7 +71,7 @@ function UserCard() {
               <Button 
                 variant="primary" 
                 onClick={handleSend} 
-                disabled={isSending || !currentUserPrompt.trim()}
+                disabled={isSending || !currentUserPrompt}
                 className="px-4 py-2" 
                 style={{float:'right'}}
               >
@@ -94,7 +94,7 @@ function UserCard() {
         <MessageList messages={conversation} />
         
         <div style={{ position: 'absolute', bottom: '10px', right: '10px' }}>
-          Total Cost: ${currentTotalCost.toFixed(4)}
+          Total Cost: ${currentTotalCost}
         </div>
       </Card.Body>
     </Card>
