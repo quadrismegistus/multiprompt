@@ -152,6 +152,8 @@ PATH_HOMEDIR = os.path.expanduser('~/.multiprompt')
 PATH_DATA = os.path.join(PATH_HOMEDIR,'data')
 PATH_LLM_CACHE=os.path.join(PATH_DATA,'cache.multiprompt_llm_cache.sqlitedict')
 os.makedirs(PATH_DATA,exist_ok=True)
+PATH_TINYDB = os.path.join(PATH_DATA,'mulitprompt_db.json')
+PATH_DB = os.path.join(PATH_DATA,'mulitprompt.db')
 
 
 REPO2LLM_EXTENSIONS = [".py", ".js", ".html", ".css", ".md", ".txt", ".json", ".yaml", ".yml", ".toml", ".rs", ".ipynb"]

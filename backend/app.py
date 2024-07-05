@@ -9,7 +9,8 @@ sio.attach(app)
 # Store active tasks for each client
 client_tasks = defaultdict(dict)
 # In-memory storage (replace with a database in production)
-storage = {}
+from sqlitedict import SqliteDict
+storage = SqliteDict(PATH_DB, autocommit=True)
 
 @sio.event
 async def getItem(sid, data):
