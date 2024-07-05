@@ -1,13 +1,10 @@
 import React from 'react';
 import { Settings, History, Trash2, Sun, Moon } from 'lucide-react';
 import { Tooltip, OverlayTrigger } from 'react-bootstrap';
-import useStore from '../store/useStore';
+import { clearAgentCache, showModal, isDarkMode, toggleTheme } from '../entities/main';
 
 function IconSidebar() {
-  const clearAgentCache = useStore(state => state.clearAgentCache);
-  const showModal = useStore(state => state.showModal);
-  const toggleTheme = useStore(state => state.toggleTheme);
-  const isDarkMode = useStore(state => state.isDarkMode);
+  const darkMode = isDarkMode.use();
 
   const handleClearAgentCache = () => {
     clearAgentCache();
@@ -52,13 +49,13 @@ function IconSidebar() {
         </button>
       </OverlayTrigger>
 
-      <OverlayTrigger placement="right" overlay={renderTooltip(isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode")}>
+      <OverlayTrigger placement="right" overlay={renderTooltip(darkMode ? "Switch to Light Mode" : "Switch to Dark Mode")}>
         <button 
           className="icon-btn" 
           onClick={handleToggleTheme}
-          aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
         >
-          {isDarkMode ? <Sun size={iconSize} color={iconColor} /> : <Moon size={iconSize} color={iconColor} />}
+          {darkMode ? <Sun size={iconSize} color={iconColor} /> : <Moon size={iconSize} color={iconColor} />}
         </button>
       </OverlayTrigger>
 

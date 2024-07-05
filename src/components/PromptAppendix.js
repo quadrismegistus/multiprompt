@@ -2,20 +2,11 @@ import React from 'react';
 import { Form, Row, Col, Button, InputGroup } from 'react-bootstrap';
 import { RefreshCw, Github, Folder } from 'lucide-react';
 import { useDirectoryReader } from '../contexts/DirectoryReaderContext';
-import useStore from '../store/useStore';
+import { referenceCodePrompt, config, updateReferenceCodePrompt, updateConfig } from '../entities/main';
 
 const PromptAppendix = () => {
-  const {
-    referenceCodePrompt,
-    updateReferenceCodePrompt,
-    config,
-    updateConfig
-  } = useStore(state => ({
-    referenceCodePrompt: state.referenceCodePrompt,
-    updateReferenceCodePrompt: state.updateReferenceCodePrompt,
-    config: state.config,
-    updateConfig: state.updateConfig
-  }));
+  const currentReferenceCodePrompt = referenceCodePrompt.use();
+  const currentConfig = config.use();
 
   const { selectedPath, error, readFileOrDirectory, handleRefreshFiles, fetchRepoContent, hasSelectedFiles } = useDirectoryReader();
 
@@ -43,11 +34,10 @@ const PromptAppendix = () => {
 
   const handleGithubSubmit = async () => {
     try {
-      const content = await fetchRepoContent(config.githubUrl);
+      const content = await fetchRepoContent(currentConfig.githubUrl);
       updateReferenceCodePrompt(content);
     } catch (error) {
       console.error('Error fetching GitHub repo content:', error);
-      // Handle error appropriately
     }
   };
 
@@ -62,7 +52,7 @@ const PromptAppendix = () => {
       <Form.Control
         as="textarea"
         rows={5}
-        value={referenceCodePrompt}
+        value={currentReferenceCodePrompt}
         onChange={handleReferenceCodePromptChange}
         placeholder="Enter code or documents to reference"
         className="mb-2"
@@ -101,7 +91,7 @@ const PromptAppendix = () => {
             <Form.Control
               type="text"
               placeholder="Get from GitHub"
-              value={config.githubUrl}
+              value={currentConfig.githubUrl}
               onChange={handleGithubUrlChange}
             />
             <Button variant="dark" onClick={handleGithubSubmit}>

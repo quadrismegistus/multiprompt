@@ -17,6 +17,7 @@
     "react-markdown": "^9.0.1",
     "react-scripts": "5.0.1",
     "react-syntax-highlighter": "^15.5.0",
+    "simpler-state": "^1.2.1",
     "socket.io-client": "^4.0.1",
     "styled-components": "^6.1.11",
     "uuid": "^9.0.0",

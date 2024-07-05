@@ -1,19 +1,18 @@
 import React from 'react';
-import useStore from '../store/useStore';
 import ConfigModal from './ConfigModal';
 import ConversationHistory from './ConversationHistory';
+import { activeModal, hideModal } from '../entities/main';
 
 const ModalManager = () => {
-  const activeModal = useStore(state => state.activeModal);
-  const hideModal = useStore(state => state.hideModal);
+  const currentActiveModal = activeModal.use();
 
   const handleClose = () => {
     hideModal();
   };
 
-  if (!activeModal) return null;
+  if (!currentActiveModal) return null;
 
-  switch (activeModal) {
+  switch (currentActiveModal) {
     case 'config':
       return <ConfigModal show={true} onHide={handleClose} />;
     case 'history':

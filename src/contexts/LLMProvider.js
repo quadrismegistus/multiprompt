@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 import { getLastNMessagesAsString, getUserPromptWithReferencePrompt } from "../utils/promptUtils";
 import { useSocket } from "./SocketContext";
-import useStore from "../store/useStore";
+import { agents, config, currentConversation, updateAgent, addAgentToken, addUserMessageToCurrentConversation, addAgentResponse, resetAgentProgress } from '../entities/main';
 import { MAX_TOKENS } from "../constants";
 
 console.log("Initializing LLMContext");
@@ -11,14 +11,9 @@ const LLMContext = createContext(null);
 export const LLMProvider = ({ children }) => {
   const { socket, isConnected } = useSocket();
   const [agentProgress, setAgentProgress] = useState({});
-  const { getAgentById } = useStore();
 
-  const { config, agents, updateAgent, addAgentToken } = useStore((state) => ({
-    config: state.config,
-    agents: state.agents,
-    updateAgent: state.updateAgent,
-    addAgentToken: state.addAgentToken
-  }));
+  const currentConfig = config.use();
+  const currentAgents = agents.use();
 
   const query = useCallback(
     (userPrompt, agent, onChunk) => {
@@ -27,7 +22,7 @@ export const LLMProvider = ({ children }) => {
       }
 
       const { id, model, systemPrompt, temperature } = agent;
-      const { systemMessagePreface } = config;
+      const { systemMessagePreface } = currentConfig;
       const finalSystemPrompt = `${
         systemMessagePreface ? systemMessagePreface : ""
       }\n\n${systemPrompt}`.trim();
@@ -74,22 +69,18 @@ export const LLMProvider = ({ children }) => {
         socket.on("error", handleError);
       });
     },
-    [isConnected, socket, config]
+    [isConnected, socket, currentConfig]
   );
 
   const handleSendPrompt = useCallback(
     async (userPrompt, referenceCodePrompt, targetAgentId = null) => {
       if (!isConnected) return;
 
-      const { addUserMessageToCurrentConversation, addAgentResponse, currentConversation, addAgentToken, resetAgentProgress } =
-        useStore.getState();
-
       let combinedUserPrompt = getUserPromptWithReferencePrompt(userPrompt, referenceCodePrompt);
 
       addUserMessageToCurrentConversation(combinedUserPrompt);
 
-      // clear agent progress
-      const aiAgents = agents.filter((agent) => agent.type === "ai");
+      const aiAgents = currentAgents.filter((agent) => agent.type === "ai");
       aiAgents.forEach((agent) => resetAgentProgress(agent.id));
 
       const agentsByPosition = aiAgents.reduce((acc, agent) => {
@@ -118,7 +109,7 @@ export const LLMProvider = ({ children }) => {
                 addAgentToken(agent.id, token);
               };
 
-              const userPromptForThisAgent = combinedUserPrompt + getLastNMessagesAsString(currentConversation, agent.numLastMessagesWanted);
+              const userPromptForThisAgent = combinedUserPrompt + getLastNMessagesAsString(currentConversation.get(), agent.numLastMessagesWanted);
               console.log('userPromptForThisAgent',agent.name,userPromptForThisAgent);
 
               const fullResponse = await query(
@@ -143,7 +134,7 @@ export const LLMProvider = ({ children }) => {
         if (targetAgentId) break;
       }
     },
-    [agents, query, isConnected, updateAgent]
+    [currentAgents, query, isConnected]
   );
 
   return (
@@ -164,4 +155,3 @@ export const useLLM = () => {
 };
 
 export default LLMProvider;
-

@@ -1,19 +1,17 @@
 import React from 'react';
-import { Container, Row, Col } from 'react-bootstrap';
+import { Container, Col } from 'react-bootstrap';
 import UserCard from './UserCard';
 import AgentCard from './AgentCard';
-import { GridLayout, GridCard } from './GridLayout';
 import IconSidebar from './IconSidebar';
-import useStore from '../store/useStore';
+import { agents, isDarkMode } from '../entities/main';
 
 function Layout() {
-  const agents = useStore((state) => state.agents);
-  const isDarkMode = useStore((state) => state.isDarkMode);
+  const currentAgents = agents.use();
+  const darkMode = isDarkMode.use();
 
-  const sortedAgents = [...agents].sort((a, b) => a.position - b.position);
+  const sortedAgents = [...currentAgents].sort((a, b) => a.position - b.position);
   const numCols = sortedAgents.length + 1;
 
-  // Group agents by position
   const agentsByPosition = sortedAgents.reduce((acc, agent) => {
     if (!acc[agent.position]) {
       acc[agent.position] = [];
@@ -23,7 +21,7 @@ function Layout() {
   }, {});
 
   return (
-    <Container className={`Layout ${isDarkMode ? 'dark' : ''}`}>
+    <Container className={`Layout ${darkMode ? 'dark' : ''}`}>
       <IconSidebar />
       <Col key={0} style={{ maxWidth: `calc(100vw / ${numCols})` }} className='last-in-position agentpos-0'>
         <UserCard />
@@ -43,6 +41,4 @@ function Layout() {
   );
 }
 
-
 export default Layout;
-

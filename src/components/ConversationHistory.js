@@ -1,10 +1,11 @@
 import React from 'react';
-import useStore from '../store/useStore';
 import { Modal, Button } from 'react-bootstrap';
 import MarkdownRenderer from './MarkdownRenderer';
+import { config } from '../entities/main';
 
 const ConversationHistory = ({ show, onHide }) => {
-  const conversationHistory = useStore(state => state.conversationHistory);
+  const currentConfig = config.use();
+  const conversationHistory = currentConfig.conversationHistory;
 
   return (
     <Modal show={show} onHide={onHide} size="lg">

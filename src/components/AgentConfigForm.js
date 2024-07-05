@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Form, Dropdown, Button } from "react-bootstrap";
 import { MODEL_CATEGORIES, MODEL_LIST } from "../constants";
-import useStore from '../store/useStore';
+import { agents, savedAgentConfigurations, config, updateAgent, saveAgentConfiguration, loadAgentConfiguration, loadConfiguration } from '../entities/main';
 
 function AgentConfigForm({ agent }) {
   const [roleName, setRoleName] = useState(agent.name);
   
-  const updateAgent = useStore(state => state.updateAgent);
-  const saveAgentConfiguration = useStore(state => state.saveAgentConfiguration);
-  const loadAgentConfiguration = useStore(state => state.loadAgentConfiguration);
-  const savedAgentConfigurations = useStore(state => state.savedAgentConfigurations);
-  const savedGlobalConfigurations = useStore(state => state.config.savedGlobalConfigurations || []);
-  const loadConfiguration = useStore(state => state.loadConfiguration);
+  const currentAgents = agents.use();
+  const currentSavedAgentConfigurations = savedAgentConfigurations.use();
+  const currentConfig = config.use();
 
   useEffect(() => {
     setRoleName(agent.name);
@@ -132,9 +129,9 @@ function AgentConfigForm({ agent }) {
               Load Role
             </Dropdown.Toggle>
             <Dropdown.Menu className="w-100">
-              {savedAgentConfigurations && Object.keys(savedAgentConfigurations).length > 0 ? (
-                Object.keys(savedAgentConfigurations)
-                  .filter(name => name && savedAgentConfigurations[name] && savedAgentConfigurations[name].name)
+              {currentSavedAgentConfigurations && Object.keys(currentSavedAgentConfigurations).length > 0 ? (
+                Object.keys(currentSavedAgentConfigurations)
+                  .filter(name => name && currentSavedAgentConfigurations[name] && currentSavedAgentConfigurations[name].name)
                   .map((name) => (
                     <Dropdown.Item
                       key={name}
@@ -170,8 +167,8 @@ function AgentConfigForm({ agent }) {
               Load Global Configuration
             </Dropdown.Toggle>
             <Dropdown.Menu className="w-100">
-              {Object.keys(savedGlobalConfigurations).length > 0 ? (
-                Object.keys(savedGlobalConfigurations).map(name => (
+              {currentConfig.savedGlobalConfigurations && Object.keys(currentConfig.savedGlobalConfigurations).length > 0 ? (
+                Object.keys(currentConfig.savedGlobalConfigurations).map(name => (
                   <Dropdown.Item key={name} onClick={() => handleLoadGlobalConfiguration(name)}>
                     {name}
                   </Dropdown.Item>

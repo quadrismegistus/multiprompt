@@ -1,5 +1,4 @@
 import React from 'react';
-import { AgentProvider } from './contexts/AgentContext';
 import { SocketProvider } from './contexts/SocketContext';
 import { ConfigProvider } from './contexts/ConfigContext';
 import { LLMProvider } from './contexts/LLMProvider';
@@ -16,12 +15,10 @@ function App() {
       <ThemeProvider>
         <SocketProvider>
           <DirectoryReaderProvider>
-            <AgentProvider>
               <LLMProvider>
                 <Layout />
                 <ModalManager />
               </LLMProvider>
-            </AgentProvider>
           </DirectoryReaderProvider>
       </SocketProvider>
       </ThemeProvider>
