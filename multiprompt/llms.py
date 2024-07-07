@@ -5,7 +5,6 @@ from .utils import *
 def get_cache_db():
     return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
 
-
 class BaseLLM(ABC):
     api_key = None
 
@@ -15,10 +14,10 @@ class BaseLLM(ABC):
             self.api_key = api_key
 
     @abstractmethod
-    def stream(self, messages, max_tokens, temperature):
+    async def generate_async(self, messages, max_tokens, temperature):
         pass
 
-    def generate(
+    async def generate(
         self,
         user_prompt_or_messages,
         reference_prompt="",
@@ -37,8 +36,8 @@ class BaseLLM(ABC):
                 example_prompts=example_prompts,
             )
         )
-        return iter_async_generator(self.stream, messages, max_tokens=max_tokens, temperature=temperature)
-        # return self.stream(messages, max_tokens=max_tokens, temperature=temperature)
+        async for token in self.generate_async(messages, max_tokens=max_tokens, temperature=temperature):
+            yield token
 
     @classmethod
     @abstractmethod
@@ -67,7 +66,6 @@ class BaseLLM(ABC):
         messages.append({"role": "user", "content": user_prompt})
         return messages
 
-
 class AnthropicLLM(BaseLLM):
     api_key = ANTHROPIC_API_KEY
 
@@ -80,7 +78,7 @@ class AnthropicLLM(BaseLLM):
             raise ValueError("ANTHROPIC_API_KEY not found in environment variables")
         return anthropic.AsyncAnthropic(api_key=cls.api_key)
 
-    async def stream(
+    async def generate_async(
         self, messages, max_tokens=DEFAULT_MAX_TOKENS, temperature=DEFAULT_TEMP
     ):
         client = self.get_client()
@@ -98,7 +96,6 @@ class AnthropicLLM(BaseLLM):
             async for text in stream.text_stream:
                 yield text
 
-
 class OpenAILLM(BaseLLM):
     api_key = OPENAI_API_KEY
 
@@ -111,7 +108,7 @@ class OpenAILLM(BaseLLM):
             raise ValueError("OPENAI_API_KEY not found in environment variables")
         return openai.AsyncOpenAI(api_key=cls.api_key)
 
-    async def stream(
+    async def generate_async(
         self, messages, max_tokens=DEFAULT_MAX_TOKENS, temperature=DEFAULT_TEMP
     ):
         client = self.get_client()
@@ -126,7 +123,6 @@ class OpenAILLM(BaseLLM):
             if chunk.choices[0].delta.content is not None:
                 yield chunk.choices[0].delta.content
 
-
 class GeminiLLM(BaseLLM):
     api_key = GEMINI_API_KEY
 
@@ -138,7 +134,7 @@ class GeminiLLM(BaseLLM):
         genai.configure(api_key=cls.api_key)
         return genai
 
-    async def stream(
+    async def generate_async(
         self, messages, max_tokens=DEFAULT_MAX_TOKENS, temperature=DEFAULT_TEMP
     ):
         gemini_client = self.get_client()
@@ -168,7 +164,6 @@ class GeminiLLM(BaseLLM):
     def format_prompt(cls, *args, **kwargs):
         return convert_prompt_messages_to_str(super().format_prompt(*args, **kwargs))
 
-
 class LlamaLLM(BaseLLM):
     @classmethod
     @cache
@@ -177,7 +172,7 @@ class LlamaLLM(BaseLLM):
 
         return AsyncClient()
 
-    async def stream(
+    async def generate_async(
         self, messages, max_tokens=DEFAULT_MAX_TOKENS, temperature=DEFAULT_TEMP
     ):
         client = self.get_client()
@@ -193,7 +188,6 @@ class LlamaLLM(BaseLLM):
     def format_prompt(cls, *args, **kwargs):
         return convert_prompt_messages_to_str(super().format_prompt(*args, **kwargs))
 
-
 @cache
 def LLM(model):
     if model.startswith("claude"):
@@ -205,14 +199,10 @@ def LLM(model):
     else:
         return LlamaLLM(model)
 
-
-
-
 async def stream_llm_response(
     model=DEFAULT_MODEL,
     **kwargs,
 ):
     llm = LLM(model)
-    streamer = llm.generate_async(**kwargs)
-    async for response in streamer: 
+    async for response in llm.generate(**kwargs):
         yield response

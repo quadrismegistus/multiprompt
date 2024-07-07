@@ -6,8 +6,9 @@ openai
 google-generativeai
 ollama
 pathspec
-python-socketio
-aiohttp
+# aiohttp
 sqlitedict
 gitpython
 pyperclip
+python-socketio 
+eventlet

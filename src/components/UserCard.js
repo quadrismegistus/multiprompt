@@ -43,18 +43,20 @@ function UserCard() {
   };
   
   const handleSend = useCallback(async () => {
+    console.log("Sending prompt:", userPrompt);
     setIsSending(true);
     setAccordionOpen(false);
     updateUserPrompt(''); 
     updateReferenceCodePrompt("");
     try {
-      await handleSendPrompt(userPrompt, referenceCodePrompt);
+      const result = await handleSendPrompt(userPrompt, referenceCodePrompt);
+      console.log("Prompt sent successfully, result:", result);
     } catch (error) {
       console.error("Error sending prompt:", error);
     } finally {
       setIsSending(false);
     }
-  }, [handleSendPrompt, userPrompt, referenceCodePrompt]);
+  }, [handleSendPrompt, userPrompt, referenceCodePrompt, updateUserPrompt, updateReferenceCodePrompt]);
 
   const toggleAccordion = () => {
     setAccordionOpen(!accordionOpen);
