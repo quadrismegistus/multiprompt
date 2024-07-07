@@ -49,7 +49,11 @@ class ConversationRound:
             async for token_data in merge_generators(agent_tasks):
                 yield token_data
 
-            prompt_now.append({"role": "assistant", "content": "\n".join(self.responses[agent.name] for agent in agents)})
+            # prompt_now.append({"role": "assistant", "content": "\n".join(self.responses[agent.name] for agent in agents)})
+            prompt_content = '\n\n\n'.join(make_ascii_section(f'Response from {agent.name}', self.responses[agent.name], 2) for agent in agents).strip()
+            # prompt_now.append({"role": "assistant", "content": prompt_content})
+            prompt_now[0]['content']+='\n\n\n'+prompt_content
+            logger.info(prompt_now)
 
     async def run_agent_async(self, agent, prompt_now):
         llm = LLM(agent.model)
