@@ -16,8 +16,13 @@ const CustomToastContainer = () => {
   useEffect(() => {
     if (socket) {
       const events = [
-        'connection_status', 'disconnect', 'conversation_complete', 'error',
-        'repoContentStarted', 'repoContentSuccess', 'repoContentError', 'test_response'
+        'connection_status', 
+        'disconnect', 
+        'conversation_complete', 
+        'error',
+        'repoContentStarted', 
+        'repoContentSuccess', 
+        'repoContentError',
       ];
 
       const eventListeners = events.map(event => ({
@@ -64,7 +69,7 @@ const CustomToastContainer = () => {
   }, []);
 
   return (
-    <ToastContainer position="top-end" className="p-3">
+    <ToastContainer position="bottom-end" className="p-3">
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
@@ -73,9 +78,9 @@ const CustomToastContainer = () => {
           delay={3000}
           bg={toast.type}
         >
-          <Toast.Header>
+          {/* <Toast.Header>
             <strong className="me-auto">Notification</strong>
-          </Toast.Header>
+          </Toast.Header> */}
           <Toast.Body>{toast.message}</Toast.Body>
         </Toast>
       ))}
