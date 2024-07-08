@@ -63,19 +63,19 @@ async def fetchRepoContent(sid, data):
     try:
         task = asyncio.create_task(fetch_repo_content(repo_url))
         task.add_done_callback(lambda t: asyncio.create_task(send_repo_content(sid, t)))
-        await sio.emit('repoContentStarted', {'message': 'Fetching repo content...'}, room=sid)
+        await sio.emit('repoContentStarted', {'message': 'Fetching repo content...'}, to=sid)
     except Exception as e:
         logger.error(f"Error fetching repo content: {str(e)}")
-        await sio.emit('repoContentError', {'error': str(e)}, room=sid)
+        await sio.emit('repoContentError', {'error': str(e)}, to=sid)
 
 
 async def send_repo_content(sid, task):
     try:
         markdown_content = task.result()
-        await sio.emit('repoContent', {'content': markdown_content}, room=sid)
+        await sio.emit('repoContent', {'content': markdown_content}, to=sid)
     except Exception as e:
         logger.error(f"Error sending repo content: {str(e)}")
-        await sio.emit('repoContentError', {'error': str(e)}, room=sid)
+        await sio.emit('repoContentError', {'error': str(e)}, to=sid)
 
 @sio.event
 async def test_connection(sid):

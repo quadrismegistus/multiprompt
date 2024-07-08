@@ -16,17 +16,21 @@ const CustomToastContainer = () => {
 
   useEffect(() => {
     if (socket) {
-      socket.on('response', (data) => {
-        addToast(`Response from ${data.agent}: ${data.token}`, 'success');
+      // List of socket events to listen to
+      const events = ['connection_status', 'disconnect', 'conversation_complete', 'error', 'repoContentStarted', 'repoContent', 'repoContentError', 'test_response'];
+
+      // Add listeners for each event
+      events.forEach(event => {
+        socket.on(event, (data) => {
+          addToast(`${event}: ${JSON.stringify(data)}`, 'info');
+        });
       });
 
-      socket.on('error', (error) => {
-        addToast(`Error: ${error.message}`, 'danger');
-      });
-
+      // Cleanup listeners on unmount
       return () => {
-        socket.off('response');
-        socket.off('error');
+        events.forEach(event => {
+          socket.off(event);
+        });
       };
     }
   }, [socket, addToast]);

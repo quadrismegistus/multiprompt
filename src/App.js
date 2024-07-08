@@ -21,7 +21,7 @@ function App() {
               <LLMProvider>
                 <Layout />
                 <ModalManager />
-                {/* <CustomToastContainer />  */}
+                <CustomToastContainer /> 
               </LLMProvider>
             </AgentProvider>
           </DirectoryReaderProvider>
