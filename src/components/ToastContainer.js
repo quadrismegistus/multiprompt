@@ -22,6 +22,7 @@ const CustomToastContainer = () => {
       // Add listeners for each event
       events.forEach(event => {
         socket.on(event, (data) => {
+            console.log(`Event ${event} received with data:`, data); // Add this for debugging
           addToast(`${event}: ${JSON.stringify(data)}`, 'info');
         });
       });

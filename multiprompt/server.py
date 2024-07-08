@@ -61,9 +61,9 @@ async def fetchRepoContent(sid, data):
     repo_url = data['url']
     logger.info(f'Fetch repo content for client {sid}')
     try:
+        await sio.emit('repoContentStarted', {'message': 'Fetching repo content...'}, to=sid)
         task = asyncio.create_task(fetch_repo_content(repo_url))
         task.add_done_callback(lambda t: asyncio.create_task(send_repo_content(sid, t)))
-        await sio.emit('repoContentStarted', {'message': 'Fetching repo content...'}, to=sid)
     except Exception as e:
         logger.error(f"Error fetching repo content: {str(e)}")
         await sio.emit('repoContentError', {'error': str(e)}, to=sid)
