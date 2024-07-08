@@ -65,7 +65,7 @@ const PromptAppendix = () => {
         value={referenceCodePrompt}
         onChange={handleReferenceCodePromptChange}
         placeholder="Enter code or documents to reference"
-        className="mb-2"
+        className="mb-2 refpromptarea"
         style={{fontFamily: "monospace", fontSize: "0.9em"}}
       />
       <Row>

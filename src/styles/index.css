@@ -122,6 +122,17 @@ body {
   @apply h-full p-4 bg-[color:var(--color-canvas-default)] border border-[color:var(--color-border-muted)] rounded-md;
 }
 
+
+.refpromptarea {
+  background-color: var(--color-canvas-default);
+  border:1px solid var(--color-border-muted);
+}
+
+.input-group input {
+  background-color: var(--color-canvas-default);
+  border:1px solid var(--color-border-muted);
+}
+
 .agentconfig {
   width:100%;
 }
