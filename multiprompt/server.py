@@ -11,7 +11,7 @@ sio.attach(app)
 @sio.event
 async def connect(sid, environ):
     logger.info(f"Client connected: {sid}")
-    await sio.emit("connection_status", {"status": "connected"}, to=sid)
+    await sio.emit("connection_status", {"status": "connected", "log": "Succesfully connected to backend"}, to=sid)
 
 
 @sio.event
@@ -42,7 +42,7 @@ async def converse(sid, data):
 
         logger.info(f"Conversation complete for client {sid}")
         await sio.emit(
-            "conversation_complete", {"conversationId": conversation.id}, to=sid
+            "conversation_complete", {"conversationId": conversation.id, "log":"Conversation complete"}, to=sid
         )
 
     except Exception as e:
@@ -73,6 +73,7 @@ async def send_repo_content(sid, task):
     try:
         markdown_content = task.result()
         await sio.emit('repoContent', {'content': markdown_content}, to=sid)
+        await sio.emit('repoContentSuccess', {'content': "Repository successfully imported"}, to=sid)
     except Exception as e:
         logger.error(f"Error sending repo content: {str(e)}")
         await sio.emit('repoContentError', {'error': str(e)}, to=sid)

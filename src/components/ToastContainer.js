@@ -1,4 +1,3 @@
-// src/components/ToastContainer.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { ToastContainer, Toast } from 'react-bootstrap';
 import { useSocket } from '../contexts/SocketContext';
@@ -16,21 +15,45 @@ const CustomToastContainer = () => {
 
   useEffect(() => {
     if (socket) {
-      // List of socket events to listen to
-      const events = ['connection_status', 'disconnect', 'conversation_complete', 'error', 'repoContentStarted', 'repoContent', 'repoContentError', 'test_response'];
+      const events = [
+        'connection_status', 'disconnect', 'conversation_complete', 'error',
+        'repoContentStarted', 'repoContentSuccess', 'repoContentError', 'test_response'
+      ];
 
-      // Add listeners for each event
-      events.forEach(event => {
-        socket.on(event, (data) => {
-            console.log(`Event ${event} received with data:`, data); // Add this for debugging
-          addToast(`${event}: ${JSON.stringify(data)}`, 'info');
-        });
+      const eventListeners = events.map(event => ({
+        event,
+        handler: (data) => {
+          console.log(`Event ${event} received with data:`, data);
+          let toastMessage = `${event}: ${JSON.stringify(data)}`;
+          let toastType = 'info';
+
+          if (data.log) {
+            toastMessage = data.log;
+          } else if (data.message) {
+            toastMessage = data.message;
+          } else if (data.content) {
+            toastMessage = data.content;
+          } else if (data.error) {
+            toastMessage = data.error;
+            toastType = 'danger';
+          }
+
+          if (event.toLowerCase().includes('error')) {
+            toastType = 'danger';
+          } else if (event.toLowerCase().includes('success')) {
+            toastType = 'success';
+          }
+          addToast(toastMessage, toastType);
+        }
+      }));
+
+      eventListeners.forEach(({ event, handler }) => {
+        socket.on(event, handler);
       });
 
-      // Cleanup listeners on unmount
       return () => {
-        events.forEach(event => {
-          socket.off(event);
+        eventListeners.forEach(({ event, handler }) => {
+          socket.off(event, handler);
         });
       };
     }

@@ -1,8 +1,7 @@
 // src/contexts/DirectoryReaderContext.js
 
-import React, { createContext, useState, useContext, useCallback, useRef, useEffect } from 'react';
-import { io } from 'socket.io-client';
-import { SOCKET_SERVER_URL } from '../constants';
+import React, { createContext, useState, useContext, useCallback, } from 'react';
+import { useSocket } from '../contexts/SocketContext';
 
 const DirectoryReaderContext = createContext();
 
@@ -19,28 +18,33 @@ export const DirectoryReaderProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [directoryHandle, setDirectoryHandle] = useState(null);
   const [fileHandles, setFileHandles] = useState([]);
-  const socket = useRef(null);
-
-  useEffect(() => {
-    socket.current = io(SOCKET_SERVER_URL);
-    return () => {
-      socket.current.disconnect();
-    };
-  }, []);
+  const { socket } = useSocket();
 
   const fetchRepoContent = useCallback((repoUrl) => {
     return new Promise((resolve, reject) => {
-      socket.current.emit('fetchRepoContent', { url: repoUrl });
+      if (!socket) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
 
-      socket.current.on('repoContent', (data) => {
+      socket.emit('fetchRepoContent', { url: repoUrl });
+
+      const handleRepoContent = (data) => {
+        socket.off('repoContent', handleRepoContent);
+        socket.off('repoContentError', handleRepoContentError);
         resolve(data.content);
-      });
+      };
 
-      socket.current.on('repoContentError', (error) => {
+      const handleRepoContentError = (error) => {
+        socket.off('repoContent', handleRepoContent);
+        socket.off('repoContentError', handleRepoContentError);
         reject(error);
-      });
+      };
+
+      socket.on('repoContent', handleRepoContent);
+      socket.on('repoContentError', handleRepoContentError);
     });
-  }, []);
+  }, [socket]);
   
   const readFileOrDirectory = useCallback(async () => {
     try {
