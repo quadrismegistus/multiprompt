@@ -59,7 +59,7 @@ async def fetch_repo_content(repo_url):
 @sio.event
 async def fetchRepoContent(sid, data):
     repo_url = data['url']
-    logger.debug(f'Fetch repo content for client {sid}')
+    logger.info(f'Fetch repo content for client {sid}')
     try:
         task = asyncio.create_task(fetch_repo_content(repo_url))
         task.add_done_callback(lambda t: asyncio.create_task(send_repo_content(sid, t)))

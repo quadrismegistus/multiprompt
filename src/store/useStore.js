@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import {
-  DEFAULT_MODEL,
   DEFAULT_AGENT,
   DEFAULT_SYSTEM_MESSAGE_PREFACE,
   initialAgentTypes,
@@ -280,7 +279,7 @@ const useStore = create(
 
       loadWorkflow: (workflow) => {
         console.log('loadWorkflow',workflow);
-        const state = get();
+        // const state = get();
         const newAgents = workflow.agents.map(agentData => {
           const existingAgent = initialAgents.find(agent => agent.id === agentData.id);
           if (existingAgent) {
@@ -298,7 +297,7 @@ const useStore = create(
     }),
     {
       name: "multiprompt-state",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
