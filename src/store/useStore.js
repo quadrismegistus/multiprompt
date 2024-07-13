@@ -1,13 +1,10 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { v4 as uuidv4 } from "uuid";
 import {
-  DEFAULT_MODEL,
   DEFAULT_AGENT,
   DEFAULT_SYSTEM_MESSAGE_PREFACE,
   initialAgentTypes,
   initialAgents,
-  MAX_TOKENS,
 } from "../constants";
 import { normalizePositions } from "../utils/agentUtils";
 import { getCostPerToken } from "../utils/promptUtils";
@@ -112,7 +109,10 @@ const useStore = create(
         console.log("addAgent", clickedAgentPosition);
         set((state) => {
           return {
-            agents: normalizePositions([...state.agents, DEFAULT_AGENT]),
+            agents: normalizePositions([
+              ...state.agents,
+              { ...DEFAULT_AGENT, position: clickedAgentPosition + 1 },
+            ]),
           };
         });
       },
@@ -264,10 +264,40 @@ const useStore = create(
         console.log("hideModal");
         set({ activeModal: null });
       },
+
+      savedWorkflows: {},
+
+      saveWorkflow: (name, workflow) => {
+        console.log('saveWorkflow',name,workflow);
+        set(state => ({
+          savedWorkflows: {
+            ...state.savedWorkflows,
+            [name]: workflow
+          }
+        }));
+      },
+
+      loadWorkflow: (workflow) => {
+        console.log('loadWorkflow',workflow);
+        // const state = get();
+        const newAgents = workflow.agents.map(agentData => {
+          const existingAgent = initialAgents.find(agent => agent.id === agentData.id);
+          if (existingAgent) {
+            return { ...existingAgent, position: agentData.position };
+          }
+          return null;
+        }).filter(agent => agent !== null);
+        
+        console.log('newAgents',newAgents);
+        set({
+          agents: normalizePositions(newAgents),
+        });
+      },
+
     }),
     {
       name: "multiprompt-state",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
