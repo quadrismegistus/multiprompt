@@ -82,8 +82,8 @@ function AgentCard({ agent }) {
         </ButtonGroup>
       </Card.Header>
       <Card.Body ref={cardBodyRef}>
-        {/* <MarkdownRenderer content={agent.output} /> */}
-        <pre>{agent.output}</pre>
+        <MarkdownRenderer content={agent.output} />
+        {/* <pre>{agent.output}</pre> */}
       </Card.Body>
       <Card.Footer>
         <ProgressBar 
