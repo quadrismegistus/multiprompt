@@ -42,12 +42,18 @@ def iter_async_generator(async_generator_func, *args, **kwargs):
 
 from pathlib import Path
 
+def get_common_root(attachment_paths):
+    if not len(attachment_paths): return None
+    if len(attachment_paths)==1: return os.path.dirname(attachment_paths[0])
+    return Path(os.path.commonpath(attachment_paths))
+
 def generate_directory_structure(attachment_paths):
-    # Find the common root
-    common_root = Path(os.path.commonpath(attachment_paths))
+    common_root = get_common_root(attachment_paths)
+    if common_root is None: return ''
     
     # Create the tree structure
     tree = {}
+    print(attachment_paths)
     for file_path in attachment_paths:
         relative_path = Path(file_path).relative_to(common_root)
         parts = relative_path.parts
@@ -68,3 +74,13 @@ def generate_directory_structure(attachment_paths):
         return lines
 
     return "\n".join(build_tree(tree))
+
+
+
+def printm(markdown_str):
+    try:
+        from IPython.display import display, Markdown
+
+        display(Markdown(markdown_str))
+    except Exception:
+        print(markdown_str)

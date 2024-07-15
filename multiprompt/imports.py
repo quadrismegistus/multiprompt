@@ -30,8 +30,7 @@ load_dotenv()
 import asyncio
 import os
 from functools import lru_cache
-import google.generativeai as genai
-from google.generativeai.types import HarmCategory, HarmBlockThreshold, GenerationConfig
+from litellm import acompletion
 import logging
 from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles

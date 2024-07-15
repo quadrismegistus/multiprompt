@@ -44,11 +44,30 @@ class ConversationRound:
     def prompt(self):
         messages = BaseLLM.format_prompt(*self.prompt_args, **self.prompt_kwargs)
         return messages
+
+    @property
+    def userprompt_content(self):
+        for msg in self.prompt:
+            if msg.get('role')=='user':
+                return msg.get('content',[])
+        return []
+            
+    @property
+    def userprompt_text_content(self):
+        for msg in self.prompt:
+            if msg.get('role')=='user':
+                return [
+                    d.get('text')
+                    for d in msg.get('content',[])
+                    if d.get('text')
+                ]
+        return []
     
     @property
     def prompt_str(self):
-        prompt = self.prompt
-        return prompt[0].get('content') if prompt else None
+        content = self.userprompt_content
+        content = [d.get('text','') for d in content if d.get('text')]
+        return content[0] if content else None
 
     @property
     def messages(self):
@@ -68,14 +87,26 @@ class ConversationRound:
         return l
 
     async def run_async(self):
-        yield dict(
-            round=self.num,
-            position=0,
-            agent='User',
-            token_num=0,
-            token=self.prompt_str,
-            conversation=self.conversation_id,
-        )
+        # yield dict(
+        #     round=self.num,
+        #     position=0,
+        #     agent='User',
+        #     token_num=0,
+        #     token=self.prompt_str,
+        #     conversation=self.conversation_id,
+        # )
+        token_num=0
+        for cstr in self.userprompt_text_content:
+            token_num+=1
+            yield dict(
+                round=self.num,
+                position=0,
+                agent='User',
+                token_num=token_num,
+                token=cstr,
+                conversation=self.conversation_id,
+            )
+
         for agents in self.agents_in_position:
             prompt_now = self.messages
             agent_tasks = [self.run_agent_async(agent, prompt_now) for agent in agents]
@@ -223,6 +254,7 @@ def detokenize_convo_df(df):
     o=[]
     for g,gdf in sorted(df.groupby(gby)):
         d=dict(zip(gby,g))
-        d['text']=''.join(gdf.token).strip()
+        sep=('' if g['agent']!='User' else '\n\n\n')
+        d['text']=sep.join(gdf.token).strip()
         o.append(d)
     return pd.DataFrame(o).set_index(gby).sort_index()
