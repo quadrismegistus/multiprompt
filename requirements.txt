@@ -12,3 +12,4 @@ gitpython
 pyperclip
 python-socketio 
 eventlet
+nest_asyncio

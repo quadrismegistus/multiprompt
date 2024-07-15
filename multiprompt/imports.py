@@ -8,6 +8,9 @@ import asyncio
 from collections import defaultdict
 import threading
 import queue
+import warnings
+import pandas as pd
+warnings.filterwarnings('ignore')
 
 import socketio
 from aiohttp import web

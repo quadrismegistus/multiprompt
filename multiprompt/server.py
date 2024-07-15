@@ -11,7 +11,11 @@ sio.attach(app)
 @sio.event
 async def connect(sid, environ):
     logger.info(f"Client connected: {sid}")
-    await sio.emit("connection_status", {"status": "connected", "log": "Succesfully connected to backend"}, to=sid)
+    await sio.emit(
+        "connection_status",
+        {"status": "connected", "log": "Succesfully connected to backend"},
+        to=sid,
+    )
 
 
 @sio.event
@@ -30,19 +34,21 @@ async def converse(sid, data):
     conversation_id = data.get("conversationId")
 
     conversation = Conversation(id=conversation_id, agents=agents_data)
-    conversation_round = conversation.add_round()
+    conversation_round = conversation.add_round(
+        user_prompt=user_prompt,
+        reference_prompt=reference_prompt,
+    )
 
     try:
-        async for response_d in conversation_round.run_async(
-            user_prompt=user_prompt,
-            reference_prompt=reference_prompt,
-        ):
+        async for response_d in conversation_round.run_async():
             logger.debug(f"Emitting response to client {sid}: {response_d}")
             await sio.emit("response", response_d, to=sid)
 
         logger.info(f"Conversation complete for client {sid}")
         await sio.emit(
-            "conversation_complete", {"conversationId": conversation.id, "log":"Conversation complete"}, to=sid
+            "conversation_complete",
+            {"conversationId": conversation.id, "log": "Conversation complete"},
+            to=sid,
         )
 
     except Exception as e:
@@ -51,32 +57,40 @@ async def converse(sid, data):
 
 
 async def fetch_repo_content(repo_url):
-    logger.debug(f'Fetching content from repo URL: {repo_url}')
+    logger.debug(f"Fetching content from repo URL: {repo_url}")
     reader = GitHubRepoReader(repo_url)
     markdown_content = reader.markdown
     return markdown_content
 
+
 @sio.event
 async def fetchRepoContent(sid, data):
-    repo_url = data['url']
-    logger.info(f'Fetch repo content for client {sid}')
+    repo_url = data["url"]
+    logger.info(f"Fetch repo content for client {sid}")
     try:
-        await sio.emit('repoContentStarted', {'message': 'Fetching repo content...'}, to=sid)
+        await sio.emit(
+            "repoContentStarted", {"message": "Fetching repo content..."}, to=sid
+        )
         task = asyncio.create_task(fetch_repo_content(repo_url))
         task.add_done_callback(lambda t: asyncio.create_task(send_repo_content(sid, t)))
     except Exception as e:
         logger.error(f"Error fetching repo content: {str(e)}")
-        await sio.emit('repoContentError', {'error': str(e)}, to=sid)
+        await sio.emit("repoContentError", {"error": str(e)}, to=sid)
 
 
 async def send_repo_content(sid, task):
     try:
         markdown_content = task.result()
-        await sio.emit('repoContent', {'content': markdown_content}, to=sid)
-        await sio.emit('repoContentSuccess', {'content': "Repository successfully imported"}, to=sid)
+        await sio.emit("repoContent", {"content": markdown_content}, to=sid)
+        await sio.emit(
+            "repoContentSuccess",
+            {"content": "Repository successfully imported"},
+            to=sid,
+        )
     except Exception as e:
         logger.error(f"Error sending repo content: {str(e)}")
-        await sio.emit('repoContentError', {'error': str(e)}, to=sid)
+        await sio.emit("repoContentError", {"error": str(e)}, to=sid)
+
 
 @sio.event
 async def test_connection(sid):

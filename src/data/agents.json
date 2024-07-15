@@ -108,6 +108,30 @@
     "model": "claude-3-5-sonnet-20240620",
     "temperature": null
   },
+  {
+    "name": "GPT-4o",
+    "system_prompt": "",
+    "model": "gpt-4o",
+    "temperature": null
+  },
+  {
+    "name": "Claude",
+    "system_prompt": "",
+    "model": "claude-3-5-sonnet-20240620",
+    "temperature": null
+  },
+  {
+    "name": "Gemini",
+    "system_prompt": "",
+    "model": "gemini-1.5-pro",
+    "temperature": null
+  },
+  {
+    "name": "CodeLlama",
+    "system_prompt": "",
+    "model": "codellama",
+    "temperature": null
+  },
 
   {
     "name": "Code Analyst",
