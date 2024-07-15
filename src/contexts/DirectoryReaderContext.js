@@ -1,160 +1,79 @@
-// src/contexts/DirectoryReaderContext.js
+// // src/contexts/DirectoryReaderContext.js
+// import React, { createContext, useState, useContext, useCallback } from 'react';
+// import { readTextFile, readDir } from '@tauri-apps/api/fs';
+// import { useSocket } from './SocketContext';
 
-import React, { createContext, useState, useContext, useCallback, } from 'react';
-import { useSocket } from '../contexts/SocketContext';
+// const DirectoryReaderContext = createContext();
 
-const DirectoryReaderContext = createContext();
+// export const useDirectoryReader = () => {
+//   const context = useContext(DirectoryReaderContext);
+//   if (!context) {
+//     throw new Error('useDirectoryReader must be used within a DirectoryReaderProvider');
+//   }
+//   return context;
+// };
 
-export const useDirectoryReader = () => {
-  const context = useContext(DirectoryReaderContext);
-  if (!context) {
-    throw new Error('useDirectoryReader must be used within a DirectoryReaderProvider');
-  }
-  return context;
-};
+// export const DirectoryReaderProvider = ({ children }) => {
+//   const [selectedPath, setSelectedPath] = useState('');
+//   const [error, setError] = useState(null);
+//   const { socket } = useSocket();
 
-export const DirectoryReaderProvider = ({ children }) => {
-  const [selectedPath, setSelectedPath] = useState('');
-  const [error, setError] = useState(null);
-  const [directoryHandle, setDirectoryHandle] = useState(null);
-  const [fileHandles, setFileHandles] = useState([]);
-  const { socket } = useSocket();
+//   const readFileOrDirectory = useCallback(async () => {
+//     try {
+//       const selected = await open({
+//         directory: true,
+//         multiple: true,
+//       });
+//       console.log(selected);
 
-  const fetchRepoContent = useCallback((repoUrl) => {
-    return new Promise((resolve, reject) => {
-      if (!socket) {
-        reject(new Error('Socket not connected'));
-        return;
-      }
+//       if (selected) {
+//         setSelectedPath(selected);
+//         return selected;
+//       }
+//     } catch (err) {
+//       setError('Failed to select directory');
+//       console.error(err);
+//     }
+//     return null;
+//   }, []);
 
-      socket.emit('fetchRepoContent', { url: repoUrl });
+//   const handleRefreshFiles = useCallback(async () => {
+//     if (!selectedPath) {
+//       setError('No directory selected');
+//       return null;
+//     }
 
-      const handleRepoContent = (data) => {
-        socket.off('repoContent', handleRepoContent);
-        socket.off('repoContentError', handleRepoContentError);
-        resolve(data.content);
-      };
+//     try {
+//       const entries = await readDir(selectedPath, { recursive: true });
+//       let content = '';
 
-      const handleRepoContentError = (error) => {
-        socket.off('repoContent', handleRepoContent);
-        socket.off('repoContentError', handleRepoContentError);
-        reject(error);
-      };
+//       for (const entry of entries) {
+//         if (entry.children) continue; // Skip directories
 
-      socket.on('repoContent', handleRepoContent);
-      socket.on('repoContentError', handleRepoContentError);
-    });
-  }, [socket]);
-  
-  const readFileOrDirectory = useCallback(async () => {
-    try {
-      setError(null);
-      let fileContents = '';
+//         const fileExt = entry.name.split('.').pop().toLowerCase();
+//         if (['py', 'js', 'html', 'css'].includes(fileExt)) {
+//           const fileContent = await readTextFile(entry.path);
+//           content += `## ${entry.path}\n\n\`\`\`${fileExt}\n${fileContent}\n\`\`\`\n\n`;
+//         }
+//       }
 
-      if (!('showDirectoryPicker' in window) && !('showOpenFilePicker' in window)) {
-        throw new Error('File System Access API is not supported in this browser.');
-      }
+//       return content;
+//     } catch (err) {
+//       setError('Failed to read directory contents');
+//       console.error(err);
+//       return null;
+//     }
+//   }, [selectedPath]);
 
-      if ('showDirectoryPicker' in window) {
-        const handle = await window.showDirectoryPicker();
-        setDirectoryHandle(handle);
-        setSelectedPath(handle.name);
-        fileContents = await readDirectoryContents(handle);
-      } else {
-        const handles = await window.showOpenFilePicker({ multiple: true });
-        setFileHandles(handles);
-        setSelectedPath(handles.length === 1 ? handles[0].name : `${handles.length} files selected`);
-        for (const fileHandle of handles) {
-          const file = await fileHandle.getFile();
-          const result = await handleFileContent(file);
-          if (result.processed) {
-            fileContents += result.content;
-          }
-        }
-      }
-
-      return fileContents.trim();
-    } catch (err) {
-      setError(err.message);
-      setSelectedPath('No file or folder selected');
-      return null;
-    }
-  }, []);
-
-  const handleRefreshFiles = useCallback(async () => {
-    try {
-      setError(null);
-      let fileContents = '';
-
-      if (directoryHandle) {
-        fileContents = await readDirectoryContents(directoryHandle);
-      } else if (fileHandles.length > 0) {
-        for (const fileHandle of fileHandles) {
-          const file = await fileHandle.getFile();
-          const result = await handleFileContent(file);
-          if (result.processed) {
-            fileContents += result.content;
-          }
-        }
-      } else {
-        throw new Error('No directory or files selected');
-      }
-
-      return fileContents.trim();
-    } catch (err) {
-      setError(err.message);
-      return null;
-    }
-  }, [directoryHandle, fileHandles]);
-
-  const handleFileContent = async (file, path = '') => {
-    if (!file) {
-      console.error('File is null or undefined');
-      return { processed: false, content: '', lines: 0 };
-    }
-
-    const extension = file.name.split('.').pop().toLowerCase();
-    if (['py', 'html', 'js', 'css'].includes(extension)) {
-      const contents = await file.text();
-      const fileLines = contents.split('\n').length;
-      const fileContent = `## ${path}${file.name}\n\n\`\`\`${extension}\n${contents}\n\`\`\`\n\n`;
-      return { processed: true, content: fileContent, lines: fileLines };
-    }
-    return { processed: false, content: '', lines: 0 };
-  };
-
-  const readDirectoryContents = async (dirHandle, path = '') => {
-    let fileContents = '';
-
-    for await (const entry of dirHandle.values()) {
-      if (entry.kind === 'file') {
-        try {
-          const file = await entry.getFile();
-          const { processed, content } = await handleFileContent(file, path);
-          if (processed) {
-            fileContents += content;
-          }
-        } catch (error) {
-          console.error('Error processing file:', error);
-        }
-      } else if (entry.kind === 'directory') {
-        fileContents += await readDirectoryContents(entry, `${path}${entry.name}/`);
-      }
-    }
-
-    return fileContents;
-  };
-
-  return (
-    <DirectoryReaderContext.Provider value={{ 
-      selectedPath, 
-      error, 
-      readFileOrDirectory, 
-      handleRefreshFiles,
-      fetchRepoContent,
-      hasSelectedFiles: !!directoryHandle || fileHandles.length > 0 
-    }}>
-      {children}
-    </DirectoryReaderContext.Provider>
-  );
-};
+//   return (
+//     <DirectoryReaderContext.Provider value={{ 
+//       selectedPath, 
+//       error, 
+//       readFileOrDirectory, 
+//       handleRefreshFiles,
+//       hasSelectedFiles: !!selectedPath 
+//     }}>
+//       {children}
+//     </DirectoryReaderContext.Provider>
+//   );
+// };

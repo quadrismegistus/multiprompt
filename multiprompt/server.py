@@ -1,7 +1,7 @@
 from .imports import *
 from .utils import *
-from .conversations import Conversation
-from .repo2llm import GitHubRepoReader
+from .conversations import *
+from .repo2llm import *
 
 sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="aiohttp")
 app = web.Application()
@@ -64,6 +64,22 @@ async def fetch_repo_content(repo_url):
 
 
 @sio.event
+async def build_reference_prompt(sid, data):
+    logger.info(f"build_reference_prompt <- {data}")
+    paths = data.get("paths")
+    url = data.get("url")
+    if paths:
+        reader = LocalReader(paths)
+    elif url:
+        reader = GitHubRepoReader(url)
+
+    output = reader.markdown
+    logger.info(f"returning output {len(output)} chars")
+
+    await sio.emit("new_reference_prompt", {"content": output}, to=sid)
+
+
+@sio.event
 async def fetchRepoContent(sid, data):
     repo_url = data["url"]
     logger.info(f"Fetch repo content for client {sid}")
@@ -109,8 +125,10 @@ async def main_async():
     print("Server started at http://localhost:8989")
     await asyncio.Event().wait()  # run forever
 
+
 def main():
-    asyncio.run(main())
+    asyncio.run(main_async())
+
 
 if __name__ == "__main__":
     main()

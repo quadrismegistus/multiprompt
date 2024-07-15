@@ -89,6 +89,7 @@ IGNORE_PATHS = {
     "*.temp",
     "*.bak",
     "static",
+    ".git",
 }
 
 

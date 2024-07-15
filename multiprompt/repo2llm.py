@@ -84,34 +84,52 @@ class BaseRepoReader(ABC):
             print(f"!! COULD NOT COPY TO CLIPBOARD: {e}")
             pass
 
-class LocalRepoReader(BaseRepoReader):
-    def __init__(self, directory=".", extensions=None):
+class LocalReader(BaseRepoReader):
+    def __init__(self, paths, extensions=None):
         super().__init__(extensions)
-        self.base_path = Path(directory).resolve()
-        self.gitignore_spec = self._parse_gitignore()
+        self.paths = [Path(path).resolve() for path in paths]
+        self.gitignore_specs = self._parse_gitignores()
 
-    def _parse_gitignore(self):
-        gitignore_path = self.base_path / '.gitignore'
-        if gitignore_path.exists():
-            with open(gitignore_path, 'r') as f:
-                return PathSpec.from_lines(GitWildMatchPattern, f)
-        return PathSpec([])
+    def _parse_gitignores(self):
+        specs = {}
+        for path in self.paths:
+            if path.is_dir():
+                gitignore_path = path / '.gitignore'
+                logger.info(f'?? {gitignore_path}')
+                if gitignore_path.exists():
+                    with open(gitignore_path, 'r') as f:
+                        specs[path] = PathSpec.from_lines(GitWildMatchPattern, f)
+        logger.info(pformat(specs))
+        return specs
 
     def should_ignore(self, path):
-        return super().should_ignore(path) or self.gitignore_spec.match_file(str(path))
+        if super().should_ignore(path):
+            return True
+        
+        for base_path, gitignore_spec in self.gitignore_specs.items():
+            if path.is_relative_to(base_path):
+                relative_path = path.relative_to(base_path)
+                if gitignore_spec.match_file(str(relative_path)):
+                    return True
+        
+        return False
 
     def get_files(self):
-        for root, _, filenames in os.walk(self.base_path):
-            for filename in filenames:
-                file_path = Path(root) / filename
-                relative_path = file_path.relative_to(self.base_path)
-                if not self.should_ignore(relative_path) and file_path.suffix in self.extensions:
-                    print(relative_path)
-                    yield relative_path
-
+        for path in self.paths:
+            if path.is_file():
+                if not self.should_ignore(path) and path.suffix in self.extensions:
+                    yield path.relative_to(path.parent)
+            elif path.is_dir():
+                for root, _, filenames in os.walk(path):
+                    if self.should_ignore(Path(root)): continue
+                    for filename in filenames:
+                        file_path = Path(root) / filename
+                        logger.info(file_path)
+                        if not self.should_ignore(file_path) and file_path.suffix in self.extensions:
+                            yield file_path.relative_to(path)
 
     def read_file(self, file_path):
-        full_path = self.base_path / file_path
+        full_path = next(path / file_path for path in self.paths if (path / file_path).exists())
         try:
             with open(full_path, "r", encoding='utf-8') as f:
                 content = f.read()
@@ -123,8 +141,8 @@ class LocalRepoReader(BaseRepoReader):
     @cached_property
     def markdown(self):
         output = []
-        output.append(f"# {self.base_path.name}\n")
-        output.append("This file contains truncated repository contents for LLM consumption. It provides an overview of the code structure and contents in this repository or folder, with comments removed for brevity.\n")
+        output.append("# Local Files and Directories\n")
+        output.append("This file contains truncated contents for LLM consumption. It provides an overview of the code structure and contents in the specified files and directories, with comments removed for brevity.\n")
         
         output.append("## Directory Structure\n")
         output.append("```")
@@ -218,15 +236,20 @@ class GitHubRepoReader(BaseRepoReader):
         
         return "\n".join(output)
 
-def main(source_or_path, extensions=REPO2LLM_EXTENSIONS, output_file='.robots.md'):
-    if source_or_path.startswith('http://') or source_or_path.startswith('https://'):
-        reader = GitHubRepoReader(source_or_path, extensions)
-    else:
-        directory = Path(source_or_path).resolve()
-        reader = LocalRepoReader(directory, extensions)
-        if output_file:
-            output_file = Path(output_file) if os.path.isabs(output_file) else directory / output_file
+def main(source_or_paths, extensions=REPO2LLM_EXTENSIONS, output_file='.robots.md'):
+    if isinstance(source_or_paths, str):
+        if source_or_paths.startswith('http://') or source_or_paths.startswith('https://'):
+            reader = GitHubRepoReader(source_or_paths, extensions)
         else:
-            output_file = directory / ".robots.md"
+            reader = LocalReader([source_or_paths], extensions)
+    else:  # Assume it's a list of paths
+        reader = LocalReader(source_or_paths, extensions)
+    
+    if output_file:
+        output_file = Path(output_file)
+        if not output_file.is_absolute():
+            output_file = Path.cwd() / output_file
+    else:
+        output_file = Path.cwd() / ".robots.md"
 
     reader.save_markdown(output_file)

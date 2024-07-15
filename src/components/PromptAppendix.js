@@ -1,54 +1,69 @@
-import React from 'react';
+import { React, useEffect } from 'react';
 import { Form, Row, Col, Button, InputGroup } from 'react-bootstrap';
 import { RefreshCw, Github, Folder } from 'lucide-react';
-import { useDirectoryReader } from '../contexts/DirectoryReaderContext';
 import useStore from '../store/useStore';
+import { useSocket } from '../contexts/SocketContext';
+import { open as taruiOpen } from '@tauri-apps/api/dialog';
 
 const PromptAppendix = () => {
   const {
     referenceCodePrompt,
     updateReferenceCodePrompt,
     config,
-    updateConfig
-  } = useStore(state => ({
-    referenceCodePrompt: state.referenceCodePrompt,
-    updateReferenceCodePrompt: state.updateReferenceCodePrompt,
-    config: state.config,
-    updateConfig: state.updateConfig
-  }));
+    updateConfig,
+    selectedReferencePaths,
+    setSelectedReferencePaths
+  } = useStore();
 
-  const { selectedPath, error, readFileOrDirectory, handleRefreshFiles, fetchRepoContent, hasSelectedFiles } = useDirectoryReader();
+  const { socket, isConnected } = useSocket();
 
   const handleReferenceCodePromptChange = (e) => {
     updateReferenceCodePrompt(e.target.value);
   };
 
-  const handleUseFileInputToggle = (useFile) => {
-    updateConfig({ useFileInput: useFile });
-  };
+  useEffect(() => {
+    if (socket) {
+      socket.on('new_reference_prompt', (data) => {
+        updateReferenceCodePrompt(data.content);
+      });
+
+      return () => {
+        socket.off('new_reference_prompt');
+      };
+    }
+  }, [socket, updateReferenceCodePrompt]);
 
   const handleDirectoryRead = async () => {
-    const content = await readFileOrDirectory();
-    if (content) {
-      updateReferenceCodePrompt(content);
+    try {
+      const selected = await taruiOpen({
+        directory: true,
+        multiple: true,
+      });
+      
+      if (selected) {
+        setSelectedReferencePaths(Array.isArray(selected) ? selected : [selected]);
+        await handleRefresh();
+      }
+    } catch (err) {
+      console.error('Failed to select directory:', err);
     }
   };
 
   const handleRefresh = async () => {
-    const content = await handleRefreshFiles();
-    if (content) {
-      updateReferenceCodePrompt(content);
+    const data = {
+      paths: selectedReferencePaths,
+      url: config.githubUrl
+    };
+    console.log('refreshing with data', data);
+  
+    if (!isConnected || !socket) {
+      console.error("Socket is not connected");
+      return;
     }
-  };
-
-  const handleGithubSubmit = async () => {
-    try {
-      const content = await fetchRepoContent(config.githubUrl);
-      updateReferenceCodePrompt(content);
-    } catch (error) {
-      console.error('Error fetching GitHub repo content:', error);
-      // Handle error appropriately
-    }
+  
+    return new Promise((resolve, reject) => {
+      socket.emit("build_reference_prompt", data);
+    });
   };
 
   const handleGithubUrlChange = (e) => {
@@ -73,16 +88,13 @@ const PromptAppendix = () => {
           <InputGroup>
             <Form.Control
               type="text"
-              value={selectedPath}
+              value={selectedReferencePaths.join(', ')}
               readOnly
-              placeholder="Get from files"
+              placeholder="Selected paths"
             />
             <Button
               variant="primary"
-              onClick={() => {
-                handleUseFileInputToggle(true);
-                handleDirectoryRead();
-              }}
+              onClick={handleDirectoryRead}
             >
               <Folder />
             </Button>
@@ -90,7 +102,7 @@ const PromptAppendix = () => {
               style={{border:"none"}}
               variant="success"
               onClick={handleRefresh}
-              disabled={!hasSelectedFiles}
+              disabled={selectedReferencePaths.length === 0 && !config.githubUrl}
             >
               <RefreshCw />
             </Button>
@@ -104,13 +116,12 @@ const PromptAppendix = () => {
               value={config.githubUrl}
               onChange={handleGithubUrlChange}
             />
-            <Button variant="dark" onClick={handleGithubSubmit}>
+            <Button variant="dark" onClick={handleRefresh}>
               <Github />
             </Button>
           </InputGroup>
         </Col>
       </Row>
-      {error && (<div>{error}</div>)}
     </Form.Group>
   );
 };
