@@ -21,6 +21,7 @@ const useStore = create(
       totalTokens: 0,
       totalTokensByAgent: {},
       selectedReferencePaths: [],
+      rootReferencePath: "",
 
       config: {
         openaiApiKey: "",
@@ -293,6 +294,11 @@ const useStore = create(
         set({
           agents: normalizePositions(newAgents),
         });
+      },
+
+
+      setRootReferencePath: (path) => {
+        set({rootReferencePath: path});
       },
 
       setSelectedReferencePaths: (paths) => {

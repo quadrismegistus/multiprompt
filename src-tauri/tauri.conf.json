@@ -24,7 +24,7 @@
         "all": true,
         "readFile": true,
         "readDir": true,
-        "scope": ["**", "*"]
+        "scope": ["*/**"]
       },
       "dialog": {
         "all": true

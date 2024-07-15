@@ -24,6 +24,18 @@ class BaseRepoReader(ABC):
     def get_files(self):
         pass
 
+    @property
+    def pathdata(self):
+        return [
+            {
+                'filename':fn.name,
+                'path_rel':fn.as_posix(),
+                'path_abs':fn.absolute().as_posix(),
+            }
+            for fn in self.get_files()
+        ]
+                
+
     @abstractmethod
     def read_file(self, file_path):
         pass
@@ -95,11 +107,9 @@ class LocalReader(BaseRepoReader):
         for path in self.paths:
             if path.is_dir():
                 gitignore_path = path / '.gitignore'
-                logger.info(f'?? {gitignore_path}')
                 if gitignore_path.exists():
                     with open(gitignore_path, 'r') as f:
                         specs[path] = PathSpec.from_lines(GitWildMatchPattern, f)
-        logger.info(pformat(specs))
         return specs
 
     def should_ignore(self, path):
@@ -124,7 +134,6 @@ class LocalReader(BaseRepoReader):
                     if self.should_ignore(Path(root)): continue
                     for filename in filenames:
                         file_path = Path(root) / filename
-                        logger.info(file_path)
                         if not self.should_ignore(file_path) and file_path.suffix in self.extensions:
                             yield file_path.relative_to(path)
 

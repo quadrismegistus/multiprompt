@@ -3,10 +3,7 @@ import { Form, Row, Col, Button, InputGroup } from 'react-bootstrap';
 import { RefreshCw, Github, Folder } from 'lucide-react';
 import CheckboxTree from 'react-checkbox-tree';
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
-import { readDir, readTextFile } from '@tauri-apps/api/fs';
-import { join } from '@tauri-apps/api/path';
-import ignore from 'ignore';
-import { open as taruiOpen } from '@tauri-apps/api/dialog';
+import { open as tauriOpen } from '@tauri-apps/api/dialog';
 import useStore from '../store/useStore';
 import { useSocket } from '../contexts/SocketContext';
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -18,7 +15,9 @@ const PromptAppendix = () => {
     config,
     updateConfig,
     selectedReferencePaths,
-    setSelectedReferencePaths
+    setSelectedReferencePaths,
+    rootReferencePath,
+    setRootReferencePath
   } = useStore();
 
   const { socket, isConnected } = useSocket();
@@ -37,93 +36,104 @@ const PromptAppendix = () => {
         updateReferenceCodePrompt(data.content);
       });
 
+      socket.on('new_reference_prompt_tree', (data) => {
+        if (data && data.paths) {
+          const fileTree = buildFileTreeFromPaths(data.paths);
+          setNodes(fileTree);
+        } else {
+          console.error('Invalid data received for new_reference_prompt_tree:', data);
+        }
+      });
+
       return () => {
         socket.off('new_reference_prompt');
+        socket.off('new_reference_prompt_tree');
       };
     }
   }, [socket, updateReferenceCodePrompt]);
 
   const handleDirectoryRead = async () => {
     try {
-      const selected = await taruiOpen({
+      const selectedPath = await tauriOpen({
         directory: true,
         multiple: false,
       });
       
-      if (selected) {
-        setSelectedReferencePaths([selected]);
-        const fileTree = await buildFileTree(selected);
-        setNodes(fileTree);
+      if (selectedPath) {
+        setRootReferencePath(selectedPath);
+        const data = { paths: [selectedPath] };
+        console.log(data);
+        if (socket && isConnected) {
+          socket.emit("build_reference_prompt_tree", data);
+        } else {
+          console.error("Socket is not connected. Unable to send data.");
+          // Optionally, you can show an error message to the user here
+        }
       }
     } catch (err) {
       console.error('Failed to select directory:', err);
     }
   };
 
-  const getRelativePath = (rootPath, fullPath) => {
-    // Ensure paths use forward slashes
-    rootPath = rootPath.replace(/\\/g, '/');
-    fullPath = fullPath.replace(/\\/g, '/');
-    
-    // Remove trailing slash from rootPath if present
-    rootPath = rootPath.replace(/\/$/, '');
-    
-    if (fullPath.startsWith(rootPath)) {
-      return fullPath.slice(rootPath.length).replace(/^\//, '');
-    }
-    return fullPath;
-  };
-
-  const buildFileTree = async (rootPath) => {
-    const ig = ignore();
-    
-    // Read .gitignore if it exists
-    try {
-      const gitignorePath = await join(rootPath, '.gitignore');
-      console.log('???',gitignorePath);
-      const gitignoreContent = await readTextFile(gitignorePath);
-      console.log(gitignoreContent);
-      ig.add(gitignoreContent);
-    } catch (error) {
-      console.error(error);
-      // .gitignore doesn't exist or couldn't be read, continue without it
-    }
-
-    const buildTree = async (currentPath) => {
-      const entries = await readDir(currentPath);
-      const filteredEntries = entries.filter(entry => {
-        const relativePath = getRelativePath(rootPath, entry.path);
-        if(!ig.ignores(relativePath) && entry.name[0] !== '.') {
-          // console.log([relativePath, entry.path])
-          return true;
-        } else {
-          return false;
+  const buildFileTreeFromPaths = (paths) => {
+    const tree = {};
+    paths.forEach(({ path_rel, path_abs }) => {
+      if (!path_rel || !path_abs) {
+        console.error('Invalid path data:', { path_rel, path_abs });
+        return;
+      }
+      const parts = path_rel.split('/');
+      let current = tree;
+      let currentPath = '';
+      parts.forEach((part, index) => {
+        currentPath += (index === 0 ? '' : '/') + part;
+        if (!current[part]) {
+          if (index === parts.length - 1) {
+            // This is a file
+            current[part] = { value: path_abs, label: part };
+          } else {
+            // This is a directory
+            current[part] = { value: path_abs.split(path_rel)[0] + currentPath, label: part, children: {} };
+          }
+        }
+        if (index < parts.length - 1) {
+          current = current[part].children;
         }
       });
+    });
 
-      return Promise.all(filteredEntries.map(async entry => {
-        if (entry.children) {
-          const children = await buildTree(entry.path);
-          return {
-            value: entry.path,
-            label: entry.name,
-            children: children.length > 0 ? children : undefined,
-          };
-        } else {
-          return {
-            value: entry.path,
-            label: entry.name,
-          };
-        }
-      }));
+    const buildNodes = (node) => {
+      if (!node.children) return node; // This is a file
+      const sortedChildren = Object.entries(node.children)
+        .sort(([, a], [, b]) => {
+          // Sort directories first, then alphabetically
+          const aIsDir = !!a.children;
+          const bIsDir = !!b.children;
+          if (aIsDir && !bIsDir) return -1;
+          if (!aIsDir && bIsDir) return 1;
+          return a.label.localeCompare(b.label);
+        })
+        .map(([, child]) => buildNodes(child));
+
+      return {
+        ...node,
+        children: sortedChildren
+      };
     };
 
-    return buildTree(rootPath);
+    return Object.values(tree).map(buildNodes).sort((a, b) => {
+      // Sort top-level nodes (directories first, then alphabetically)
+      const aIsDir = !!a.children;
+      const bIsDir = !!b.children;
+      if (aIsDir && !bIsDir) return -1;
+      if (!aIsDir && bIsDir) return 1;
+      return a.label.localeCompare(b.label);
+    });
   };
 
   const handleRefresh = async () => {
     const data = {
-      paths: checked,
+      paths: [rootReferencePath],
       url: config.githubUrl
     };
     console.log('refreshing with data', data);
@@ -134,7 +144,7 @@ const PromptAppendix = () => {
     }
   
     return new Promise((resolve, reject) => {
-      socket.emit("build_reference_prompt", data);
+      socket.emit("build_reference_prompt_tree", data);
     });
   };
 
@@ -203,7 +213,7 @@ const PromptAppendix = () => {
           <InputGroup>
             <Form.Control
               type="text"
-              value={selectedReferencePaths.join(', ')}
+              value={rootReferencePath}
               readOnly
               placeholder="Selected paths"
             />

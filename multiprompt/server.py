@@ -64,8 +64,8 @@ async def fetch_repo_content(repo_url):
 
 
 @sio.event
-async def build_reference_prompt(sid, data):
-    logger.info(f"build_reference_prompt <- {data}")
+async def build_reference_prompt_tree(sid, data):
+    logger.info(f"build_reference_prompt_tree <- {data}")
     paths = data.get("paths")
     url = data.get("url")
     if paths:
@@ -73,40 +73,9 @@ async def build_reference_prompt(sid, data):
     elif url:
         reader = GitHubRepoReader(url)
 
-    output = reader.markdown
-    logger.info(f"returning output {len(output)} chars")
-
-    await sio.emit("new_reference_prompt", {"content": output}, to=sid)
-
-
-@sio.event
-async def fetchRepoContent(sid, data):
-    repo_url = data["url"]
-    logger.info(f"Fetch repo content for client {sid}")
-    try:
-        await sio.emit(
-            "repoContentStarted", {"message": "Fetching repo content..."}, to=sid
-        )
-        task = asyncio.create_task(fetch_repo_content(repo_url))
-        task.add_done_callback(lambda t: asyncio.create_task(send_repo_content(sid, t)))
-    except Exception as e:
-        logger.error(f"Error fetching repo content: {str(e)}")
-        await sio.emit("repoContentError", {"error": str(e)}, to=sid)
-
-
-async def send_repo_content(sid, task):
-    logger.info(f"Sending repo content to client {sid}")
-    try:
-        markdown_content = task.result()
-        await sio.emit("repoContent", {"content": markdown_content}, to=sid)
-        await sio.emit(
-            "repoContentSuccess",
-            {"content": "Repository successfully imported"},
-            to=sid,
-        )
-    except Exception as e:
-        logger.error(f"Error sending repo content: {str(e)}")
-        await sio.emit("repoContentError", {"error": str(e)}, to=sid)
+    output = reader.pathdata
+    logger.info(f"returning output {len(output)} paths")
+    await sio.emit("new_reference_prompt_tree", {"paths": output}, to=sid)
 
 
 @sio.event
