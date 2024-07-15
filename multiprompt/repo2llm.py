@@ -218,40 +218,15 @@ class GitHubRepoReader(BaseRepoReader):
         
         return "\n".join(output)
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Generate a single markdown file from a repository's contents, respecting .gitignore and ignoring specific files."
-    )
-    parser.add_argument(
-        "source",
-        help="Directory to process or GitHub URL",
-    )
-    parser.add_argument(
-        "--extensions",
-        "-e",
-        nargs="+",
-        default=REPO2LLM_EXTENSIONS,
-        help=f'File extensions to include (default: {", ".join(REPO2LLM_EXTENSIONS)})',
-    )
-    parser.add_argument(
-        "--output",
-        "-o",
-        help="Output filename (default: .robots.md)",
-    )
-    args = parser.parse_args()
-
-    if args.source.startswith('http://') or args.source.startswith('https://'):
-        reader = GitHubRepoReader(args.source, args.extensions)
-        output_file = args.output or "github_repo_contents.md"
+def main(source_or_path, extensions=REPO2LLM_EXTENSIONS, output_file='.robots.md'):
+    if source_or_path.startswith('http://') or source_or_path.startswith('https://'):
+        reader = GitHubRepoReader(source_or_path, extensions)
     else:
-        directory = Path(args.source).resolve()
-        reader = LocalRepoReader(directory, args.extensions)
-        if args.output:
-            output_file = Path(args.output) if os.path.isabs(args.output) else directory / args.output
+        directory = Path(source_or_path).resolve()
+        reader = LocalRepoReader(directory, extensions)
+        if output_file:
+            output_file = Path(output_file) if os.path.isabs(output_file) else directory / output_file
         else:
             output_file = directory / ".robots.md"
 
     reader.save_markdown(output_file)
-
-if __name__ == "__main__":
-    main()

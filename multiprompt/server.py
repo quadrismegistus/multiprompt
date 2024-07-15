@@ -79,6 +79,7 @@ async def fetchRepoContent(sid, data):
 
 
 async def send_repo_content(sid, task):
+    logger.info(f"Sending repo content to client {sid}")
     try:
         markdown_content = task.result()
         await sio.emit("repoContent", {"content": markdown_content}, to=sid)
@@ -100,7 +101,7 @@ async def test_connection(sid):
     )
 
 
-async def main():
+async def main_async():
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "localhost", 8989)
@@ -108,6 +109,8 @@ async def main():
     print("Server started at http://localhost:8989")
     await asyncio.Event().wait()  # run forever
 
+def main():
+    asyncio.run(main())
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

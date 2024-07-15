@@ -30,7 +30,8 @@ setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "multiprompt=multiprompt.server:main",
+            # "multiprompt=multiprompt.server:main",
+            "multiprompt=multiprompt.cli:main",
         ],
     },
 )
