@@ -564,3 +564,8 @@ body, input, textarea, select {
 .form-control {
   color:var(--color-fg-muted)
 }
+
+.react-checkbox-tree {
+  height:200px;
+  overflow-y: scroll;
+}
