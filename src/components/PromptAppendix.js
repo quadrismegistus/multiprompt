@@ -84,16 +84,14 @@ const PromptAppendix = () => {
       }
       const parts = path_rel.split('/');
       let current = tree;
-      let currentPath = '';
       parts.forEach((part, index) => {
-        currentPath += (index === 0 ? '' : '/') + part;
         if (!current[part]) {
           if (index === parts.length - 1) {
             // This is a file
-            current[part] = { value: path_abs, label: part };
+            current[part] = { value: path_rel, label: part };
           } else {
             // This is a directory
-            current[part] = { value: path_abs.split(path_rel)[0] + currentPath, label: part, children: {} };
+            current[part] = { value: parts.slice(0, index + 1).join('/'), label: part, children: {} };
           }
         }
         if (index < parts.length - 1) {
@@ -156,6 +154,7 @@ const PromptAppendix = () => {
   const handleCheck = (checked) => {
     console.log('Checked nodes:', checked);
     setChecked(checked);
+    setSelectedReferencePaths(checked);
   };
 
   const handleExpand = (expanded) => {

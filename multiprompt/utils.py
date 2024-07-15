@@ -39,3 +39,32 @@ def iter_async_generator(async_generator_func, *args, **kwargs):
         yield item
 
     thread.join()
+
+from pathlib import Path
+
+def generate_directory_structure(attachment_paths):
+    # Find the common root
+    common_root = Path(os.path.commonpath(attachment_paths))
+    
+    # Create the tree structure
+    tree = {}
+    for file_path in attachment_paths:
+        relative_path = Path(file_path).relative_to(common_root)
+        parts = relative_path.parts
+        current = tree
+        for part in parts[:-1]:
+            current = current.setdefault(part, {})
+        current[parts[-1]] = None
+
+    # Build the tree representation
+    def build_tree(node, prefix=""):
+        lines = []
+        items = sorted(node.items())
+        for i, (name, subtree) in enumerate(items):
+            is_last = i == len(items) - 1
+            lines.append(f"{prefix}{'└── ' if is_last else '├── '}{name}")
+            if subtree is not None:
+                lines.extend(build_tree(subtree, prefix + ("    " if is_last else "│   ")))
+        return lines
+
+    return "\n".join(build_tree(tree))

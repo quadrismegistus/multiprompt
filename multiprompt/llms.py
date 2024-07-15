@@ -52,23 +52,41 @@ class BaseLLM(ABC):
     def format_prompt(
         cls,
         user_prompt,
-        reference_prompt="",
+        attachments=[],
         system_prompt="",
         example_prompts=[],
         **kwargs,
     ):
         messages = []
-        if reference_prompt:
-            user_prompt += make_ascii_section(
-                "User prompt appendix", reference_prompt, 2
-            )
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
         for question, answer in example_prompts:
             messages.append({"role": "user", "content": question})
             messages.append({"role": "assistant", "content": answer})
-        messages.append({"role": "user", "content": user_prompt})
+        if attachments:
+            appendix = cls.format_prompt_appendix(attachments)
+            messages.append({"role": "user", "content": appendix})
         return messages
+    
+    @classmethod
+    def format_prompt_appendix(cls, attachments):
+        logger.info(pformat(attachments))
+        directory_structure = generate_directory_structure(attachments)
+        formatted_appendix = f"## Appendix for User Prompt\n\n### Directory Structure\n\n```\n{directory_structure}\n```\n\n"
+        
+        common_root = Path(os.path.commonpath(attachments))
+        
+        for file_path in attachments:
+            relative_path = Path(file_path).relative_to(common_root)
+            ext = relative_path.suffix.lstrip('.')
+            try:
+                with open(file_path, 'r') as file:
+                    content = file.read()
+                    formatted_appendix += f"\n\n#### {relative_path}\n\n```{ext}\n{content}\n```"
+            except Exception as e:
+                logger.error(f"Error reading file {file_path}: {str(e)}")
+        
+        return formatted_appendix.strip()
 
 
 class AnthropicLLM(BaseLLM):

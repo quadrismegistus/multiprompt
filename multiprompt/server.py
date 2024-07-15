@@ -29,14 +29,15 @@ async def converse(sid, data):
     logger.debug(f"Converse data: {data}")
 
     user_prompt = data.get("userPrompt", "")
-    reference_prompt = data.get("referenceCodePrompt", "")
+    # reference_prompt = data.get("referenceCodePrompt", "")
+    attachments = data.get("attachments", [])
     agents_data = data.get("agents", [])
     conversation_id = data.get("conversationId")
 
     conversation = Conversation(id=conversation_id, agents=agents_data)
     conversation_round = conversation.add_round(
         user_prompt=user_prompt,
-        reference_prompt=reference_prompt,
+        attachments=attachments,
     )
 
     try:

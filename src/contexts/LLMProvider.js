@@ -13,12 +13,7 @@ export const LLMProvider = ({ children }) => {
   const { socket, isConnected } = useSocket();
   const [agentProgress, setAgentProgress] = useState({});
 
-  const { config, agents, updateAgent, addAgentToken } = useStore((state) => ({
-    config: state.config,
-    agents: state.agents,
-    updateAgent: state.updateAgent,
-    addAgentToken: state.addAgentToken
-  }));
+  const { config, agents, updateAgent, addAgentToken } = useStore();
 
   const handleSendPrompt = useCallback(
     async (userPrompt, referenceCodePrompt, targetAgentId = null) => {
@@ -27,7 +22,7 @@ export const LLMProvider = ({ children }) => {
         return;
       }
 
-      const { addUserMessageToCurrentConversation, currentConversation, resetAgentProgress } =
+      const { addUserMessageToCurrentConversation, currentConversation, resetAgentProgress, selectedReferencePaths, rootReferencePath } =
         useStore.getState();
 
       let combinedUserPrompt = getUserPromptWithReferencePrompt(userPrompt, referenceCodePrompt);
@@ -73,7 +68,11 @@ export const LLMProvider = ({ children }) => {
 
         socket.emit("converse", {
           userPrompt: combinedUserPrompt,
-          referenceCodePrompt: referenceCodePrompt,
+          // referenceCodePrompt: referenceCodePrompt,
+          // attachments: selectedReferencePaths,
+          attachments: selectedReferencePaths.map(path => 
+            `${rootReferencePath.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
+          ),
           agents: aiAgents.map(agent => ({
             id: agent.id,
             name: agent.name,
