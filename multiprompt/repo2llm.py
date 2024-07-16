@@ -26,11 +26,26 @@ class BaseRepoReader(ABC):
 
     @property
     def pathdata(self):
+        def getfilesize(fn):
+            try:
+                return fn.absolute().stat().st_size
+            except Exception as e:
+                return 0
+        def getnumtokens(fn):
+            try:
+                txt=self.read_file(fn)
+                return len(txt.split())
+            except Exception as e:
+                logger.error(e)
+                return 0
+        
         return [
             {
-                'filename':fn.name,
-                'path_rel':fn.as_posix(),
-                'path_abs':fn.absolute().as_posix(),
+                'filename': fn.name,
+                'path_rel': fn.relative_to(self.root_dir).as_posix(),
+                'path_abs': fn.absolute().as_posix(),
+                'filesize': getfilesize(fn),
+                'num_tokens': getnumtokens(fn)
             }
             for fn in self.get_files()
         ]
@@ -97,48 +112,40 @@ class BaseRepoReader(ABC):
             pass
 
 class LocalReader(BaseRepoReader):
-    def __init__(self, paths, extensions=None):
+    def __init__(self, root_dir, extensions=None):
+        self.root_dir = Path(root_dir).resolve()
         super().__init__(extensions)
-        self.paths = [Path(path).resolve() for path in paths]
         self.gitignore_specs = self._parse_gitignores()
 
     def _parse_gitignores(self):
-        specs = {}
-        for path in self.paths:
-            if path.is_dir():
-                gitignore_path = path / '.gitignore'
-                if gitignore_path.exists():
-                    with open(gitignore_path, 'r') as f:
-                        specs[path] = PathSpec.from_lines(GitWildMatchPattern, f)
-        return specs
+        gitignore_path = self.root_dir / '.gitignore'
+        if gitignore_path.exists():
+            with open(gitignore_path, 'r') as f:
+                return PathSpec.from_lines(GitWildMatchPattern, f)
+        return None
 
     def should_ignore(self, path):
         if super().should_ignore(path):
             return True
         
-        for base_path, gitignore_spec in self.gitignore_specs.items():
-            if path.is_relative_to(base_path):
-                relative_path = path.relative_to(base_path)
-                if gitignore_spec.match_file(str(relative_path)):
-                    return True
+        if self.gitignore_specs:
+            relative_path = path.relative_to(self.root_dir)
+            if self.gitignore_specs.match_file(str(relative_path)):
+                return True
         
         return False
 
     def get_files(self):
-        for path in self.paths:
-            if path.is_file():
-                if not self.should_ignore(path) and path.suffix in self.extensions:
-                    yield path.relative_to(path.parent)
-            elif path.is_dir():
-                for root, _, filenames in os.walk(path):
-                    if self.should_ignore(Path(root)): continue
-                    for filename in filenames:
-                        file_path = Path(root) / filename
-                        if not self.should_ignore(file_path) and file_path.suffix in self.extensions:
-                            yield file_path.relative_to(path)
+        for root, _, filenames in sorted(os.walk(self.root_dir)):
+            rootpath = Path(root)
+            if self.should_ignore(rootpath): continue
+            for filename in filenames:
+                file_path = rootpath / filename
+                if not self.should_ignore(file_path) and file_path.suffix in self.extensions:
+                    yield file_path
 
     def read_file(self, file_path):
-        full_path = next(path / file_path for path in self.paths if (path / file_path).exists())
+        full_path = self.root_dir / file_path
         try:
             with open(full_path, "r", encoding='utf-8') as f:
                 content = f.read()
@@ -146,6 +153,7 @@ class LocalReader(BaseRepoReader):
         except UnicodeDecodeError:
             logger.warning(f"Unable to read {full_path} as text. Skipping.")
             return None
+
 
     @cached_property
     def markdown(self):
@@ -250,9 +258,12 @@ def main(source_or_paths, extensions=REPO2LLM_EXTENSIONS, output_file='.robots.m
         if source_or_paths.startswith('http://') or source_or_paths.startswith('https://'):
             reader = GitHubRepoReader(source_or_paths, extensions)
         else:
-            reader = LocalReader([source_or_paths], extensions)
+            reader = LocalReader(source_or_paths, extensions)
     else:  # Assume it's a list of paths
-        reader = LocalReader(source_or_paths, extensions)
+        if len(source_or_paths) == 1:
+            reader = LocalReader(source_or_paths[0], extensions)
+        else:
+            raise ValueError("LocalReader now only accepts a single root directory")
     
     if output_file:
         output_file = Path(output_file)

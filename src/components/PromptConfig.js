@@ -1,15 +1,16 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Form, Row, Col, Button, Spinner, InputGroup } from 'react-bootstrap';
-import { RefreshCw, Folder } from 'lucide-react';
+import { RefreshCw, Folder, Send } from 'lucide-react';
 import CheckboxTree from 'react-checkbox-tree';
 import { open as tauriOpen } from '@tauri-apps/api/dialog';
 import useStore from '../store/useStore';
 import { useSocket } from '../contexts/SocketContext';
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import { Send } from "lucide-react";
 import { useLLM } from "../contexts/LLMProvider";
-
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 
 const PromptConfig = () => {
   const {
@@ -19,7 +20,9 @@ const PromptConfig = () => {
     setRootReferencePath,
     config,
     userPrompt,
-    updateUserPrompt
+    updateUserPrompt,
+    referencePaths,
+    setReferencePaths,
   } = useStore();
 
   const { socket, isConnected } = useSocket();
@@ -27,11 +30,55 @@ const PromptConfig = () => {
   const [nodes, setNodes] = useState([]);
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
-
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const textareaRef = useRef(null);
   const { handleSendPrompt } = useLLM();
   const [isSending, setIsSending] = useState(false);
+  const [gridApi, setGridApi] = useState(null);
+
+  const columnDefs = useMemo(() => [
+    { headerName: 'File', field: 'path_rel', sortable: true, filter: true },
+    { 
+      headerName: '# bytes', 
+      field: 'filesize', 
+      sortable: true, 
+      filter: true, 
+      valueFormatter: params => params.value ? params.value.toLocaleString() : 'N/A' 
+    },
+    { 
+      headerName: '# tokens (est.)', 
+      field: 'num_tokens', 
+      sortable: true, 
+      filter: true, 
+      valueFormatter: params => params.value ? params.value.toLocaleString() : 'N/A',
+      sort: 'desc',
+      sortIndex: 0
+    }
+  ], []);
+
+  const defaultColDef = useMemo(() => ({
+    flex: 1,
+    minWidth: 100,
+    resizable: true,
+    sortable: true,
+    filter: true,
+    sortingOrder: ['desc', 'asc', null]
+  }), []);
+
+  const getTotalFileSize = useMemo(() => {
+    const total = selectedFiles.reduce((total, file) => total + (file.filesize || 0), 0);
+    return total.toLocaleString();
+  }, [selectedFiles]);
+
+  const getTotalTokens = useMemo(() => {
+    const total = selectedFiles.reduce((total, file) => total + (file.num_tokens || 0), 0);
+    return total.toLocaleString();
+  }, [selectedFiles]);
+
+  const getTotalFiles = useMemo(() => {
+    return selectedFiles.length;
+  }, [selectedFiles]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -56,53 +103,7 @@ const PromptConfig = () => {
   }, [handleSendPrompt, userPrompt, updateUserPrompt]);
 
 
-  useEffect(() => {
-    if (socket) {
-      socket.on('new_reference_prompt_tree', (data) => {
-        if (data && data.paths) {
-          const fileTree = buildFileTreeFromPaths(data.paths);
-          setNodes(fileTree);
-        } else {
-          console.error('Invalid data received for new_reference_prompt_tree:', data);
-        }
-      });
-
-      return () => {
-        socket.off('new_reference_prompt_tree');
-      };
-    }
-  }, [socket]);
-
-  useEffect(() => {
-    if (rootReferencePath && socket && isConnected) {
-      socket.emit("build_reference_prompt_tree", { paths: [rootReferencePath] });
-    }
-  }, [rootReferencePath, socket, isConnected]);
-
-  const handleSelectRootDirectory = async () => {
-    try {
-      const selectedPath = await tauriOpen({
-        directory: true,
-        multiple: false,
-      });
-      
-      if (selectedPath) {
-        setRootReferencePath(selectedPath);
-      }
-    } catch (err) {
-      console.error('Failed to select directory:', err);
-    }
-  };
-
-  const handleRefresh = () => {
-    if (rootReferencePath && socket && isConnected) {
-      socket.emit("build_reference_prompt_tree", { paths: [rootReferencePath] });
-    } else {
-      console.error("Unable to refresh: No root path set or socket not connected");
-    }
-  };
-
-  const buildFileTreeFromPaths = (paths) => {
+  const buildFileTreeFromPaths = useCallback((paths) => {
     const tree = {};
     paths.forEach(({ path_rel, path_abs }) => {
       if (!path_rel || !path_abs) {
@@ -114,7 +115,7 @@ const PromptConfig = () => {
       parts.forEach((part, index) => {
         if (!current[part]) {
           if (index === parts.length - 1) {
-            // This is a file
+            // This is a file 
             current[part] = { value: path_rel, label: part };
           } else {
             // This is a directory
@@ -154,6 +155,63 @@ const PromptConfig = () => {
       if (!aIsDir && bIsDir) return 1;
       return a.label.localeCompare(b.label);
     });
+  }, []);
+
+  const fileTree = useMemo(() => buildFileTreeFromPaths(referencePaths), [referencePaths, buildFileTreeFromPaths]);
+
+  useEffect(() => {
+    setNodes(fileTree);
+  }, [fileTree]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('new_reference_prompt_tree', (data) => {
+        if (data && data.paths) {
+          setReferencePaths(data.paths);
+          updateSelectedFiles(data.paths, checked);
+        } else {
+          console.error('Invalid data received for new_reference_prompt_tree:', data);
+        }
+      });
+
+      return () => {
+        socket.off('new_reference_prompt_tree');
+      };
+    }
+  }, [socket, setReferencePaths, checked]);
+
+  const updateSelectedFiles = useCallback((paths, checkedPaths) => {
+    const selected = paths.filter(path => checkedPaths.includes(path.path_rel));
+    setSelectedFiles(selected);
+  }, []);
+
+  useEffect(() => {
+    if (rootReferencePath && socket && isConnected) {
+      socket.emit("build_reference_prompt_tree", { path: rootReferencePath });
+    }
+  }, [rootReferencePath, socket, isConnected]);
+
+  const handleSelectRootDirectory = async () => {
+    try {
+      const selectedPath = await tauriOpen({
+        directory: true,
+        multiple: false,
+      });
+      
+      if (selectedPath) {
+        setRootReferencePath(selectedPath);
+      }
+    } catch (err) {
+      console.error('Failed to select directory:', err);
+    }
+  };
+
+  const handleRefresh = () => {
+    if (rootReferencePath && socket && isConnected) {
+      socket.emit("build_reference_prompt_tree", { paths: [rootReferencePath] });
+    } else {
+      console.error("Unable to refresh: No root path set or socket not connected");
+    }
   };
 
   return (
@@ -218,6 +276,7 @@ const PromptConfig = () => {
               onCheck={(checked) => {
                 setChecked(checked);
                 setSelectedReferencePaths(checked);
+                updateSelectedFiles(referencePaths, checked);
               }}
               onExpand={setExpanded}
             />
@@ -225,6 +284,29 @@ const PromptConfig = () => {
         </Row>
       )}
       
+      {selectedFiles.length > 0 && (
+        <Row className="mb-3">
+          <Col>
+            <div className="ag-theme-alpine" style={{ height: '200px', width: '100%' }}>
+              <AgGridReact
+                columnDefs={columnDefs}
+                rowData={selectedFiles}
+                defaultColDef={defaultColDef}
+                pagination={false}
+                domLayout='normal'
+                headerHeight={32}
+                rowHeight={32}
+                style={{height: "200px", width: "100%"}}
+              />
+            </div>
+            <div style={{ marginTop: '10px' }}>
+              <strong>Total Files:</strong> {getTotalFiles}
+              <strong style={{ marginLeft: '20px' }}>Total File Size:</strong> {getTotalFileSize} bytes
+              <strong style={{ marginLeft: '20px' }}>Total Tokens:</strong> {getTotalTokens}
+            </div>
+          </Col>
+        </Row>
+      )}
     </Form.Group>
   );
 };

@@ -67,15 +67,15 @@ async def fetch_repo_content(repo_url):
 @sio.event
 async def build_reference_prompt_tree(sid, data):
     logger.info(f"build_reference_prompt_tree <- {data}")
-    paths = data.get("paths")
+    path = data.get("path")
     url = data.get("url")
-    if paths:
-        reader = LocalReader(paths)
+    if path:
+        reader = LocalReader(path)
     elif url:
         reader = GitHubRepoReader(url)
 
     output = reader.pathdata
-    logger.info(f"returning output {len(output)} paths")
+    logger.info(f"returning output {len(output)} paths {pformat(output)}")
     await sio.emit("new_reference_prompt_tree", {"paths": output}, to=sid)
 
 
