@@ -357,7 +357,21 @@ body {
 #root, body, .Layout, .Content, .GridLayout { overflow:hidden; background-color: var(--color-canvas-default);}
 
 .card-body { overflow: auto;}
-.card-footer, .card, .card-header, .accordion-header, .accordion-body, .accordion-button, .accordion-item, textarea, .accordion-button:focus { background-color: var(--color-canvas-default); color: var(--color-fg-default); border-color: var(--color-border-muted); box-shadow: none; outline:none;}
+.card-footer, 
+.card, 
+.card-header, 
+.accordion-header, 
+.accordion-body, 
+.accordion-button, 
+.accordion-item, 
+textarea, 
+.accordion-button:focus {   
+  background-color: var(--color-canvas-default); 
+  color: var(--color-fg-default); 
+  border-color: var(--color-border-muted); 
+  box-shadow: none; 
+  outline:none;
+}
 .accordion-button, .accordion-header { color: var(--color-fg-default); }
 
 .accordion-body {
@@ -559,6 +573,13 @@ body, input, textarea, select {
 .input-group input {
   background-color: var(--color-canvas-default);
   border:1px solid var(--color-border-muted);
+}
+.input-group input:focus {
+  background-color: var(--color-canvas-default); 
+  color: inherit;
+  border-color: var(--color-border-muted); 
+  box-shadow: none; 
+  outline:none;
 }
 
 .form-control {

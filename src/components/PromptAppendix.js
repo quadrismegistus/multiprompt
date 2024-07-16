@@ -1,23 +1,21 @@
-import { React, useEffect, useState } from 'react';
-import { Form, Row, Col, Button, InputGroup } from 'react-bootstrap';
-import { RefreshCw, Github, Folder } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Form, Row, Col, Button, ButtonGroup, InputGroup } from 'react-bootstrap';
+import { RefreshCw, Folder } from 'lucide-react';
 import CheckboxTree from 'react-checkbox-tree';
-import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import { open as tauriOpen } from '@tauri-apps/api/dialog';
 import useStore from '../store/useStore';
 import { useSocket } from '../contexts/SocketContext';
+import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const PromptAppendix = () => {
   const {
     referenceCodePrompt,
     updateReferenceCodePrompt,
-    config,
-    updateConfig,
-    selectedReferencePaths,
     setSelectedReferencePaths,
     rootReferencePath,
-    setRootReferencePath
+    setRootReferencePath,
+    config
   } = useStore();
 
   const { socket, isConnected } = useSocket();
@@ -25,10 +23,6 @@ const PromptAppendix = () => {
   const [nodes, setNodes] = useState([]);
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
-
-  const handleReferenceCodePromptChange = (e) => {
-    updateReferenceCodePrompt(e.target.value);
-  };
 
   useEffect(() => {
     if (socket) {
@@ -52,7 +46,13 @@ const PromptAppendix = () => {
     }
   }, [socket, updateReferenceCodePrompt]);
 
-  const handleDirectoryRead = async () => {
+  useEffect(() => {
+    if (rootReferencePath && socket && isConnected) {
+      socket.emit("build_reference_prompt_tree", { paths: [rootReferencePath] });
+    }
+  }, [rootReferencePath, socket, isConnected]);
+
+  const handleSelectRootDirectory = async () => {
     try {
       const selectedPath = await tauriOpen({
         directory: true,
@@ -61,17 +61,17 @@ const PromptAppendix = () => {
       
       if (selectedPath) {
         setRootReferencePath(selectedPath);
-        const data = { paths: [selectedPath] };
-        console.log(data);
-        if (socket && isConnected) {
-          socket.emit("build_reference_prompt_tree", data);
-        } else {
-          console.error("Socket is not connected. Unable to send data.");
-          // Optionally, you can show an error message to the user here
-        }
       }
     } catch (err) {
       console.error('Failed to select directory:', err);
+    }
+  };
+
+  const handleRefresh = () => {
+    if (rootReferencePath && socket && isConnected) {
+      socket.emit("build_reference_prompt_tree", { paths: [rootReferencePath] });
+    } else {
+      console.error("Unable to refresh: No root path set or socket not connected");
     }
   };
 
@@ -129,93 +129,43 @@ const PromptAppendix = () => {
     });
   };
 
-  const handleRefresh = async () => {
-    const data = {
-      paths: [rootReferencePath],
-      url: config.githubUrl
-    };
-    console.log('refreshing with data', data);
-  
-    if (!isConnected || !socket) {
-      console.error("Socket is not connected");
-      return;
-    }
-  
-    return new Promise((resolve, reject) => {
-      socket.emit("build_reference_prompt_tree", data);
-    });
-  };
-
-  const handleGithubUrlChange = (e) => {
-    const newUrl = e.target.value;
-    updateConfig({ githubUrl: newUrl });
-  };
-
-  const handleCheck = (checked) => {
-    console.log('Checked nodes:', checked);
-    setChecked(checked);
-    setSelectedReferencePaths(checked);
-  };
-
-  const handleExpand = (expanded) => {
-    console.log('Expanded nodes:', expanded);
-    setExpanded(expanded);
-  };
-
   return (
     <Form.Group style={{clear:'both'}}>
-      <Form.Label>Prompt appendix</Form.Label>
-      <Form.Control
-        as="textarea"
-        rows={5}
-        value={referenceCodePrompt}
-        onChange={handleReferenceCodePromptChange}
-        placeholder="Enter code or documents to reference"
-        className="mb-2 refpromptarea"
-        style={{fontFamily: "monospace", fontSize: "0.9em"}}
-      />
-      <Row>
-        <Col md={12}>
-          <Button variant="primary" onClick={handleDirectoryRead}>
-            <Folder /> Select Directory
-          </Button>
+      <Form.Label>Attachments</Form.Label>
+{/*       
+      {rootReferencePath && <Row>
+        <Col>
+          Showing: {rootReferencePath}
         </Col>
-      </Row>
-      {nodes.length > 0 && (
-        <Row className="mt-3">
-          <Col md={12}>
-            <CheckboxTree
-              nodes={nodes}
-              checked={checked}
-              expanded={expanded}
-              onCheck={handleCheck}
-              onExpand={handleExpand}
-              nativeCheckboxes={false}
-              icons={{
-                check: <span className="rct-icon rct-icon-check" />,
-                uncheck: <span className="rct-icon rct-icon-uncheck" />,
-                halfCheck: <span className="rct-icon rct-icon-half-check" />,
-                expandClose: <span className="rct-icon rct-icon-expand-close" />,
-                expandOpen: <span className="rct-icon rct-icon-expand-open" />,
-                expandAll: <span className="rct-icon rct-icon-expand-all" />,
-                collapseAll: <span className="rct-icon rct-icon-collapse-all" />,
-                parentClose: <span className="rct-icon rct-icon-parent-close" />,
-                parentOpen: <span className="rct-icon rct-icon-parent-open" />,
-                leaf: <span className="rct-icon rct-icon-leaf" />,
-              }}
-            />
-          </Col>
-        </Row>
-      )}
+      </Row>} */}
       <Row>
-        <Col md={6}>
-          <InputGroup>
+        {/* <Col>{rootReferencePath}</Col>
+        <Col style={{textAlign:"right"}}>
+          <ButtonGroup>
+          <Button variant="primary" onClick={handleSelectRootDirectory}>
+            <Folder />
+          </Button>
+          <Button
+            variant="success"
+            onClick={handleRefresh}
+            disabled={!rootReferencePath}
+          >
+            <RefreshCw />
+          </Button>
+          </ButtonGroup>
+        </Col> */}
+        <InputGroup>
             <Form.Control
               type="text"
               value={rootReferencePath}
               readOnly
               placeholder="Selected paths"
+              className="readonly-input"
+              onClick={handleSelectRootDirectory}
             />
+            <Button variant="primary" onClick={handleSelectRootDirectory}>
+              <Folder />
+            </Button>
             <Button
               style={{border:"none"}}
               variant="success"
@@ -225,21 +175,24 @@ const PromptAppendix = () => {
               <RefreshCw />
             </Button>
           </InputGroup>
-        </Col>
-        <Col md={6}>
-          <InputGroup>
-            <Form.Control
-              type="text"
-              placeholder="Get from GitHub"
-              value={config.githubUrl}
-              onChange={handleGithubUrlChange}
-            />
-            <Button variant="dark" onClick={handleRefresh}>
-              <Github />
-            </Button>
-          </InputGroup>
-        </Col>
       </Row>
+      {nodes.length > 0 && (
+        <Row className="mb-3">
+          <Col>
+            <CheckboxTree
+              nodes={nodes}
+              checked={checked}
+              expanded={expanded}
+              onCheck={(checked) => {
+                setChecked(checked);
+                setSelectedReferencePaths(checked);
+              }}
+              onExpand={setExpanded}
+            />
+          </Col>
+        </Row>
+      )}
+      
     </Form.Group>
   );
 };

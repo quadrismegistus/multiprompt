@@ -100,7 +100,6 @@ function UserCard() {
                   <>Send <Send size={16} className="ms-2" /></>
                 )}
               </Button>
-
               <PromptAppendix />
             </Accordion.Body>
           </Accordion.Item>
