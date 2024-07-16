@@ -73,6 +73,8 @@ async def build_reference_prompt_tree(sid, data):
         reader = LocalReader(path)
     elif url:
         reader = GitHubRepoReader(url)
+    else:
+        reader = None
 
     output = reader.pathdata
     logger.info(f"returning output {len(output)} paths {pformat(output)}")

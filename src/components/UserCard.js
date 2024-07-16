@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Card, Accordion, } from "react-bootstrap";
+import { Card, Accordion, Button } from "react-bootstrap";
+import { Trash2 } from 'lucide-react';
 import useStore from "../store/useStore";
 import { MessageList } from './Messages';
 import PromptConfig from "./PromptConfig";
 
 function UserCard() {
-  const { currentConversation } = useStore();
+  const { currentConversation, clearCurrentConversation } = useStore();
   const [accordionOpen, setAccordionOpen] = useState(true);
 
   const toggleAccordion = () => {
@@ -19,12 +20,29 @@ function UserCard() {
     }
   }, [currentConversation]);
 
+  const handleClearConversation = () => {
+    clearCurrentConversation();
+  };
+
   return (
     <Card className='useragent-card user-card'>
       <Card.Header className="d-flex justify-content-between align-items-start">
         <Accordion className="prompt-config w-100" style={{paddingRight:"7px"}} activeKey={accordionOpen ? "0" : null}>
           <Accordion.Item eventKey="0">
-            <Accordion.Header onClick={toggleAccordion}>multiprompt</Accordion.Header>
+            <Accordion.Header onClick={toggleAccordion}>
+              multiprompt
+              <Button
+                variant="link"
+                className="p-0 ms-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClearConversation();
+                }}
+                title="Clear Conversation"
+              >
+                <Trash2 size={18} />
+              </Button>
+            </Accordion.Header>
             <Accordion.Body>
               <PromptConfig />
             </Accordion.Body>

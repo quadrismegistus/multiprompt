@@ -183,13 +183,16 @@ const PromptConfig = () => {
   const updateSelectedFiles = useCallback((paths, checkedPaths) => {
     const selected = paths.filter(path => checkedPaths.includes(path.path_rel));
     setSelectedFiles(selected);
-  }, []);
+  }, []);  
 
+  const [hasReferencePaths, setHasReferencePaths] = useState(false);
+ 
   useEffect(() => {
-    if (rootReferencePath && socket && isConnected) {
+    if (rootReferencePath && socket && isConnected && !hasReferencePaths) {
       socket.emit("build_reference_prompt_tree", { path: rootReferencePath });
+      setHasReferencePaths(true);
     }
-  }, [rootReferencePath, socket, isConnected]);
+  }, [rootReferencePath, socket, isConnected, hasReferencePaths]);
 
   const handleSelectRootDirectory = async () => {
     try {
@@ -200,6 +203,7 @@ const PromptConfig = () => {
       
       if (selectedPath) {
         setRootReferencePath(selectedPath);
+        setHasReferencePaths(false); // Reset the flag when a new directory is selected
       }
     } catch (err) {
       console.error('Failed to select directory:', err);
@@ -208,7 +212,8 @@ const PromptConfig = () => {
 
   const handleRefresh = () => {
     if (rootReferencePath && socket && isConnected) {
-      socket.emit("build_reference_prompt_tree", { paths: [rootReferencePath] });
+      socket.emit("build_reference_prompt_tree", { path: rootReferencePath });
+      setHasReferencePaths(true);
     } else {
       console.error("Unable to refresh: No root path set or socket not connected");
     }

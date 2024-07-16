@@ -33,6 +33,11 @@ export const createConversationSlice = (set, get) => ({
   updateUserPrompt: (prompt) => set({ userPrompt: prompt }),
   updateReferenceCodePrompt: (prompt) => set({ referenceCodePrompt: prompt }),
 
+  clearCurrentConversation: () => set({
+    currentConversation: [],
+    userPrompt: "",
+  }),
+
   getCurrentConversation: () => {
     const state = get();
     return state.conversations.find(

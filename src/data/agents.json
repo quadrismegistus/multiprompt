@@ -148,7 +148,7 @@
   {
     "name": "Code Differ",
     "system_prompt": "With reference to any provided code, implement the suggestions by the previous AI, returning:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.",
-    "model": "gemini-1.5-flash",
+    "model": "codellama",
     "temperature": null
   }
   
