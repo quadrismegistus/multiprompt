@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Form, Row, Col, Button, ButtonGroup, InputGroup } from 'react-bootstrap';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { Form, Row, Col, Button, Spinner, InputGroup } from 'react-bootstrap';
 import { RefreshCw, Folder } from 'lucide-react';
 import CheckboxTree from 'react-checkbox-tree';
 import { open as tauriOpen } from '@tauri-apps/api/dialog';
@@ -7,15 +7,19 @@ import useStore from '../store/useStore';
 import { useSocket } from '../contexts/SocketContext';
 import 'react-checkbox-tree/lib/react-checkbox-tree.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { Send } from "lucide-react";
+import { useLLM } from "../contexts/LLMProvider";
 
-const PromptAppendix = () => {
+
+const PromptConfig = () => {
   const {
-    referenceCodePrompt,
     updateReferenceCodePrompt,
     setSelectedReferencePaths,
     rootReferencePath,
     setRootReferencePath,
-    config
+    config,
+    userPrompt,
+    updateUserPrompt
   } = useStore();
 
   const { socket, isConnected } = useSocket();
@@ -24,12 +28,36 @@ const PromptAppendix = () => {
   const [checked, setChecked] = useState([]);
   const [expanded, setExpanded] = useState([]);
 
+
+  const textareaRef = useRef(null);
+  const { handleSendPrompt } = useLLM();
+  const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      textareaRef.current.selectionStart = textareaRef.current.selectionEnd = textareaRef.current.value.length;
+    }
+  }, []);
+
+  const handleSend = useCallback(async () => {
+    console.log("Sending prompt:", userPrompt);
+    setIsSending(true);
+    // setAccordionOpen(false);
+    updateUserPrompt(''); 
+    try {
+      const result = await handleSendPrompt(userPrompt);
+      console.log("Prompt sent successfully, result:", result);
+    } catch (error) {
+      console.error("Error sending prompt:", error);
+    } finally {
+      setIsSending(false);
+    }
+  }, [handleSendPrompt, userPrompt, updateUserPrompt]);
+
+
   useEffect(() => {
     if (socket) {
-      socket.on('new_reference_prompt', (data) => {
-        updateReferenceCodePrompt(data.content);
-      });
-
       socket.on('new_reference_prompt_tree', (data) => {
         if (data && data.paths) {
           const fileTree = buildFileTreeFromPaths(data.paths);
@@ -40,11 +68,10 @@ const PromptAppendix = () => {
       });
 
       return () => {
-        socket.off('new_reference_prompt');
         socket.off('new_reference_prompt_tree');
       };
     }
-  }, [socket, updateReferenceCodePrompt]);
+  }, [socket]);
 
   useEffect(() => {
     if (rootReferencePath && socket && isConnected) {
@@ -131,29 +158,34 @@ const PromptAppendix = () => {
 
   return (
     <Form.Group style={{clear:'both'}}>
+        <Form.Control
+            as="textarea"
+            rows={10}
+            value={userPrompt}
+            onChange={(e) => updateUserPrompt(e.target.value)}
+            placeholder="Enter your prompt here"
+            className="w-100 promptarea"
+        />
+
+        <Button 
+            variant="primary" 
+            onClick={handleSend} 
+            disabled={isSending || !userPrompt.trim()}
+            className="px-4 py-2" 
+            style={{float:'right'}}
+        >
+            {isSending ? (
+                <>
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                <span className="visually-hidden">Sending...</span>
+                </>
+            ) : (
+                <>Send <Send size={16} className="ms-2" /></>
+            )}
+        </Button>
+      <div style={{clear:"both", marginBottom:10}} />
       <Form.Label>Attachments</Form.Label>
-{/*       
-      {rootReferencePath && <Row>
-        <Col>
-          Showing: {rootReferencePath}
-        </Col>
-      </Row>} */}
       <Row>
-        {/* <Col>{rootReferencePath}</Col>
-        <Col style={{textAlign:"right"}}>
-          <ButtonGroup>
-          <Button variant="primary" onClick={handleSelectRootDirectory}>
-            <Folder />
-          </Button>
-          <Button
-            variant="success"
-            onClick={handleRefresh}
-            disabled={!rootReferencePath}
-          >
-            <RefreshCw />
-          </Button>
-          </ButtonGroup>
-        </Col> */}
         <InputGroup>
             <Form.Control
               type="text"
@@ -163,12 +195,12 @@ const PromptAppendix = () => {
               className="readonly-input"
               onClick={handleSelectRootDirectory}
             />
-            <Button variant="primary" onClick={handleSelectRootDirectory}>
+            <Button variant="link" onClick={handleSelectRootDirectory}>
               <Folder />
             </Button>
             <Button
               style={{border:"none"}}
-              variant="success"
+              variant="link"
               onClick={handleRefresh}
               disabled={checked.length === 0 && !config.githubUrl}
             >
@@ -197,4 +229,4 @@ const PromptAppendix = () => {
   );
 };
 
-export default PromptAppendix;
+export default PromptConfig;
