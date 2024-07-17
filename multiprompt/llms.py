@@ -3,7 +3,7 @@ from .db import *
 from .utils import *
 from litellm import acompletion
 from litellm.exceptions import BadRequestError
-
+import sys
 
 def get_cache_db():
     return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
@@ -42,32 +42,47 @@ class BaseLLM(ABC):
         user_prompt_or_messages,
         max_tokens=DEFAULT_MAX_TOKENS,
         temperature=DEFAULT_TEMP,
+        verbose=True,
+        force=False,
         **prompt_kwargs,
     ):
         messages = self.format_messages(user_prompt_or_messages, **prompt_kwargs)
-        try:
+        params = dict(
+            model=self.model,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+        def showtoken(x):
+            if verbose:
+                print(token, end='', flush=True, file=sys.stderr)
 
-            def acomplete(model):
-                return acompletion(
-                    model=model,
-                    messages=messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    api_key=self.api_key,
-                    stream=True,
-                )
-
-            # try:
-            response = await acomplete(self.model)
-            # except BadRequestError:
-            # response = await acomplete('ollama/'+self.model)
-
-            async for chunk in response:
-                if chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
-        except Exception as e:
-            logger.error(f"Error in generate_async: {str(e)}")
-            raise
+        cachekey = generate_cache_key(params)
+        with get_cache_db() as db:
+            if force or cachekey not in db:
+                try:
+                    response = await acompletion(
+                        **params,
+                        api_key=self.api_key,
+                        stream=True,
+                    )
+                    out = []
+                    async for chunk in response:
+                        token = chunk.choices[0].delta.content
+                        if token:
+                            yield token
+                            out.append(token)
+                            showtoken(token)
+                    # Store in cache
+                    db[cachekey] = out
+                except Exception as e:
+                    logger.error(f"Error in generate_async: {str(e)}")
+                    raise
+            else:
+                # If response is in cache, yield tokens from the cached list
+                for token in db[cachekey]:
+                    yield token
+                    # showtoken(token)
 
     def generate(self, *args, **kwargs):
         return self.format_output(run_async(self.generate_async, *args, **kwargs))
