@@ -5,6 +5,7 @@ from litellm import acompletion
 from litellm.exceptions import BadRequestError
 import sys
 
+
 def get_cache_db():
     return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
 
@@ -19,14 +20,20 @@ class BaseLLM(ABC):
             self.api_key = api_key
 
     @classmethod
-    def format_messages(self, user_prompt_or_messages, **prompt_kwargs):
-        messages = (
-            user_prompt_or_messages
-            if type(user_prompt_or_messages) in {list, tuple}
-            else self.format_prompt(
-                user_prompt=user_prompt_or_messages, **prompt_kwargs
+    def format_messages(
+        self, user_prompt_or_messages, system_prompt=None, **prompt_kwargs
+    ):
+        if type(user_prompt_or_messages) in {list, tuple}:
+            messages = user_prompt_or_messages
+            if system_prompt:
+                messages = [{"role": "system", "content": system_prompt}] + [
+                    msg for msg in messages if msg.get("role") != "system"
+                ]
+        else:
+            user_prompt = user_prompt_or_messages
+            messages = self.format_prompt(
+                user_prompt=user_prompt, system_prompt=system_prompt, **prompt_kwargs
             )
-        )
         return messages
 
     @classmethod
@@ -40,22 +47,28 @@ class BaseLLM(ABC):
     async def generate_async(
         self,
         user_prompt_or_messages,
+        system_prompt=None,
         max_tokens=DEFAULT_MAX_TOKENS,
         temperature=DEFAULT_TEMP,
         verbose=True,
         force=False,
         **prompt_kwargs,
     ):
-        messages = self.format_messages(user_prompt_or_messages, **prompt_kwargs)
+        messages = self.format_messages(
+            user_prompt_or_messages,
+            system_prompt=system_prompt,
+            **prompt_kwargs,
+        )
         params = dict(
             model=self.model,
             messages=messages,
             max_tokens=max_tokens,
             temperature=temperature,
         )
+
         def showtoken(x):
             if verbose:
-                print(token, end='', flush=True, file=sys.stderr)
+                print(token, end="", flush=True, file=sys.stderr)
 
         cachekey = generate_cache_key(params)
         with get_cache_db() as db:
