@@ -7,7 +7,8 @@ import nest_asyncio
 def make_ascii_section(title, content, level=1):
     level_indicator = '#' * level
     formatted_title = title
-    header = f"""{level_indicator} {formatted_title}"""
+    # header = f"""{level_indicator} {formatted_title}"""
+    header = f"""// {formatted_title}"""
     return f"\n{header}\n\n{content}\n\n"
 
 
@@ -61,17 +62,15 @@ async def collect_async_generator(async_generator):
         result.append(item)
     return result
 
-def run_async_in_notebook(async_generator):
-    nest_asyncio.apply()
+def run_async(async_func, *args, **kwargs):
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
     
-    for item in asyncio.get_event_loop().run_until_complete(
-        collect_async_generator(async_generator())
-    ):
-        yield item
-
-def run_async_or_sync(async_func, *args, **kwargs):
-    loop = asyncio.get_event_loop()
     if loop.is_running():
-        return run_async_in_notebook(lambda: async_func(*args, **kwargs))
+        nest_asyncio.apply()
+        return loop.run_until_complete(collect_async_generator(async_func(*args, **kwargs)))
     else:
-        return loop.run_until_complete(async_func(*args, **kwargs))
+        return loop.run_until_complete(collect_async_generator(async_func(*args, **kwargs)))

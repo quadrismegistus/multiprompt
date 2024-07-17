@@ -35,6 +35,7 @@ import logging
 from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
+import base64
 
 # from fastapi.exceptions import WebSocketDisconnect
 import json

@@ -129,7 +129,7 @@ class ConversationRound:
             )
 
     def run_iter(self):
-        return run_async_or_sync(self.run_async)
+        return run_async(self.run_async)
 
     @cache
     def run(self, return_df=True, by_token=False):

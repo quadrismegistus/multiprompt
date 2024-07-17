@@ -1,6 +1,6 @@
 from .imports import *
 from .llms import LLM
-from .utils import run_async_or_sync
+from .utils import run_async
 
 @cache
 def get_agents_json():
@@ -79,7 +79,6 @@ class AgentModel:
             system_prompt=system_prompt,
             **prompt_kwargs
         )
-        pprint(messages)
         async for token in self.llm.generate_async(
             messages, 
             temperature=self.temperature,
@@ -87,4 +86,4 @@ class AgentModel:
             yield token
 
     def generate(self, prompt_now, temperature=None):
-        return ''.join(run_async_or_sync(self.generate_async, prompt_now, temperature=temperature))
+        return ''.join(run_async(self.generate_async, prompt_now, temperature=temperature))

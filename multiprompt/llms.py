@@ -2,17 +2,40 @@ from .imports import *
 from .db import *
 from .utils import *
 from litellm import acompletion
+from litellm.exceptions import BadRequestError
+
 
 def get_cache_db():
     return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
 
+
 class BaseLLM(ABC):
+    badprefixes = []
     api_key = None
 
     def __init__(self, model, api_key=None):
         self.model = model
         if api_key:
             self.api_key = api_key
+
+    @classmethod
+    def format_messages(self, user_prompt_or_messages, **prompt_kwargs):
+        messages = (
+            user_prompt_or_messages
+            if type(user_prompt_or_messages) in {list, tuple}
+            else self.format_prompt(
+                user_prompt=user_prompt_or_messages, **prompt_kwargs
+            )
+        )
+        return messages
+
+    @classmethod
+    def format_output(self, tokens):
+        txt = "".join(tokens).strip()
+        for bp in self.badprefixes:
+            if txt.startswith(bp):
+                txt = txt[len(bp) :].strip()
+        return txt
 
     async def generate_async(
         self,
@@ -21,22 +44,24 @@ class BaseLLM(ABC):
         temperature=DEFAULT_TEMP,
         **prompt_kwargs,
     ):
-        messages = (
-            user_prompt_or_messages
-            if type(user_prompt_or_messages) in {list, tuple}
-            else self.format_prompt(
-                user_prompt=user_prompt_or_messages, **prompt_kwargs
-            )
-        )
+        messages = self.format_messages(user_prompt_or_messages, **prompt_kwargs)
         try:
-            response = await acompletion(
-                model=self.model,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                api_key=self.api_key,
-                stream=True,
-            )
+
+            def acomplete(model):
+                return acompletion(
+                    model=model,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    api_key=self.api_key,
+                    stream=True,
+                )
+
+            # try:
+            response = await acomplete(self.model)
+            # except BadRequestError:
+            # response = await acomplete('ollama/'+self.model)
+
             async for chunk in response:
                 if chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
@@ -44,14 +69,8 @@ class BaseLLM(ABC):
             logger.error(f"Error in generate_async: {str(e)}")
             raise
 
-    def generate(
-        self,
-        user_prompt_or_messages,
-        max_tokens=DEFAULT_MAX_TOKENS,
-        temperature=DEFAULT_TEMP,
-        **prompt_kwargs,
-    ):
-        return ''.join(run_async_or_sync(self.generate_async, user_prompt_or_messages, max_tokens=max_tokens, temperature=temperature, **prompt_kwargs))
+    def generate(self, *args, **kwargs):
+        return self.format_output(run_async(self.generate_async, *args, **kwargs))
 
     @classmethod
     def format_prompt(
@@ -68,7 +87,9 @@ class BaseLLM(ABC):
         for question, answer in example_prompts:
             messages.append({"role": "user", "content": cls.process_content(question)})
             messages.append({"role": "assistant", "content": answer})
-        messages.append({"role": "user", "content": cls.process_content(user_prompt, attachments)})
+        messages.append(
+            {"role": "user", "content": cls.process_content(user_prompt, attachments)}
+        )
         return messages
 
     @classmethod
@@ -80,52 +101,53 @@ class BaseLLM(ABC):
             for item in content:
                 if isinstance(item, str):
                     processed_content.append({"type": "text", "text": item})
-        
+
         common_root = get_common_root(attachments)
-        appendix_txt_file_count=0
+        appendix_txt_file_count = 0
         for attachment in attachments:
             if cls.is_image(attachment):
-                processed_content.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{cls.encode_image(attachment)}"
+                processed_content.append(
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{cls.encode_image(attachment)}"
+                        },
                     }
-                })
+                )
             elif cls.is_video(attachment):
                 # Handle video files as needed
                 pass
             else:
                 # For text files, read and add content separately
-                with open(attachment, 'r') as file:
+                with open(attachment, "r") as file:
                     file_content = file.read()
-                    ext = os.path.splitext(attachment)[-1].lstrip('.')
-                    processed_content.append({
-                        "type": "text",
-                        "text": f"## Appendix to user prompt{' (continued)' if appendix_txt_file_count else ''}\n\n### Contents of file: `{Path(attachment).relative_to(common_root)}`\n\n```{ext}\n{file_content}```"
-                    })
-                    appendix_txt_file_count+=1
-        
+                    ext = os.path.splitext(attachment)[-1].lstrip(".")
+                    processed_content.append(
+                        {
+                            "type": "text",
+                            "text": f"## Appendix to user prompt{' (continued)' if appendix_txt_file_count else ''}\n\n### Contents of file: `{Path(attachment).relative_to(common_root)}`\n\n```{ext}\n{file_content}```",
+                        }
+                    )
+                    appendix_txt_file_count += 1
+
         return processed_content
 
     @staticmethod
     def is_image(file_path):
         # Implement logic to check if the file is an image
-        image_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp']
+        image_extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp"]
         return any(file_path.lower().endswith(ext) for ext in image_extensions)
 
     @staticmethod
     def is_video(file_path):
         # Implement logic to check if the file is a video
-        video_extensions = ['.mp4', '.avi', '.mov', '.wmv']
+        video_extensions = [".mp4", ".avi", ".mov", ".wmv"]
         return any(file_path.lower().endswith(ext) for ext in video_extensions)
 
     @staticmethod
     def encode_image(image_path):
-        # Implement image encoding logic here
-        # This should return a base64 encoded string of the image
-        import base64
         with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
+            return base64.b64encode(image_file.read()).decode("utf-8")
 
     @classmethod
     def format_prompt_appendix(cls, attachments):
@@ -175,4 +197,10 @@ class GeminiLLM(BaseLLM):
 
 
 class LlamaLLM(BaseLLM):
-    pass
+    badprefixes = ["### System:"]
+
+    def __init__(self, model, api_key=None):
+        super().__init__(
+            model="ollama/" + model if not model.startswith("ollama/") else model,
+            api_key=api_key,
+        )
