@@ -76,14 +76,22 @@ class ConversationRound:
         responses=[]
         for agent in sorted(self.responses, key=lambda a: a.position):
             content = make_ascii_section(
-                f"Response from {agent.name}",
+                f"Response to User by \"{agent.name}\" AI",
                 self.responses[agent],
                 2,
             )
             responses.append(content)
         if responses:
-            l.append({"role": "assistant", "content": '\n\n\n\n'.join(responses).strip()})
-        # pprint(l)
+            # l.append({"role": "assistant", "content": '\n\n\n\n'.join(responses).strip()})
+            l.append({"role": "user", "content": BaseLLM.process_content(responses)})
+            # usr_msgs = [d for d in l if d['role']=='user']
+            # if usr_msgs:
+            #     last_usr_msg = usr_msgs[-1]
+            #     last_usr_msg['content'].extend(
+            #         BaseLLM.process_content(responses)
+            #     )
+            
+                # logger.info(pformat(last_usr_msg))
         return l
 
     async def run_async(self):

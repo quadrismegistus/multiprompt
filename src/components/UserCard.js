@@ -39,6 +39,7 @@ function UserCard() {
                   handleClearConversation();
                 }}
                 title="Clear Conversation"
+                style={{float:"right"}}
               >
                 <Trash2 size={18} />
               </Button>

@@ -109,17 +109,12 @@
     "temperature": null
   },
   {
-    "name": "GPT-4o",
-    "system_prompt": "",
-    "model": "gpt-4o",
+    "name": "Code Differ",
+    "system_prompt": "With reference to any provided code, implement the suggestions by the previous AI, returning:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.",
+    "model": "gemini-1.5-pro",
     "temperature": null
   },
-  {
-    "name": "Claude",
-    "system_prompt": "",
-    "model": "claude-3-5-sonnet-20240620",
-    "temperature": null
-  },
+
   {
     "name": "Gemini",
     "system_prompt": "",
@@ -129,7 +124,7 @@
   {
     "name": "CodeLlama",
     "system_prompt": "",
-    "model": "codellama",
+    "model": "ollama/codellama",
     "temperature": null
   },
 
@@ -145,10 +140,17 @@
     "model": "claude-3-5-sonnet-20240620",
     "temperature": null
   },
+
   {
-    "name": "Code Differ",
-    "system_prompt": "With reference to any provided code, implement the suggestions by the previous AI, returning:\n\n* For files minimally changed, return the +/- diff syntax\n* For files substantially changed, return the full revised contents, incorporating the AI output and the original repository contents.",
-    "model": "codellama",
+    "name": "Tweedledee",
+    "system_prompt": "",
+    "model": "ollama/llama3",
+    "temperature": null
+  },
+  {
+    "name": "Tweedledum",
+    "system_prompt": "",
+    "model": "gpt-3.5-turbo",
     "temperature": null
   }
   

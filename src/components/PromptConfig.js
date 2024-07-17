@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Form, Row, Col, Button, Spinner, InputGroup } from 'react-bootstrap';
-import { RefreshCw, Folder, Send } from 'lucide-react';
+import { RefreshCw, Folder, Send, Trash2 } from 'lucide-react';
 import CheckboxTree from 'react-checkbox-tree';
 import { open as tauriOpen } from '@tauri-apps/api/dialog';
 import useStore from '../store/useStore';
@@ -219,6 +219,17 @@ const PromptConfig = () => {
     }
   };
 
+  const handleClear = useCallback(() => {
+    setRootReferencePath('');
+    setChecked([]);
+    setSelectedReferencePaths([]);
+    setSelectedFiles([]);
+    setHasReferencePaths(false);
+    setNodes([]); // Clear the file tree
+    setExpanded([]); // Reset expanded nodes
+    setReferencePaths([]); // Clear all reference paths
+  }, [setRootReferencePath, setSelectedReferencePaths, setReferencePaths]);
+
   return (
     <Form.Group style={{clear:'both'}}>
         <Form.Control
@@ -254,7 +265,7 @@ const PromptConfig = () => {
               type="text"
               value={rootReferencePath}
               readOnly
-              placeholder="Selected paths"
+              placeholder="Select path to browse files"
               className="readonly-input"
               onClick={handleSelectRootDirectory}
             />
@@ -268,6 +279,14 @@ const PromptConfig = () => {
               disabled={checked.length === 0 && !config.githubUrl}
             >
               <RefreshCw />
+            </Button>
+            <Button
+              style={{border:"none"}}
+              variant="link"
+              onClick={handleClear}
+              disabled={!rootReferencePath && checked.length === 0 && nodes.length === 0}
+            >
+              <Trash2 />
             </Button>
           </InputGroup>
       </Row>

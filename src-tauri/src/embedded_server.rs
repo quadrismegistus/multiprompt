@@ -27,7 +27,7 @@ pub fn start_embedded_server() -> (mpsc::Receiver<String>, Arc<Mutex<Child>>) {
             for line in reader.lines() {
                 if let Ok(line) = line {
                     // println!("{}", format!("{}", line).blue());
-                    tx_clone.send(format!("{}", line)).unwrap();
+                    // tx_clone.send(format!("{}", line)).unwrap();
                 }
             }
         });
@@ -52,7 +52,7 @@ pub fn start_embedded_server() -> (mpsc::Receiver<String>, Arc<Mutex<Child>>) {
             Err(e) => {
                 let msg = format!("Failed to wait for Python backend: {}", e);
                 eprintln!("{}", msg.red());
-                tx.send(msg).unwrap();
+                // tx.send(msg).unwrap();
             },
         }
     });

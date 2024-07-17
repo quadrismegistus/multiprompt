@@ -112,8 +112,9 @@ MODEL_CATEGORIES = {
     "Gemini": ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-1.0-pro"],
     "Local": [
         # "codegemma:2b",
-        "codellama",
-        "tinyllama",
+        "ollama/llama3",
+        "ollama/codellama",
+        "ollama/tinyllama",
     ],
 }
 
