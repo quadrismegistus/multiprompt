@@ -82,27 +82,10 @@ class ConversationRound:
             )
             responses.append(content)
         if responses:
-            # l.append({"role": "assistant", "content": '\n\n\n\n'.join(responses).strip()})
             l.append({"role": "user", "content": BaseLLM.process_content(responses)})
-            # usr_msgs = [d for d in l if d['role']=='user']
-            # if usr_msgs:
-            #     last_usr_msg = usr_msgs[-1]
-            #     last_usr_msg['content'].extend(
-            #         BaseLLM.process_content(responses)
-            #     )
-            
-                # logger.info(pformat(last_usr_msg))
         return l
 
     async def run_async(self):
-        # yield dict(
-        #     round=self.num,
-        #     position=0,
-        #     agent='User',
-        #     token_num=0,
-        #     token=self.prompt_str,
-        #     conversation=self.conversation_id,
-        # )
         token_num=0
         for cstr in self.userprompt_text_content:
             token_num+=1
@@ -130,24 +113,12 @@ class ConversationRound:
             async for token_data in merge_generators(agent_tasks):
                 yield token_data
 
-            # prompt_content = "\n\n\n".join(
-            #     make_ascii_section(
-            #         f"Response from {agent.name}", self.responses[agent], 2
-            #     )
-            #     for agent in agents
-            # ).strip()
-            # prompt_now[0]["content"] += "\n\n\n" + prompt_content
-            # logger.info(prompt_now)
-
     async def run_agent_async(self, agent, prompt_now):
-        llm = LLM(agent.model)
         self.responses[agent] = ""
-        token_num = 0
-        async for token in llm.generate_async(
-            prompt_now, temperature=agent.temperature
-        ):
+        token_num=0
+        async for token in agent.generate_async(prompt_now):
+            token_num+=1
             self.responses[agent] += token
-            token_num += 1
             yield dict(
                 round=self.num,
                 position=agent.position,
@@ -158,13 +129,7 @@ class ConversationRound:
             )
 
     def run_iter(self):
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            # We're likely in an IPython/Jupyter environment
-            return self._run_in_notebook()
-        else:
-            # We're in a regular Python environment
-            return loop.run_until_complete(self._run_sync())
+        return run_async_or_sync(self.run_async)
 
     @cache
     def run(self, return_df=True, by_token=False):
@@ -177,31 +142,6 @@ class ConversationRound:
         else:
             odf = detokenize_convo_df(odf)
         return odf.sort_index()
-
-    def _run_in_notebook(self):
-        async def async_generator():
-            async for item in self.run_async():
-                yield item
-
-        import nest_asyncio
-
-        nest_asyncio.apply()
-
-        for item in asyncio.get_event_loop().run_until_complete(
-            self._collect(async_generator())
-        ):
-            yield item
-
-    async def _run_sync(self):
-        async for item in self.run_async():
-            yield item
-
-    @staticmethod
-    async def _collect(async_generator):
-        result = []
-        async for item in async_generator:
-            result.append(item)
-        return result
 
 
 class ConversationModel:
@@ -262,7 +202,7 @@ def detokenize_convo_df(df):
     o=[]
     for g,gdf in sorted(df.groupby(gby)):
         d=dict(zip(gby,g))
-        sep=('' if g['agent']!='User' else '\n\n\n')
+        sep=('' if d['agent']!='User' else '\n\n\n')
         d['text']=sep.join(gdf.token).strip()
         o.append(d)
     return pd.DataFrame(o).set_index(gby).sort_index()

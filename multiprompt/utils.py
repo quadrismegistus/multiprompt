@@ -1,4 +1,8 @@
 from .imports import *
+from pathlib import Path
+import asyncio
+import nest_asyncio
+
 
 def make_ascii_section(title, content, level=1):
     level_indicator = '#' * level
@@ -7,40 +11,6 @@ def make_ascii_section(title, content, level=1):
     return f"\n{header}\n\n{content}\n\n"
 
 
-def convert_prompt_messages_to_str(openai_messages):
-    l = []
-    for msg in openai_messages:
-        role, content = msg["role"], msg["content"]
-        o = f"<{role.upper()}>{content}</{role.upper()}>"
-        l.append(o)
-    out = "\n\n".join(l)
-    return out
-
-
-
-def iter_async_generator(async_generator_func, *args, **kwargs):
-    q = queue.Queue()
-
-    def run_async_gen():
-        async def async_generator():
-            async for item in async_generator_func(*args, **kwargs):
-                q.put(item)
-            q.put(StopIteration)
-
-        asyncio.run(async_generator())
-
-    thread = threading.Thread(target=run_async_gen)
-    thread.start()
-
-    while True:
-        item = q.get()
-        if item is StopIteration:
-            break
-        yield item
-
-    thread.join()
-
-from pathlib import Path
 
 def get_common_root(attachment_paths):
     if not len(attachment_paths): return None
@@ -75,8 +45,6 @@ def generate_directory_structure(attachment_paths):
 
     return "\n".join(build_tree(tree))
 
-
-
 def printm(markdown_str):
     try:
         from IPython.display import display, Markdown
@@ -84,3 +52,26 @@ def printm(markdown_str):
         display(Markdown(markdown_str))
     except Exception:
         print(markdown_str)
+
+
+
+async def collect_async_generator(async_generator):
+    result = []
+    async for item in async_generator:
+        result.append(item)
+    return result
+
+def run_async_in_notebook(async_generator):
+    nest_asyncio.apply()
+    
+    for item in asyncio.get_event_loop().run_until_complete(
+        collect_async_generator(async_generator())
+    ):
+        yield item
+
+def run_async_or_sync(async_func, *args, **kwargs):
+    loop = asyncio.get_event_loop()
+    if loop.is_running():
+        return run_async_in_notebook(lambda: async_func(*args, **kwargs))
+    else:
+        return loop.run_until_complete(async_func(*args, **kwargs))

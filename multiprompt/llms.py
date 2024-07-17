@@ -3,10 +3,8 @@ from .db import *
 from .utils import *
 from litellm import acompletion
 
-
 def get_cache_db():
     return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
-
 
 class BaseLLM(ABC):
     api_key = None
@@ -53,47 +51,7 @@ class BaseLLM(ABC):
         temperature=DEFAULT_TEMP,
         **prompt_kwargs,
     ):
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            # We're likely in an IPython/Jupyter environment
-            return ''.join(self._generate_in_notebook(
-                user_prompt_or_messages, 
-                max_tokens=max_tokens, 
-                temperature=temperature,
-                **prompt_kwargs
-            ))
-        else:
-            # We're in a regular Python environment
-            return ''.join(loop.run_until_complete(self.generate_async(
-                user_prompt_or_messages, 
-                max_tokens=max_tokens, 
-                temperature=temperature,
-                **prompt_kwargs
-            )))
-
-    def _generate_in_notebook(self, *args, **kwargs):
-        import nest_asyncio
-        nest_asyncio.apply()
-        
-        async def async_generator():
-            async for token in self.generate_async(*args, **kwargs):
-                yield token
-
-        for token in asyncio.get_event_loop().run_until_complete(
-            self._collect(async_generator())
-        ):
-            yield token
-
-    @staticmethod
-    async def _collect(async_generator):
-        result = []
-        async for item in async_generator:
-            result.append(item)
-        return result
-
-    async def _generate_sync(self, *args, **kwargs):
-        async for token in self.generate_async(*args, **kwargs):
-            yield token
+        return ''.join(run_async_or_sync(self.generate_async, user_prompt_or_messages, max_tokens=max_tokens, temperature=temperature, **prompt_kwargs))
 
     @classmethod
     def format_prompt(

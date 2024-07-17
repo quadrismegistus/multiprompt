@@ -143,13 +143,13 @@
 
   {
     "name": "Tweedledee",
-    "system_prompt": "",
+    "system_prompt": "tweedledee! sing like a bird!",
     "model": "ollama/llama3",
     "temperature": null
   },
   {
     "name": "Tweedledum",
-    "system_prompt": "",
+    "system_prompt": "tweedledum! speak like a cat!",
     "model": "gpt-3.5-turbo",
     "temperature": null
   }
