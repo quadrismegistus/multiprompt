@@ -1,14 +1,16 @@
 from .imports import *
 from .db import *
 from .utils import *
-from .types import Message
 from litellm import acompletion
 from litellm.exceptions import BadRequestError
 import sys
 from abc import ABC, abstractmethod
+from .messages import Message, MessageList
+
 
 def get_cache_db():
     return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
+
 
 class BaseLLM(ABC):
     badprefixes = []
@@ -21,14 +23,15 @@ class BaseLLM(ABC):
 
     @classmethod
     def format_messages(
-        cls, user_prompt_or_messages: Union[str, List[Message]], system_prompt: Optional[str] = None, **prompt_kwargs
-    ) -> List[Message]:
-        if isinstance(user_prompt_or_messages, (list, tuple)):
+        cls,
+        user_prompt_or_messages: Union[str, MessageList],
+        system_prompt: Optional[str] = None,
+        **prompt_kwargs,
+    ) -> MessageList:
+        if isinstance(user_prompt_or_messages, MessageList):
             messages = user_prompt_or_messages
             if system_prompt:
-                messages = [{"role": "system", "content": system_prompt}] + [
-                    msg for msg in messages if msg.get("role") != "system"
-                ]
+                messages = MessageList([Message(role="system", content=system_prompt)]) + messages
         else:
             user_prompt = user_prompt_or_messages
             messages = cls.format_prompt(
@@ -41,7 +44,7 @@ class BaseLLM(ABC):
         txt = "".join(tokens).strip()
         for bp in cls.badprefixes:
             if txt.startswith(bp):
-                txt = txt[len(bp):].strip()
+                txt = txt[len(bp) :].strip()
         return txt
 
     # @abstractmethod
@@ -57,7 +60,6 @@ class BaseLLM(ABC):
     # ) -> AsyncGenerator[str, None]:
     #     pass
 
-
     async def generate_async(
         self,
         user_prompt_or_messages: Union[str, List[Message]],
@@ -66,7 +68,7 @@ class BaseLLM(ABC):
         temperature: float = DEFAULT_TEMP,
         verbose: bool = True,
         force: bool = False,
-        **prompt_kwargs
+        **prompt_kwargs,
     ) -> AsyncGenerator[str, None]:
         messages = self.format_messages(
             user_prompt_or_messages,
@@ -108,7 +110,7 @@ class BaseLLM(ABC):
                     yield token
                     if verbose:
                         print(token, end="", flush=True, file=sys.stderr)
-                    await asyncio.sleep(random.random()/100)
+                    await asyncio.sleep(random.random() / 100)
 
     def generate(self, *args, **kwargs) -> str:
         return self.format_output(run_async(self.generate_async, *args, **kwargs))
@@ -120,73 +122,16 @@ class BaseLLM(ABC):
         attachments: List[str] = [],
         system_prompt: str = "",
         example_prompts: List[Tuple[str, str]] = [],
-        **kwargs
-    ) -> List[Message]:
-        messages = []
+        **kwargs,
+    ) -> MessageList:
+        messages = MessageList()
         if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
+            messages.add_system_message(system_prompt)
         for question, answer in example_prompts:
-            messages.append({"role": "user", "content": cls.process_content(question)})
-            messages.append({"role": "assistant", "content": answer})
-        messages.append(
-            {"role": "user", "content": cls.process_content(user_prompt, attachments)}
-        )
+            messages.add_user_message(question)
+            messages.add_assistant_message(answer)
+        messages.add_user_message(user_prompt, attachments=attachments)
         return messages
-
-    @classmethod
-    def process_content(cls, content: Union[str, List[dict]], attachments: List[str] = []) -> List[dict]:
-        processed_content = []
-        if isinstance(content, str):
-            processed_content.append({"type": "text", "text": content})
-        elif isinstance(content, list):
-            for item in content:
-                if isinstance(item, str):
-                    processed_content.append({"type": "text", "text": item})
-
-        common_root = get_common_root(attachments)
-        appendix_txt_file_count = 0
-        for attachment in attachments:
-            if cls.is_image(attachment):
-                processed_content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{cls.encode_image(attachment)}"
-                        },
-                    }
-                )
-            elif cls.is_video(attachment):
-                # Handle video files as needed
-                pass
-            else:
-                # For text files, read and add content separately
-                with open(attachment, "r") as file:
-                    file_content = file.read()
-                    ext = os.path.splitext(attachment)[-1].lstrip(".")
-                    processed_content.append(
-                        {
-                            "type": "text",
-                            "text": f"## Appendix to user prompt{' (continued)' if appendix_txt_file_count else ''}\n\n### Contents of file: `{Path(attachment).relative_to(common_root)}`\n\n```{ext}\n{file_content}```",
-                        }
-                    )
-                    appendix_txt_file_count += 1
-
-        return processed_content
-
-    @staticmethod
-    def is_image(file_path: str) -> bool:
-        image_extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp"]
-        return any(file_path.lower().endswith(ext) for ext in image_extensions)
-
-    @staticmethod
-    def is_video(file_path: str) -> bool:
-        video_extensions = [".mp4", ".avi", ".mov", ".wmv"]
-        return any(file_path.lower().endswith(ext) for ext in video_extensions)
-
-    @staticmethod
-    def encode_image(image_path: str) -> str:
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode("utf-8")
 
     @classmethod
     def format_prompt_appendix(cls, attachments: List[str]) -> str:
@@ -210,20 +155,25 @@ class BaseLLM(ABC):
 
         return formatted_appendix.strip()
 
+
 class AnthropicLLM(BaseLLM):
     api_key = ANTHROPIC_API_KEY
+
 
 class OpenAILLM(BaseLLM):
     api_key = OPENAI_API_KEY
     # Implement OpenAI-specific generate_async method
 
+
 class GeminiLLM(BaseLLM):
     api_key = GEMINI_API_KEY
     # Implement Gemini-specific generate_async method
 
+
 class LlamaLLM(BaseLLM):
     badprefixes = ["### System:"]
     # Implement Llama-specific generate_async method
+
 
 @cache
 def LLM(model: str) -> BaseLLM:

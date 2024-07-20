@@ -2,7 +2,7 @@ from .imports import *
 from .agents import *
 from .llms import *
 from .utils import *
-from .types import Message, AgentConfig
+from .messages import Message, MessageList
 
 conversations: Dict[str, 'ConversationModel'] = {}
 
@@ -40,7 +40,7 @@ class ConversationRound:
         return [agents for pos, agents in sorted(posd.items())]
 
     @property
-    def prompt(self) -> List[Message]:
+    def prompt(self) -> MessageList:
         return BaseLLM.format_messages(*self.prompt_args, **self.prompt_kwargs)
 
     @property
@@ -64,8 +64,10 @@ class ConversationRound:
         return content[0] if content else None
 
     @property
-    def messages(self) -> List[Message]:
-        messages = [msg for round in self.previous for msg in round.messages]
+    def messages(self) -> MessageList:
+        messages = MessageList()
+        for round in self.previous:
+            messages.extend(round.messages)
         messages.extend(self.prompt)
         responses = []
         for agent in sorted(self.responses, key=lambda a: a.position):
@@ -76,7 +78,7 @@ class ConversationRound:
             )
             responses.append(content)
         if responses:
-            messages.append({"role": "user", "content": BaseLLM.process_content(responses)})
+            messages.add_user_message("\n".join(responses))
         return messages
 
     async def run_async(self) -> AsyncGenerator[Dict[str, Any], None]:
@@ -107,7 +109,7 @@ class ConversationRound:
             async for token_data in merge_generators(agent_tasks):
                 yield token_data
 
-    async def run_agent_async(self, agent: Agent, prompt_now: List[Message]) -> AsyncGenerator[Dict[str, Any], None]:
+    async def run_agent_async(self, agent: Agent, prompt_now: MessageList) -> AsyncGenerator[Dict[str, Any], None]:
         self.responses[agent] = ""
         token_num = 0
         async for token in agent.generate_async(prompt_now):

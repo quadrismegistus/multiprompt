@@ -1,12 +1,19 @@
 from .imports import *
 from .llms import LLM, BaseLLM
 from .utils import run_async
-from .types import Message, AgentConfig
+from .types import AgentConfig
+from .messages import MessageList
 from abc import ABC, abstractmethod
+
 
 class BaseAgent(ABC):
     @abstractmethod
-    async def generate_async(self, user_prompt_or_messages: Union[str, List[Message]], system_prompt: str = "", **kwargs) -> AsyncGenerator[str, None]:
+    async def generate_async(
+        self,
+        user_prompt_or_messages: Union[str, MessageList],
+        system_prompt: str = "",
+        **kwargs,
+    ) -> AsyncGenerator[str, None]:
         pass
 
     @abstractmethod
@@ -14,8 +21,9 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def preprocess_messages(self, messages: List[Message]) -> List[Message]:
+    def preprocess_messages(self, messages: MessageList) -> MessageList:
         pass
+
 
 class AgentModel(BaseAgent):
     def __init__(
@@ -26,7 +34,7 @@ class AgentModel(BaseAgent):
         system_prompt: str = DEFAULT_SYSTEM_PROMPT,
         temperature: float = DEFAULT_TEMP,
         max_tokens: int = DEFAULT_MAX_TOKENS,
-        **kwargs
+        **kwargs,
     ):
         self.name = name
         self.llm = llm
@@ -56,18 +64,18 @@ class AgentModel(BaseAgent):
             max_tokens=data.get("max_tokens", DEFAULT_MAX_TOKENS),
         )
 
-    def preprocess_messages(self, messages: List[Message]) -> List[Message]:
+    def preprocess_messages(self, messages: MessageList) -> MessageList:
         return messages
 
     async def generate_async(
         self,
-        user_prompt_or_messages: Union[str, List[Message]],
+        user_prompt_or_messages: Union[str, MessageList],
         system_prompt: str = "",
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         verbose: bool = True,
         force: bool = False,
-        **prompt_kwargs
+        **prompt_kwargs,
     ) -> AsyncGenerator[str, None]:
         sysprompt = (
             self.system_prompt
@@ -88,22 +96,25 @@ class AgentModel(BaseAgent):
     def generate(self, *args, **kwargs) -> str:
         return self.llm.format_output(run_async(self.generate_async, *args, **kwargs))
 
+
 class AlgorithmicAgent(AgentModel):
-    def __init__(self, name: str, algorithm_func: Callable[[List[Message]], str], **kwargs):
+    def __init__(
+        self, name: str, algorithm_func: Callable[[MessageList], str], **kwargs
+    ):
         self.name = name
         self.algorithm_func = algorithm_func
-        self.position = kwargs.get('position', 1)
+        self.position = kwargs.get("position", 1)
 
-    def preprocess_messages(self, messages: List[Message]) -> List[Message]:
+    def preprocess_messages(self, messages: MessageList) -> MessageList:
         return messages
 
     async def generate_async(
         self,
-        user_prompt_or_messages: Union[str, List[Message]],
+        user_prompt_or_messages: Union[str, MessageList],
         system_prompt: str = "",
         verbose: bool = True,
         force: bool = False,
-        **prompt_kwargs
+        **prompt_kwargs,
     ) -> AsyncGenerator[str, None]:
         messages = BaseLLM.format_messages(user_prompt_or_messages, system_prompt)
         messages = self.preprocess_messages(messages)
@@ -115,13 +126,14 @@ class AlgorithmicAgent(AgentModel):
                 print(token, end="", flush=True, file=sys.stderr)
             yield token
 
-    async def _run_algorithm(self, messages: List[Message]) -> str:
+    async def _run_algorithm(self, messages: MessageList) -> str:
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(None, self.algorithm_func, messages)
         return result
 
     def generate(self, *args, **kwargs) -> str:
         return "".join(run_async(self.generate_async, *args, **kwargs))
+
 
 def Agent(name: str, **kwargs) -> BaseAgent:
     if isinstance(name, BaseAgent):
@@ -131,12 +143,16 @@ def Agent(name: str, **kwargs) -> BaseAgent:
     llm = LLM(kwargs.get("model", DEFAULT_MODEL))
     return AgentModel(name=name, llm=llm, **kwargs)
 
+
 @cache
 def get_agents_json() -> List[Dict[str, Any]]:
     with open(PATH_AGENTS_JSON) as f:
         return json.load(f)
 
-def parse_agents_list(agents: List[Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]]) -> List[Agent]:
+
+def parse_agents_list(
+    agents: List[Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]]
+) -> List[Agent]:
     out = []
     for i, agent in enumerate(agents):
         if isinstance(agent, list):
