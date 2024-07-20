@@ -2,93 +2,87 @@ from .imports import *
 from .agents import *
 from .llms import *
 from .utils import *
+from .types import Message, AgentConfig
 
-conversations = {}
-
+conversations: Dict[str, 'ConversationModel'] = {}
 
 class ConversationRound:
     def __init__(
         self,
-        conversation: "Conversation",
+        conversation: 'ConversationModel',
         *prompt_args,
         **prompt_kwargs,
     ):
-        self.agents = conversation.agents
         self.conversation = conversation
         self.conversation_id = conversation.id
         self.agents = conversation.agents
-        self.responses: Dict[str, str] = defaultdict(str)
+        self.responses: Dict[Agent, str] = defaultdict(str)
         self.prompt_args = prompt_args
         self.prompt_kwargs = prompt_kwargs
 
     @property
-    def i(self):
+    def i(self) -> int:
         return self.conversation.rounds.index(self)
 
     @property
-    def num(self):
+    def num(self) -> int:
         return self.i + 1
 
     @property
-    def previous(self):
+    def previous(self) -> List['ConversationRound']:
         return self.conversation.rounds[: self.i]
 
     @property
-    def agents_in_position(self):
+    def agents_in_position(self) -> List[List[Agent]]:
         posd = defaultdict(list)
         for agent in self.agents:
             posd[agent.position].append(agent)
         return [agents for pos, agents in sorted(posd.items())]
 
     @property
-    def prompt(self):
-        messages = BaseLLM.format_prompt(*self.prompt_args, **self.prompt_kwargs)
-        return messages
+    def prompt(self) -> List[Message]:
+        return BaseLLM.format_messages(*self.prompt_args, **self.prompt_kwargs)
 
     @property
-    def userprompt_content(self):
+    def userprompt_content(self) -> List[dict]:
         for msg in self.prompt:
-            if msg.get('role')=='user':
-                return msg.get('content',[])
+            if msg.get('role') == 'user':
+                return msg.get('content', [])
         return []
-            
+
     @property
-    def userprompt_text_content(self):
-        for msg in self.prompt:
-            if msg.get('role')=='user':
-                return [
-                    d.get('text')
-                    for d in msg.get('content',[])
-                    if d.get('text')
-                ]
-        return []
-    
+    def userprompt_text_content(self) -> List[str]:
+        return [
+            d.get('text')
+            for d in self.userprompt_content
+            if d.get('text')
+        ]
+
     @property
-    def prompt_str(self):
-        content = self.userprompt_content
-        content = [d.get('text','') for d in content if d.get('text')]
+    def prompt_str(self) -> Optional[str]:
+        content = self.userprompt_text_content
         return content[0] if content else None
 
     @property
-    def messages(self):
-        l = [msg for round in self.previous for msg in round.messages]
-        l.extend(self.prompt)
-        responses=[]
+    def messages(self) -> List[Message]:
+        messages = [msg for round in self.previous for msg in round.messages]
+        messages.extend(self.prompt)
+        responses = []
         for agent in sorted(self.responses, key=lambda a: a.position):
             content = make_ascii_section(
-                f"Response to User by \"{agent.name}\" AI",
+                f'Response to User by "{agent.name}" AI',
                 self.responses[agent],
                 2,
             )
             responses.append(content)
         if responses:
-            l.append({"role": "user", "content": BaseLLM.process_content(responses)})
-        return l
+            messages.append({"role": "user", "content": BaseLLM.process_content(responses)})
+        return messages
 
-    async def run_async(self):
-        token_num=0
+    async def run_async(self) -> AsyncGenerator[Dict[str, Any], None]:
+        token_num = 0
         for cstr in self.userprompt_text_content:
-            token_num+=1
+            token_num += 1
             yield dict(
                 round=self.num,
                 position=0,
@@ -113,11 +107,11 @@ class ConversationRound:
             async for token_data in merge_generators(agent_tasks):
                 yield token_data
 
-    async def run_agent_async(self, agent, prompt_now):
+    async def run_agent_async(self, agent: Agent, prompt_now: List[Message]) -> AsyncGenerator[Dict[str, Any], None]:
         self.responses[agent] = ""
-        token_num=0
+        token_num = 0
         async for token in agent.generate_async(prompt_now):
-            token_num+=1
+            token_num += 1
             self.responses[agent] += token
             yield dict(
                 round=self.num,
@@ -128,11 +122,11 @@ class ConversationRound:
                 conversation=self.conversation_id,
             )
 
-    def run_iter(self):
+    def run_iter(self) -> Iterator[Dict[str, Any]]:
         return run_async(self.run_async)
 
     @cache
-    def run(self, return_df=True, by_token=False):
+    def run(self, return_df: bool = True, by_token: bool = False) -> Union[List[Dict[str, Any]], pd.DataFrame]:
         l = list(self.run_iter())
         if not return_df:
             return l
@@ -143,19 +137,18 @@ class ConversationRound:
             odf = detokenize_convo_df(odf)
         return odf.sort_index()
 
-
 class ConversationModel:
-    def __init__(self, id=None, agents=None):
+    def __init__(self, id: Optional[str] = None, agents: Optional[List[Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]]] = None):
         self.id = id or str(uuid.uuid4())
-        self.rounds = []
-        self.agents = parse_agents_list(agents)
+        self.rounds: List[ConversationRound] = []
+        self.agents = parse_agents_list(agents or [])
 
-    def add_round(self, *prompt_args, **prompt_kwargs):
+    def add_round(self, *prompt_args, **prompt_kwargs) -> ConversationRound:
         round = ConversationRound(self, *prompt_args, **prompt_kwargs)
         self.rounds.append(round)
         return round
 
-    def run(self, return_df=True, by_token=False):
+    def run(self, return_df: bool = True, by_token: bool = False) -> Union[List[Dict[str, Any]], pd.DataFrame]:
         if not return_df:
             return [
                 res for round in self.rounds for res in round.run(return_df=return_df, by_token=by_token)
@@ -163,13 +156,8 @@ class ConversationModel:
         else:
             o = [round.run(return_df=return_df, by_token=by_token) for round in self.rounds]
             return pd.concat(o) if len(o) else pd.DataFrame()
-    
-    # @property
-    # def messages(self):
-    #     return self.rounds[-1].messages if self.rounds else []
 
-
-def Conversation(id=None, agents=None):
+def Conversation(id: Optional[str] = None, agents: Optional[List[Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]]] = None) -> ConversationModel:
     if id in conversations:
         return conversations[id]
     else:
@@ -177,32 +165,12 @@ def Conversation(id=None, agents=None):
         conversations[convo.id] = convo
         return convo
 
-
-def parse_agents_list(agents):
-    out = []
-    for i, agent in enumerate(agents):
-        if isinstance(agent, list):
-            for agent2 in agent:
-                if isinstance(agent2, str):
-                    agent2 = {"name": agent2}
-                if "position" not in agent2:
-                    agent2["position"] = i + 1
-                out.append(Agent(**agent2))
-        else:
-            if isinstance(agent, str):
-                agent = {"name": agent}
-            if "position" not in agent:
-                agent["position"] = i + 1
-            out.append(Agent(**agent))
-    return out
-
-
-def detokenize_convo_df(df):
-    gby=['conversation','round','position','agent']
-    o=[]
-    for g,gdf in sorted(df.groupby(gby)):
-        d=dict(zip(gby,g))
-        sep=('' if d['agent']!='User' else '\n\n\n')
-        d['text']=sep.join(gdf.token).strip()
+def detokenize_convo_df(df: pd.DataFrame) -> pd.DataFrame:
+    gby = ['conversation', 'round', 'position', 'agent']
+    o = []
+    for g, gdf in sorted(df.groupby(gby)):
+        d = dict(zip(gby, g))
+        sep = ('' if d['agent'] != 'User' else '\n\n\n')
+        d['text'] = sep.join(gdf.token).strip()
         o.append(d)
     return pd.DataFrame(o).set_index(gby).sort_index()

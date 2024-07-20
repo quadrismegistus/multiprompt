@@ -96,5 +96,12 @@
       "category": "Local",
       "cost_per_1M_tokens": null,
       "cost_per_1M_tokens_batched": null
+    },
+    {
+      "model": "ollama/llama3:instruct",
+      "name": "Llama3 Instruct",
+      "category": "Local",
+      "cost_per_1M_tokens": null,
+      "cost_per_1M_tokens_batched": null
     }
   ]

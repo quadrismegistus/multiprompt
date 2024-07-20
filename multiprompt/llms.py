@@ -1,29 +1,29 @@
 from .imports import *
 from .db import *
 from .utils import *
+from .types import Message
 from litellm import acompletion
 from litellm.exceptions import BadRequestError
 import sys
-
+from abc import ABC, abstractmethod
 
 def get_cache_db():
     return sqlitedict.SqliteDict(PATH_LLM_CACHE, autocommit=True)
-
 
 class BaseLLM(ABC):
     badprefixes = []
     api_key = None
 
-    def __init__(self, model, api_key=None):
+    def __init__(self, model: str, api_key: Optional[str] = None):
         self.model = model
         if api_key:
             self.api_key = api_key
 
     @classmethod
     def format_messages(
-        self, user_prompt_or_messages, system_prompt=None, **prompt_kwargs
-    ):
-        if type(user_prompt_or_messages) in {list, tuple}:
+        cls, user_prompt_or_messages: Union[str, List[Message]], system_prompt: Optional[str] = None, **prompt_kwargs
+    ) -> List[Message]:
+        if isinstance(user_prompt_or_messages, (list, tuple)):
             messages = user_prompt_or_messages
             if system_prompt:
                 messages = [{"role": "system", "content": system_prompt}] + [
@@ -31,29 +31,43 @@ class BaseLLM(ABC):
                 ]
         else:
             user_prompt = user_prompt_or_messages
-            messages = self.format_prompt(
+            messages = cls.format_prompt(
                 user_prompt=user_prompt, system_prompt=system_prompt, **prompt_kwargs
             )
         return messages
 
     @classmethod
-    def format_output(self, tokens):
+    def format_output(cls, tokens: List[str]) -> str:
         txt = "".join(tokens).strip()
-        for bp in self.badprefixes:
+        for bp in cls.badprefixes:
             if txt.startswith(bp):
-                txt = txt[len(bp) :].strip()
+                txt = txt[len(bp):].strip()
         return txt
+
+    # @abstractmethod
+    # async def generate_async(
+    #     self,
+    #     user_prompt_or_messages: Union[str, List[Message]],
+    #     system_prompt: Optional[str] = None,
+    #     max_tokens: int = DEFAULT_MAX_TOKENS,
+    #     temperature: float = DEFAULT_TEMP,
+    #     verbose: bool = True,
+    #     force: bool = False,
+    #     **prompt_kwargs
+    # ) -> AsyncGenerator[str, None]:
+    #     pass
+
 
     async def generate_async(
         self,
-        user_prompt_or_messages,
-        system_prompt=None,
-        max_tokens=DEFAULT_MAX_TOKENS,
-        temperature=DEFAULT_TEMP,
-        verbose=True,
-        force=False,
-        **prompt_kwargs,
-    ):
+        user_prompt_or_messages: Union[str, List[Message]],
+        system_prompt: Optional[str] = None,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+        temperature: float = DEFAULT_TEMP,
+        verbose: bool = True,
+        force: bool = False,
+        **prompt_kwargs
+    ) -> AsyncGenerator[str, None]:
         messages = self.format_messages(
             user_prompt_or_messages,
             system_prompt=system_prompt,
@@ -65,10 +79,6 @@ class BaseLLM(ABC):
             max_tokens=max_tokens,
             temperature=temperature,
         )
-
-        def showtoken(x):
-            if verbose:
-                print(token, end="", flush=True, file=sys.stderr)
 
         cachekey = generate_cache_key(params)
         with get_cache_db() as db:
@@ -85,7 +95,8 @@ class BaseLLM(ABC):
                         if token:
                             yield token
                             out.append(token)
-                            showtoken(token)
+                            if verbose:
+                                print(token, end="", flush=True, file=sys.stderr)
                     # Store in cache
                     db[cachekey] = out
                 except Exception as e:
@@ -95,20 +106,22 @@ class BaseLLM(ABC):
                 # If response is in cache, yield tokens from the cached list
                 for token in db[cachekey]:
                     yield token
-                    # showtoken(token)
+                    if verbose:
+                        print(token, end="", flush=True, file=sys.stderr)
+                    await asyncio.sleep(random.random()/100)
 
-    def generate(self, *args, **kwargs):
+    def generate(self, *args, **kwargs) -> str:
         return self.format_output(run_async(self.generate_async, *args, **kwargs))
 
     @classmethod
     def format_prompt(
         cls,
-        user_prompt,
-        attachments=[],
-        system_prompt="",
-        example_prompts=[],
-        **kwargs,
-    ):
+        user_prompt: str,
+        attachments: List[str] = [],
+        system_prompt: str = "",
+        example_prompts: List[Tuple[str, str]] = [],
+        **kwargs
+    ) -> List[Message]:
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
@@ -121,7 +134,7 @@ class BaseLLM(ABC):
         return messages
 
     @classmethod
-    def process_content(cls, content, attachments=[]):
+    def process_content(cls, content: Union[str, List[dict]], attachments: List[str] = []) -> List[dict]:
         processed_content = []
         if isinstance(content, str):
             processed_content.append({"type": "text", "text": content})
@@ -161,24 +174,22 @@ class BaseLLM(ABC):
         return processed_content
 
     @staticmethod
-    def is_image(file_path):
-        # Implement logic to check if the file is an image
+    def is_image(file_path: str) -> bool:
         image_extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp"]
         return any(file_path.lower().endswith(ext) for ext in image_extensions)
 
     @staticmethod
-    def is_video(file_path):
-        # Implement logic to check if the file is a video
+    def is_video(file_path: str) -> bool:
         video_extensions = [".mp4", ".avi", ".mov", ".wmv"]
         return any(file_path.lower().endswith(ext) for ext in video_extensions)
 
     @staticmethod
-    def encode_image(image_path):
+    def encode_image(image_path: str) -> str:
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode("utf-8")
 
     @classmethod
-    def format_prompt_appendix(cls, attachments):
+    def format_prompt_appendix(cls, attachments: List[str]) -> str:
         logger.info(pformat(attachments))
         directory_structure = generate_directory_structure(attachments)
         formatted_appendix = f"## Appendix for User Prompt\n\n### Directory Structure\n\n```\n{directory_structure}\n```\n\n"
@@ -199,9 +210,23 @@ class BaseLLM(ABC):
 
         return formatted_appendix.strip()
 
+class AnthropicLLM(BaseLLM):
+    api_key = ANTHROPIC_API_KEY
+
+class OpenAILLM(BaseLLM):
+    api_key = OPENAI_API_KEY
+    # Implement OpenAI-specific generate_async method
+
+class GeminiLLM(BaseLLM):
+    api_key = GEMINI_API_KEY
+    # Implement Gemini-specific generate_async method
+
+class LlamaLLM(BaseLLM):
+    badprefixes = ["### System:"]
+    # Implement Llama-specific generate_async method
 
 @cache
-def LLM(model):
+def LLM(model: str) -> BaseLLM:
     if model.startswith("claude"):
         return AnthropicLLM(model)
     elif model.startswith("gpt"):
@@ -210,25 +235,3 @@ def LLM(model):
         return GeminiLLM(model)
     else:
         return LlamaLLM(model)
-
-
-class AnthropicLLM(BaseLLM):
-    api_key = ANTHROPIC_API_KEY
-
-
-class OpenAILLM(BaseLLM):
-    api_key = OPENAI_API_KEY
-
-
-class GeminiLLM(BaseLLM):
-    api_key = GEMINI_API_KEY
-
-
-class LlamaLLM(BaseLLM):
-    badprefixes = ["### System:"]
-
-    def __init__(self, model, api_key=None):
-        super().__init__(
-            model="ollama/" + model if not model.startswith("ollama/") else model,
-            api_key=api_key,
-        )

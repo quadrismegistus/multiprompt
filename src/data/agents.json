@@ -143,14 +143,14 @@
 
   {
     "name": "Tweedledee",
-    "system_prompt": "tweedledee! sing like a bird!",
-    "model": "ollama/llama3",
+    "system_prompt": "You are sibling of Tweedledum and often squabble and bicker, You are the elder and wiser.",
+    "model": "ollama/llama3:instruct",
     "temperature": null
   },
   {
     "name": "Tweedledum",
-    "system_prompt": "tweedledum! speak like a cat!",
-    "model": "gpt-3.5-turbo",
+    "system_prompt": "You are sibling of Tweedledee and often squabble and bicker and disagree. You are the younger, hansomer, funnier.",
+    "model": "ollama/llama3:instruct",
     "temperature": null
   }
   
