@@ -8,7 +8,7 @@ pub fn start_embedded_server() -> (mpsc::Receiver<String>, Arc<Mutex<Child>>) {
     let (tx, rx) = mpsc::channel();
 
     let mut command = Command::new("python")
-        .arg("../backend/app.py")
+        .arg("../run_server.py")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
@@ -26,8 +26,8 @@ pub fn start_embedded_server() -> (mpsc::Receiver<String>, Arc<Mutex<Child>>) {
             let reader = BufReader::new(stdout);
             for line in reader.lines() {
                 if let Ok(line) = line {
-                    println!("{}", format!("[Python] {}", line).blue());
-                    tx_clone.send(format!("[Python] {}", line)).unwrap();
+                    // println!("{}", format!("{}", line).blue());
+                    // tx_clone.send(format!("{}", line)).unwrap();
                 }
             }
         });
@@ -37,8 +37,8 @@ pub fn start_embedded_server() -> (mpsc::Receiver<String>, Arc<Mutex<Child>>) {
             let reader = BufReader::new(stderr);
             for line in reader.lines() {
                 if let Ok(line) = line {
-                    eprintln!("{}", format!("[Python Error] {}", line).red());
-                    tx_clone.send(format!("[Python Error] {}", line)).unwrap();
+                    eprintln!("{}", format!("{}", line).red());
+                    tx_clone.send(format!("{}", line)).unwrap();
                 }
             }
         });
@@ -52,7 +52,7 @@ pub fn start_embedded_server() -> (mpsc::Receiver<String>, Arc<Mutex<Child>>) {
             Err(e) => {
                 let msg = format!("Failed to wait for Python backend: {}", e);
                 eprintln!("{}", msg.red());
-                tx.send(msg).unwrap();
+                // tx.send(msg).unwrap();
             },
         }
     });

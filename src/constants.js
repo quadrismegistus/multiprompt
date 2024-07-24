@@ -35,7 +35,7 @@ export const DEFAULT_ANTHROPIC_MODEL = DEFAULT_MODELS.find(model => MODEL_CATEGO
 export const DEFAULT_GEMINI_MODEL = DEFAULT_MODELS.find(model => MODEL_CATEGORIES["Gemini"].includes(model)) || MODEL_CATEGORIES["Gemini"][0];
 export const DEFAULT_SUMMARY_MODEL = MODEL_DICT['GPT-4o'];
 export const DEFAULT_TEMP = 0.7;
-export const DEFAULT_SYSTEM_PROMPT = "With reference to any code or documentation provided, answer the following questions by the user. Show only those lines or functions that were changed, and explain the changes.";
+export const DEFAULT_SYSTEM_PROMPT = "You are an agent working together on a team. A 'user' comes to you with a question and possible attachments; you and your team must solve the query. If you see only the user's query, then you are first in line on your team. Decide how best to respond, and what further work needs to be done. If you see the user's query followed by a previous response to the user's query, then you are responding second in line in your team. Decide how best to respond: which work to take up from the previous assistant, or whether to zoom out and revaluate the approach.";
 export const DEFAULT_SUMMARY_SYSTEM_PROMPT = "You are a senior developer reviewing parallel solutions provided by junior developers. Synthesize their output into an elegant, modular, clean, documented solution. Then, display in markdown relevant functions, classes and portions of files which your solution alters from the existing repository.";
 export const DEFAULT_SUMMARY_USER_PROMPT = "Synthesize and summarize these suggested changes, and return a markdown representation of a directory structure of files necessary to change, along with the full functions or code snippets changed under a markdown heading for the filepath under which they appear.";
 export const DEFAULT_INCL_REPO = true;
@@ -53,11 +53,11 @@ export const SYSTEM_PROMPT_SECONDDRAFTER = "You are an expert analyst and you ha
 
 const processAgents = (agents) => {
   return agents.map((agent, index) => ({
-    id: uuidv4(),
+    id: agent.name,
     name: agent.name,
     type: 'ai',
     model: agent.model || DEFAULT_MODEL,
-    systemPrompt: agent.system_prompt,
+    systemPrompt: agent.system_prompt || DEFAULT_SYSTEM_PROMPT,
     output: "",
     temperature: agent.temperature || DEFAULT_TEMP,
     position: index + 1,
@@ -71,7 +71,7 @@ const processAgents = (agents) => {
 
 export const availableAgents = processAgents(agentsData);
 export const DEFAULT_AGENT = availableAgents[0];
-export const initialAgents = processAgents(agentsData.slice(-3));
+export const initialAgents = processAgents(agentsData.slice(-2));
 
 export const initialAgentTypes = availableAgents.reduce((acc, agent) => {
   acc[agent.name] = {

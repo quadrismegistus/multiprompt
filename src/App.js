@@ -4,8 +4,9 @@ import { SocketProvider } from './contexts/SocketContext';
 import { ConfigProvider } from './contexts/ConfigContext';
 import { LLMProvider } from './contexts/LLMProvider';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { DirectoryReaderProvider } from './contexts/DirectoryReaderContext';
+// import { DirectoryReaderProvider } from './contexts/DirectoryReaderContext';
 import ModalManager from './components/ModalManager';
+import CustomToastContainer from './components/ToastContainer';
 import Layout from './components/Layout';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './styles/index.css';
@@ -15,14 +16,15 @@ function App() {
     <ConfigProvider>
       <ThemeProvider>
         <SocketProvider>
-          <DirectoryReaderProvider>
+          {/* <DirectoryReaderProvider> */}
             <AgentProvider>
               <LLMProvider>
                 <Layout />
                 <ModalManager />
+                <CustomToastContainer /> 
               </LLMProvider>
             </AgentProvider>
-          </DirectoryReaderProvider>
+          {/* </DirectoryReaderProvider> */}
       </SocketProvider>
       </ThemeProvider>
     </ConfigProvider>

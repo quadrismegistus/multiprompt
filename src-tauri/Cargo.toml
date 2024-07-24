@@ -15,7 +15,7 @@ tauri-build = { version = "1.2.1", features = [] }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.2.4", features = ["shell-open"] }
+tauri = { version = "1.2.4", features = [ "dialog-all", "shell-open", "path-all", "fs-all"] }
 colored = "2.0"
 
 [features]
@@ -35,7 +35,7 @@ distDir = "../build"
 [[package.metadata.tauri.embedded-server]]
 name = "python-backend"
 command = "python"
-args = ["../backend/app.py"]
+args = ["../run_server.py"]
 
 [package.metadata.tauri.security]
 csp = "default-src 'self' http://localhost:8989; connect-src 'self' http://localhost:8989 ws://localhost:8989"

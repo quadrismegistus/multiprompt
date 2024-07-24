@@ -77,15 +77,29 @@
       "cost_per_1M_tokens_batched": null
     },
     {
-      "model": "codellama",
+      "model": "ollama/codellama",
       "name": "CodeLlama",
       "category": "Local",
       "cost_per_1M_tokens": null,
       "cost_per_1M_tokens_batched": null
     },
     {
-      "model": "tinyllama",
+      "model": "ollama/tinyllama",
       "name": "TinyLlama",
+      "category": "Local",
+      "cost_per_1M_tokens": null,
+      "cost_per_1M_tokens_batched": null
+    },
+    {
+      "model": "ollama/llama3",
+      "name": "Llama3",
+      "category": "Local",
+      "cost_per_1M_tokens": null,
+      "cost_per_1M_tokens_batched": null
+    },
+    {
+      "model": "ollama/llama3:instruct",
+      "name": "Llama3 Instruct",
       "category": "Local",
       "cost_per_1M_tokens": null,
       "cost_per_1M_tokens_batched": null
