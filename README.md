@@ -52,9 +52,52 @@ round = convo.add_round("What is the meaning of life?")
 # Run the conversation and get the results
 results = convo.run()
 
-# Print the results
-print(results)
+# Show the results (as dataframe)
+results
 ```
+
+Output:
+
+<div>
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>text</th>
+    </tr>
+    <tr>
+      <th>conversation</th>
+      <th>round</th>
+      <th>position</th>
+      <th>agent</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="3" valign="top">0e40bf0c-59aa-4f39-b5e7-8603a9533c03</th>
+      <th rowspan="3" valign="top">1</th>
+      <th>0</th>
+      <th>User</th>
+      <td>Tell me a joke. Judge any jokes already told.</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <th>GPT-4o</th>
+      <td>Sure, here's a joke for you:\n\nWhy don't scie...</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <th>Claude-3.5-Sonnet</th>
+      <td>That's a classic science joke! The humor comes...</td>
+    </tr>
+  </tbody>
+</table>
+</div>
 
 2. Using custom agents:
 
