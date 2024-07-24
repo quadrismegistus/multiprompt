@@ -44,10 +44,10 @@ You can also use multiprompt directly in Python scripts or notebooks. Here are s
 from multiprompt import Conversation, Agent
 
 # Create a conversation with multiple agents
-convo = Conversation(agents=['GPT-4o', 'Claude-3.5-Sonnet', 'Gemini-1.5-Pro'])
+convo = Conversation(agents=['GPT-4o', 'Claude-3.5-Sonnet'])
 
 # Add a round to the conversation
-round = convo.add_round("What is the meaning of life?")
+round = convo.add_round("Tell me a joke. Judge any jokes already told.")
 
 # Run the conversation and get the results
 results = convo.run()
