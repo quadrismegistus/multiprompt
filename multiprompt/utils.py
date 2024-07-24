@@ -74,3 +74,6 @@ def run_async(async_func, *args, **kwargs):
         return loop.run_until_complete(collect_async_generator(async_func(*args, **kwargs)))
     else:
         return loop.run_until_complete(collect_async_generator(async_func(*args, **kwargs)))
+    
+def tokenize_agnostic(txt):
+    return re.findall(r"[\w']+|[.,!?; -—–'\n]", txt)

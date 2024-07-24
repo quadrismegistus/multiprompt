@@ -4,7 +4,7 @@ from .utils import run_async
 from .types import AgentConfig
 from .messages import MessageList
 from abc import ABC, abstractmethod
-
+from copy import copy, deepcopy
 
 class BaseAgent(ABC):
     @abstractmethod
@@ -99,14 +99,18 @@ class AgentModel(BaseAgent):
 
 class AlgorithmicAgent(AgentModel):
     def __init__(
-        self, name: str, algorithm_func: Callable[[MessageList], str], **kwargs
+        self, name: str = None, algorithm_func: Callable[[MessageList], str] = None, **kwargs
     ):
-        self.name = name
+        self.name = name if name else self.__class__.__name__
         self.algorithm_func = algorithm_func
         self.position = kwargs.get("position", 1)
 
     def preprocess_messages(self, messages: MessageList) -> MessageList:
         return messages
+    
+    def run(self, messages:MessageList):
+        if hasattr(self,'algorithm_func') and self.algorithm_func:
+            return self.algorithm_func(messages)
 
     async def generate_async(
         self,
@@ -119,7 +123,7 @@ class AlgorithmicAgent(AgentModel):
         messages = BaseLLM.format_messages(user_prompt_or_messages, system_prompt)
         messages = self.preprocess_messages(messages)
 
-        result = await self._run_algorithm(messages)
+        result = self.run(messages)
 
         for token in result:
             if verbose:
@@ -140,32 +144,54 @@ def Agent(name: str, **kwargs) -> BaseAgent:
         return name
     if kwargs.get("algorithm_func"):
         return AlgorithmicAgent(name=name, **kwargs)
+    if name in get_agents_json():
+        kwargs = {k:v for k,v in get_agents_json()[name].items() if k!='name'}
+
     llm = LLM(kwargs.get("model", DEFAULT_MODEL))
     return AgentModel(name=name, llm=llm, **kwargs)
 
 
 @cache
 def get_agents_json() -> List[Dict[str, Any]]:
+    o={}
     with open(PATH_AGENTS_JSON) as f:
-        return json.load(f)
+        for d in json.load(f):
+            o[d['name']]=d
+    return o
+
 
 
 def parse_agents_list(
-    agents: List[Union[str, Dict[str, Any], List[Union[str, Dict[str, Any]]]]]
-) -> List[Agent]:
+    agents: List[
+        Union[
+            str, Dict[str, Any], BaseAgent, List[Union[str, Dict[str, Any], BaseAgent]]
+        ]
+    ]
+) -> List[BaseAgent]:
     out = []
     for i, agent in enumerate(agents):
         if isinstance(agent, list):
-            for agent2 in agent:
-                if isinstance(agent2, str):
-                    agent2 = {"name": agent2}
-                if "position" not in agent2:
-                    agent2["position"] = i + 1
-                out.append(Agent(**agent2))
+            for j, agent2 in enumerate(agent):
+                if isinstance(agent2, BaseAgent):
+                    # if agent2.position == 1:
+                    agent2.position = i + 1
+                    out.append(agent2)
+                else:
+                    if isinstance(agent2, str):
+                        agent2 = {"name": agent2}
+                    if "position" not in agent2:
+                        agent2["position"] = i + 1
+                    out.append(Agent(**agent2))
         else:
-            if isinstance(agent, str):
-                agent = {"name": agent}
-            if "position" not in agent:
-                agent["position"] = i + 1
-            out.append(Agent(**agent))
+            if isinstance(agent, BaseAgent):
+                # if agent.position == 1:
+                agent = deepcopy(agent)
+                agent.position = i + 1
+                out.append(agent)
+            else:
+                if isinstance(agent, str):
+                    agent = {"name": agent}
+                if "position" not in agent:
+                    agent["position"] = i + 1
+                out.append(Agent(**agent))
     return out
