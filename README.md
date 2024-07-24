@@ -38,7 +38,7 @@ Enter a prompt in the input field and click "Send". The responses from different
 
 You can also use multiprompt directly in Python scripts or notebooks. Here are some examples:
 
-1. Creating a conversation with multiple agents:
+#### 1. Creating a conversation with multiple agents:
 
 ```python
 from multiprompt import Conversation, Agent
@@ -99,7 +99,7 @@ Output:
 </table>
 </div>
 
-2. Using custom agents:
+#### 2. Using 'algorithmic' agents:
 
 ```python
 from multiprompt import AlgorithmicAgent, Conversation
