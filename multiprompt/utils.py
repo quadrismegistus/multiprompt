@@ -77,3 +77,15 @@ def run_async(async_func, *args, **kwargs):
     
 def tokenize_agnostic(txt):
     return re.findall(r"[\w']+|[.,!?; -—–'\n]", txt)
+
+def dirty_json_loads(s, as_list=False):
+    if not "{" in s and "}" in s:
+        return None
+    s = "{" + s.split("{", 1)[-1]
+    s = "}".join(s.split("}")[:-1]) + "}"
+    if as_list:
+        s = "[" + s + "]"
+    return json.loads(s)
+
+def get_response_d(obj):
+    return {'response':obj} if not isinstance(obj,dict) else obj

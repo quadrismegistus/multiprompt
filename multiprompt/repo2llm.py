@@ -118,6 +118,8 @@ class LocalReader(BaseRepoReader):
         self.gitignore_specs = self._parse_gitignores()
 
     def _parse_gitignores(self):
+        from pathspec import PathSpec
+        from pathspec.patterns import GitWildMatchPattern
         gitignore_path = self.root_dir / '.gitignore'
         if gitignore_path.exists():
             with open(gitignore_path, 'r') as f:
