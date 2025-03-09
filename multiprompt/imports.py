@@ -2,6 +2,7 @@ import sys
 sys.path.insert(0,'/Users/ryan/github/hashstash')
 from typing import *
 from .types import *
+from copy import deepcopy
 import sys
 from collections import UserList, UserDict
 import uuid
@@ -16,12 +17,6 @@ import queue
 import warnings
 import pandas as pd
 warnings.filterwarnings('ignore')
-
-import socketio
-from aiohttp import web
-
-logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
-logging.getLogger("httpx").setLevel(logging.WARNING)
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +36,8 @@ litellm.turn_off_message_logging=True
 
 from litellm import acompletion
 import logging
-from fastapi import FastAPI, WebSocket
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
 import base64
 
-# from fastapi.exceptions import WebSocketDisconnect
 import json
 import asyncio
 import logging
@@ -55,7 +46,7 @@ import hashlib
 import os
 import logging
 from pathlib import Path
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import re
 import tempfile
 import shutil
@@ -202,6 +193,6 @@ REPO2LLM_EXTENSIONS = [
 ]
 
 
-from hashstash import HashStash, serialize, progress_bar
+from hashstash import HashStash, serialize, progress_bar, stuff, unstuff, deserialize
 PATH_STASH = os.path.join(PATH_DATA, "stash")
 STASH = stash = HashStash(PATH_STASH, append_mode=True)

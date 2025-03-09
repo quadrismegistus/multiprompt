@@ -11,6 +11,7 @@ class AgentModel:
     temperature: float = DEFAULT_TEMP
     verbose: bool = DEFAULT_AGENT_VERBOSE
     stash: "BaseHashStash" = None
+    output_format = None
     index_by: List[str] = [
         "position",
         "agent",
@@ -33,6 +34,7 @@ class AgentModel:
         model: str = None,
         user_prompt: Optional[str] = None,
         system_prompt: Optional[str] = None,
+        output_format: Optional[str] = None,
         max_tokens: int = None,
         temperature: float = None,
         verbose: bool = None,
@@ -41,15 +43,22 @@ class AgentModel:
     ):
         self.name = name or self.name or self.__class__.__name__
         self.position = position or self.position
-        self.stash = stash or self.stash or STASH
+        self.stash = (stash or self.stash or STASH).sub(self.name)
+        self.output_format = output_format or self.output_format
+        self.user_prompt = user_prompt or self.user_prompt
+        self.model = model or self.model
+        self.system_prompt = system_prompt or self.system_prompt
+        self.max_tokens = max_tokens or self.max_tokens
+        self.temperature = temperature or self.temperature
+        self.verbose = verbose or self.verbose
         self._agent_prompt = prompt or Prompt(
-            model=model or self.model,
-            user_prompt=user_prompt or self.user_prompt,
-            system_prompt=system_prompt or self.system_prompt,
-            max_tokens=max_tokens or self.max_tokens,
-            temperature=temperature or self.temperature,
-            verbose=verbose or self.verbose,
-            stash=stash or self.stash,
+            model=self.model,
+            user_prompt=self.user_prompt,
+            system_prompt=self.system_prompt,
+            max_tokens=self.max_tokens,
+            temperature=self.temperature,
+            verbose=self.verbose,
+            stash=self.stash,
             **kwargs,
         )
         self._prompt = self._agent_prompt
@@ -84,6 +93,23 @@ class AgentModel:
         self._prompts.append(new_prompt)
         return self._prompt
 
+    def _generate(self, user_prompt: Union[str, MessageList], prompt=None, sep="", _force=False, **kwargs):
+        prompt = self.prompt(
+            user_prompt=user_prompt,
+            prompt=prompt,
+            **kwargs,
+        )
+        return prompt.generate(
+            sep=sep,
+            _force=_force,
+        )
+
+    def generate_many_iter(self, user_prompts: List[Union[str, MessageList]], **kwargs):
+        return (self.generate(user_prompt, **kwargs) for user_prompt in tqdm(user_prompts))
+    
+    def generate_many(self, user_prompts: List[Union[str, MessageList]], **kwargs):
+        return list(self.generate_many_iter(user_prompts, **kwargs))
+
     def generate(
         self,
         user_prompt=None,
@@ -94,20 +120,39 @@ class AgentModel:
         repr=False,
         **prompt_kwargs,
     ):
-        prompt = self.prompt(
-            user_prompt=user_prompt,
-            prompt=prompt,
-            **prompt_kwargs,
-        )
-        response = prompt.generate(
-            sep=sep,
-            _force=_force,
-        )
+        response = self._generate(user_prompt, prompt=prompt, sep=sep, _force=_force, **prompt_kwargs)
         if postprocess or repr:
             response = self.postprocess_output(response)
         if repr:
             response = self.represent_output(response)
         return response
+    
+    async def generate_async(
+        self,
+        user_prompt=None,
+        prompt=None,
+        sep="",
+        _force=False,
+        postprocess=False,
+        repr=False,
+        verbose=False,
+        **prompt_kwargs,
+    ):
+        prompt = self.prompt(
+            user_prompt=user_prompt,
+            prompt=prompt,
+            **prompt_kwargs,
+        )
+        async for token in prompt.generate_async(
+            sep=sep,
+            _force=_force,
+        ):
+            if verbose:
+                print(token, end="", flush=True, file=sys.stderr)
+            yield token
+            
+    
+    
 
     def to_dict(self) -> AgentConfig:
         return {
@@ -115,15 +160,26 @@ class AgentModel:
             "position": self.position,
             "prompt": self._prompt.to_dict(),
         }
+    
+    def __hash__(self):
+        return hash(serialize(self.to_dict()))
 
     @property
     def response(self):
         return self._prompt.generate()
-
+    
+    @property
+    def response_forced(self):
+        return self._prompt.generate(_force=True)
+    
     @property
     def result(self):
         return self.postprocess_output(self.response)
-
+    
+    @property
+    def result_forced(self):
+        return self.postprocess_output(self.response_forced)
+    
     @property
     def new_result(self):
         return self.postprocess_output(self.generate(_force=True))
@@ -233,7 +289,8 @@ class AgentModel:
     @classmethod
     def from_dict(cls, data: AgentConfig) -> "AgentModel":
         data["name"] = data.pop("agent", data.get("name"))
-        data["prompt"] = Prompt.from_dict(data["prompt"])
+        if 'prompt' in data:
+            data["prompt"] = Prompt.from_dict(data["prompt"])
         return cls(**data)
 
     def __reduce__(self):
@@ -242,7 +299,11 @@ class AgentModel:
     def preprocess_messages(self, messages: MessageList) -> MessageList:
         return messages
 
-    def postprocess_output(self, output: str):
+    def postprocess_output(self, output: str, user_prompt: Union[str, MessageList] = None, **kwargs):
+        if self.output_format:
+            output_func = globals().get(f'dirty_json_loads_{self.output_format}')
+            if output_func:
+                return output_func(output)
         return output
 
     def assemble_ld(self):
@@ -289,11 +350,24 @@ class AlgorithmicAgent(AgentModel):
         self,
         name: str = None,
         algorithm_func: Callable[[MessageList], str] = None,
+        stash: "BaseHashStash" = None,
         **kwargs,
     ):
         self.name = name if name else self.__class__.__name__
         self.algorithm_func = algorithm_func
         self.position = kwargs.get("position", 1)
+        self.stash = (stash or self.stash or STASH).sub(self.name)
+    def to_dict(self) -> AgentConfig:
+        return {
+            "agent": self.name,
+            "position": self.position,
+            "algorithm_func": stuff(self.algorithm_func),
+        }
+    
+    @classmethod
+    def from_dict(cls, data: AgentConfig) -> "AlgorithmicAgent":
+        data["algorithm_func"] = unstuff(data["algorithm_func"])
+        return cls(**data)
 
     def preprocess_messages(self, messages: MessageList) -> MessageList:
         return messages
@@ -301,6 +375,17 @@ class AlgorithmicAgent(AgentModel):
     def run(self, messages: MessageList):
         if hasattr(self, "algorithm_func") and self.algorithm_func:
             return self.algorithm_func(messages)
+        
+    def _generate(self, user_prompt: Union[str, MessageList], _force=False, **kwargs):
+        txt = user_prompt.get_last_message_txt() if isinstance(user_prompt, MessageList) else user_prompt
+        if not _force and user_prompt in self.stash:
+            return self.stash.get(user_prompt)
+        
+        res = self.run(txt)
+        self.stash.set(user_prompt, res)
+        return res
+        
+        
 
     async def generate_async(
         self,

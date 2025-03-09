@@ -22,31 +22,42 @@ class Prompt:
         self.verbose = verbose
         self.stash = None if stash is False else (STASH if stash is None else stash)
 
-        # prompt attrs
-        if not isinstance(user_prompt,MessageList):
-            self.messages = MessageList.from_prompt(
+        # Store the raw prompts
+        self._user_prompt = user_prompt
+        self._system_prompt = system_prompt
+        self._example_prompts = example_prompts
+        self._attachments = attachments or []
+
+        # Initialize messages
+        if not isinstance(user_prompt, MessageList):
+            self._messages = MessageList.from_prompt(
                 user_prompt=user_prompt,
                 attachments=attachments,
                 system_prompt=system_prompt,
                 example_prompts=example_prompts,
             )
+        else:
+            self._messages = user_prompt
 
+    @property
+    def messages(self):
+        return self._messages
 
     @property
     def user_prompt(self):
-        return self.messages.get_message_content('user')
+        return self._user_prompt
 
     @property
     def system_prompt(self):
-        return self.messages.get_message_content('system')
+        return self._system_prompt
 
     @property
     def example_prompts(self):
-        return self.messages.get_message_content('example')
+        return self._example_prompts
     
     @property
     def attachments(self):
-        return [attachment for msg in self.messages for attachment in msg.get('attachments',[])]
+        return self._attachments
 
     @property
     def assistant_prompt(self):

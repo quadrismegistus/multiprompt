@@ -3,6 +3,12 @@ from .utils import *
 from .conversations import *
 from .repo2llm import *
 
+import socketio
+from aiohttp import web
+
+logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 sio = socketio.AsyncServer(cors_allowed_origins="*", async_mode="aiohttp")
 app = web.Application()
 sio.attach(app)

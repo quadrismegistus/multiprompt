@@ -1,4 +1,25 @@
 from . import *
+# from litellm import Router
+
+# def get_model_list():
+#     with open(PATH_MODELS_JSON, "r") as f:
+#         model_list = json.load(f)
+#     return [{
+#         'model_name': model['name'],
+#         'litellm_params': {
+#             'model': model['model'],
+#             'timeout': 300,
+#             'stream_timeout': 300
+#         }
+#     } for model in model_list]
+
+# model_list = get_model_list()
+
+# router = Router(
+#     model_list=model_list,
+#     timeout=300,
+#     routing_strategy="least-busy"
+# )
 
 
 class BaseLLM(ABC):
@@ -9,6 +30,16 @@ class BaseLLM(ABC):
         self.model = model
         if api_key:
             self.api_key = api_key
+
+    @staticmethod
+    def format_messages(user_prompt: Union[str, 'MessageList'], system_prompt: str = "") -> 'MessageList':
+        if isinstance(user_prompt, MessageList):
+            return user_prompt
+        messages = MessageList()
+        if system_prompt:
+            messages.add_system_message(system_prompt)
+        messages.add_user_message(user_prompt)
+        return messages
 
     async def generate_async(
         self,
@@ -26,6 +57,7 @@ class BaseLLM(ABC):
                 temperature = temperature,
                 api_key=self.api_key,
                 stream=True,
+                timeout=300,
             )
             async for chunk in response:
                 token = chunk.choices[0].delta.content

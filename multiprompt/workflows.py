@@ -6,7 +6,7 @@ class Workflow:
         self.agentd = {}
         for i,agent in enumerate(agents):
             agent = agent.new(position=i+1)
-            self.agentd[agent.name] = agent
+            self.agentd[(agent.position,agent.name)] = agent
         self._run = False
         self._prompt = None
         self.bad_cols = {'verbose','prompt','system_prompt','run'}
