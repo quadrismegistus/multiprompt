@@ -1,18 +1,23 @@
 fastapi
 uvicorn
 python-dotenv
-# anthropic
-# openai
-# google-generativeai
-# ollama
+anthropic
+openai
+google-generativeai
+ollama
 pathspec
 # aiohttp
-sqlitedict
-gitpython
+# sqlitedict
+# gitpython
 pyperclip
 python-socketio 
 eventlet
 nest_asyncio
 litellm
-tabulate
+# tabulate
 jupyter
+hashstash
+# name2nat
+gender-guesser
+pandas
+numpy

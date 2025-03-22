@@ -103,5 +103,12 @@
       "category": "Local",
       "cost_per_1M_tokens": null,
       "cost_per_1M_tokens_batched": null
+    },
+    {
+      "model": "deepseek/deepseek-chat",
+      "name": "DeepSeek Chat",
+      "category": "DeepSeek",
+      "cost_per_1M_tokens": 0.14,
+      "cost_per_1M_tokens_batched": 0.07
     }
   ]

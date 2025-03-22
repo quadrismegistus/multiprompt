@@ -77,3 +77,54 @@ def run_async(async_func, *args, **kwargs):
     
 def tokenize_agnostic(txt):
     return re.findall(r"[\w']+|[.,!?; -—–'\n]", txt)
+
+def dirty_json_loads(s, as_list=False):
+    if not "{" in s and "}" in s:
+        return None
+    s = "{" + s.split("{", 1)[-1]
+    s = "}".join(s.split("}")[:-1]) + "}"
+    if as_list:
+        s = "[" + s + "]"
+    return json.loads(s)
+
+def dirty_json_loads_l(json_str):
+    import json
+    try:
+        output = json_str
+        output = output.strip()
+        output = output.split('```json',1)[-1]
+        output = output.split('```',1)[0]
+        output = output.strip()
+        if '[' in output and ']' not in output:
+            if output.endswith(','): output = output[:-1]
+            output = output + ']'
+        data = json.loads(output)
+        return [data] if not isinstance(data,list) else data
+    except Exception as e:
+        logger.warning(f'{e} ON INPUT {output}')
+        return []
+    
+def dirty_json_loads_ld(json_str):
+    return [d for d in dirty_json_loads_l(json_str) if isinstance(d,dict)]
+
+def dirty_json_loads_d(json_str):
+    import json
+
+    try:
+        output = json_str
+        output = output.strip()
+        output = output.split('```json',1)[-1]
+        output = output.split('```',1)[0]
+        output = output.strip()
+        if '{' in output and '}' not in output:
+            if output.endswith(','): output = output[:-1]
+            output = output + '}'
+        
+        data = json.loads(output)
+        return {"data":data} if not isinstance(data,dict) else data
+    except Exception as e:
+        logger.warning(f'{e} ON INPUT {output}')
+        return {}
+
+def get_response_d(obj):
+    return {'response':obj} if not isinstance(obj,dict) else obj

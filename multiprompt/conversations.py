@@ -10,15 +10,13 @@ class ConversationRound:
     def __init__(
         self,
         conversation: 'ConversationModel',
-        *prompt_args,
-        **prompt_kwargs,
+        user_prompt: str = DEFAULT_USER_PROMPT,
     ):
         self.conversation = conversation
         self.conversation_id = conversation.id
         self.agents = conversation.agents
         self.responses: Dict[Agent, str] = defaultdict(str)
-        self.prompt_args = prompt_args
-        self.prompt_kwargs = prompt_kwargs
+        self.user_prompt = user_prompt
 
     @property
     def i(self) -> int:
@@ -39,58 +37,39 @@ class ConversationRound:
             posd[agent.position].append(agent)
         return [agents for pos, agents in sorted(posd.items())]
 
-    @property
-    def prompt(self) -> MessageList:
-        return BaseLLM.format_messages(*self.prompt_args, **self.prompt_kwargs)
+    # # @property
+    # # def prompt(self) -> Message:
+    # #     return Message(role='user', content=self.user_prompt)
 
-    @property
-    def userprompt_content(self) -> List[dict]:
-        for msg in self.prompt:
-            if msg.get('role') == 'user':
-                return msg.get('content', [])
-        return []
-
-    @property
-    def userprompt_text_content(self) -> List[str]:
-        return [
-            d.get('text')
-            for d in self.userprompt_content
-            if d.get('text')
-        ]
-
-    @property
-    def prompt_str(self) -> Optional[str]:
-        content = self.userprompt_text_content
-        return content[0] if content else None
+    
 
     @property
     def messages(self) -> MessageList:
-        messages = MessageList()
-        for round in self.previous:
-            messages.extend(round.messages)
-        messages.extend(self.prompt)
-        responses = []
-        for agent in sorted(self.responses, key=lambda a: a.position):
-            content = make_ascii_section(
-                f'Response to User by "{agent.name}" AI',
-                self.responses[agent],
-                2,
-            )
-            responses.append(content)
-        if responses:
-            messages.add_user_message("\n".join(responses))
+        messages = MessageList([msg for round in self.previous for msg in round.messages])
+        if self.user_prompt: 
+            messages.add_user_message(self.user_prompt)
+        
+        # responses?
+        # responses = []
+        # for agent,response in sorted(self.responses.items(), key=lambda ar: ar[0].position):
+        #     responses.append(response)
+        # if responses:
+        #     messages.add_user_message("\n\n\n\n".join(responses))
+        for agent,response in sorted(self.responses.items(), key=lambda ar: ar[0].position):
+            messages.add_agent_message(agent, response)
+
         return messages
 
     async def run_async(self) -> AsyncGenerator[Dict[str, Any], None]:
         token_num = 0
-        for cstr in self.userprompt_text_content:
+        for user_msg in self.messages.get_user_messages():
             token_num += 1
             yield dict(
                 round=self.num,
                 position=0,
                 agent='User',
                 token_num=token_num,
-                token=cstr,
+                token=user_msg.text,
                 conversation=self.conversation_id,
             )
 
@@ -145,8 +124,8 @@ class ConversationModel:
         self.rounds: List[ConversationRound] = []
         self.agents = parse_agents_list(agents or [])
 
-    def add_round(self, *prompt_args, **prompt_kwargs) -> ConversationRound:
-        round = ConversationRound(self, *prompt_args, **prompt_kwargs)
+    def add_round(self, user_prompt = DEFAULT_USER_PROMPT) -> ConversationRound:
+        round = ConversationRound(user_prompt=user_prompt, conversation=self)
         self.rounds.append(round)
         return round
 

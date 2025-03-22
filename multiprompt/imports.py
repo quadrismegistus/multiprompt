@@ -1,5 +1,8 @@
+import sys
+sys.path.insert(0,'/Users/ryan/github/hashstash')
 from typing import *
 from .types import *
+from copy import deepcopy
 import sys
 from collections import UserList, UserDict
 import uuid
@@ -15,12 +18,6 @@ import warnings
 import pandas as pd
 warnings.filterwarnings('ignore')
 
-import socketio
-from aiohttp import web
-
-logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
-logging.getLogger("httpx").setLevel(logging.WARNING)
-
 logger = logging.getLogger(__name__)
 
 import os
@@ -32,32 +29,27 @@ load_dotenv()
 
 import asyncio
 import os
+import itertools
 from functools import lru_cache
+import litellm
+litellm.turn_off_message_logging=True
+
 from litellm import acompletion
 import logging
-from fastapi import FastAPI, WebSocket
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
 import base64
 
-# from fastapi.exceptions import WebSocketDisconnect
 import json
 import asyncio
 import logging
 import hashlib
-import sqlitedict
-from celery import Celery
 
 import os
 import logging
 from pathlib import Path
-from tqdm import tqdm
-from pathspec import PathSpec
-from pathspec.patterns import GitWildMatchPattern
+from tqdm.auto import tqdm
 import re
 import tempfile
 import shutil
-from git import Repo
 from urllib.parse import urlparse
 from abc import ABC, abstractmethod
 import fnmatch
@@ -97,7 +89,7 @@ IGNORE_PATHS = {
 
 
 cache = lru_cache(maxsize=None)
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
@@ -163,10 +155,16 @@ DEFAULT_GEMINI_MODEL = next(
 )
 DEFAULT_SUMMARY_MODEL = MODEL_DICT["GPT-4o"]
 DEFAULT_TEMP = 0.7
-DEFAULT_SYSTEM_PROMPT = "With reference to any code or documentation provided, answer the following questions by the user. Show only those lines or functions that were changed, and explain the changes."
+# DEFAULT_SYSTEM_PROMPT = "With reference to any code or documentation provided, answer the following questions by the user. Show only those lines or functions that were changed, and explain the changes."
+DEFAULT_SYSTEM_PROMPT = "Follow any instructions given in the user prompt."
+DEFAULT_USER_PROMPT = "Follow any instructions given in the system prompt."
+DEFAULT_AGENT_VERBOSE = False
 DEFAULT_SUMMARY_SYSTEM_PROMPT = "You are a senior developer reviewing parallel solutions provided by junior developers. Synthesize their output into an elegant, modular, clean, documented solution. Then, display in markdown relevant functions, classes and portions of files which your solution alters from the existing repository."
 DEFAULT_SUMMARY_USER_PROMPT = "Synthesize and summarize these suggested changes, and return a markdown representation of a directory structure of files necessary to change, along with the full functions or code snippets changed under a markdown heading for the filepath under which they appear."
 DEFAULT_INCL_REPO = False
+
+DEFAULT_AGENT_NAME = 'AI'
+
 
 PATH_HOMEDIR = os.path.expanduser("~/.multiprompt")
 PATH_DATA = os.path.join(PATH_HOMEDIR, "data")
@@ -193,3 +191,8 @@ REPO2LLM_EXTENSIONS = [
     ".rs",
     ".ipynb",
 ]
+
+
+from hashstash import HashStash, serialize, progress_bar, stuff, unstuff, deserialize
+PATH_STASH = os.path.join(PATH_DATA, "stash")
+STASH = stash = HashStash(PATH_STASH, append_mode=True)

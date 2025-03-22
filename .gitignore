@@ -1,3 +1,6 @@
+data.*
+*.tsv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -172,3 +175,8 @@ frontend1
 # Local Netlify folder
 .netlify
 static
+
+notebooks/*.csv
+notebooks/*.zip
+
+dev_*.ipynb
